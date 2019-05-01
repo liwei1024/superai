@@ -4,7 +4,12 @@ import win32gui
 import win32ui
 
 import datetime
-from ctypes import windll
+
+CaptureDir = "E:/win/tmp/capture"
+
+WindowClassName = "地下城与勇士"
+
+WindowName = "地下城与勇士"
 
 
 # http://timgolden.me.uk/pywin32-docs/contents.html (官方文档)
@@ -29,19 +34,19 @@ def DesctopCapture():
     memDC.SelectObject(screenshot)
     memDC.BitBlt((0, 0), (w, h), imgDC, (left, top), win32con.SRCCOPY)
 
-    screenshot.SaveBitmapFile(memDC, 'c:\\WINDOWS\\Temp\\screenshot{}.bmp'.format(
-        datetime.datetime.now().strftime("%Y%m%d%H%M%S")))
+    screenshot.SaveBitmapFile(memDC, '{}/screenshot{}.bmp'.format(CaptureDir,
+                                                                  datetime.datetime.now().strftime("%Y%m%d%H%M%S")))
     memDC.DeleteDC()
     win32gui.DeleteObject(screenshot.GetHandle())
 
 
 # https://stackoverflow.com/questions/3586046/fastest-way-to-take-a-screenshot-with-python-on-windows
-def WindowCapture():
-    hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
+def WindowCapture(windowClassName: str, windowName: str):
+    hwnd = win32gui.FindWindow(windowClassName, windowName)
     left, top, right, bot = win32gui.GetWindowRect(hwnd)
     w, h = right - left, bot - top
-    print("DNF窗口 左上角 x:{} y:{} 右下角 x:{} y:{}".format(left, top, right, bot))
-    print("DNF窗口 分辨率: {}x{} ".format(w, h))
+    print("窗口 左上角 x:{} y:{} 右下角 x:{} y:{}".format(left, top, right, bot))
+    print("窗口 分辨率: {}x{} ".format(w, h))
 
     windowDC = win32gui.GetWindowDC(hwnd)
     imgDC = win32ui.CreateDCFromHandle(windowDC)
@@ -51,8 +56,8 @@ def WindowCapture():
     screenshot.CreateCompatibleBitmap(imgDC, w, h)
     memDC.SelectObject(screenshot)
     memDC.BitBlt((0, 0), (w, h), imgDC, (0, 0), win32con.SRCCOPY)
-    screenshot.SaveBitmapFile(memDC, 'c:\\WINDOWS\\Temp\\screenshot{}.bmp'.format(
-        datetime.datetime.now().strftime("%Y%m%d%H%M%S")))
+    screenshot.SaveBitmapFile(memDC, '{}/screenshot{}.bmp'.format(CaptureDir,
+                                                                  datetime.datetime.now().strftime("%Y%m%d%H%M%S")))
     memDC.DeleteDC()
     win32gui.DeleteObject(screenshot.GetHandle())
 
@@ -60,7 +65,7 @@ def WindowCapture():
 def main():
     # GlobalCapture()
 
-    WindowCapture()
+    WindowCapture(WindowClassName, WindowName)
 
 
 if __name__ == "__main__":
