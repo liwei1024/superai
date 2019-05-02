@@ -10,10 +10,16 @@ from superai.screenshots import WindowCaptureToMem
 
 
 def main():
+    if len(sys.argv) < 2:
+        print("usage: {} png".format(sys.argv[0]))
+        exit(0)
+
+    findImg = sys.argv[1]
+
     sift = cv2.xfeatures2d.SIFT_create()
 
-    manImg = cv2.imread("E:/win/tmp/capture/palading.bmp")
-    manKp, manDes = sift.detectAndCompute(manImg, None)
+    findImg = cv2.imread(findImg)
+    findKp, findDes = sift.detectAndCompute(findImg, None)
 
     while True:
         sceneImg = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
@@ -23,7 +29,7 @@ def main():
         searchParams = dict(checks=50)
         flann = cv2.FlannBasedMatcher(indexParams, searchParams)
 
-        matches = flann.knnMatch(manDes, scensDes, k=2)
+        matches = flann.knnMatch(findDes, scensDes, k=2)
         matchesMask = [[0, 0] for i in range(len(matches))]
 
         for i, (m, n) in enumerate(matches):
@@ -35,7 +41,7 @@ def main():
                           matchesMask=matchesMask,
                           flags=0)
 
-        resultImg = cv2.drawMatchesKnn(manImg, manKp, sceneImg, sceneKp, matches, None, **drawParams)
+        resultImg = cv2.drawMatchesKnn(findImg, findKp, sceneImg, sceneKp, matches, None, **drawParams)
 
         cv2.imshow('my img', resultImg)
 

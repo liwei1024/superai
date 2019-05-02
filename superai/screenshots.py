@@ -109,7 +109,7 @@ def WindowCaptureToMem(windowClassName: str, windowName: str, defer):
 
 
 def main():
-    DesktopCaptureToFile("E:/win/tmp/capture")
+    # DesktopCaptureToFile("E:/win/tmp/capture")
 
     WindowCaptureToFile("地下城与勇士", "地下城与勇士", "E:/win/tmp/capture")
 
