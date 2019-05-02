@@ -1,14 +1,16 @@
 import cv2
-
-ImgName = "E:/win/tmp/capture/1.bmp"
+from matplotlib import pyplot as plt
 
 
 def main():
-    img = cv2.imread(ImgName)
+    img = cv2.imread("E:/win/tmp/capture/map_1.bmp")
+
     w, h, channelN = img.shape
     print("w: {} h: {} channel: {}".format(w, h, channelN))
     print("size: {}".format(img.size))
     print("datatype: {}".format(img.dtype))
+
+    # plt.imshow(img), plt.show()
 
     cv2.imshow('my img', img)
     cv2.waitKey()

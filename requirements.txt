@@ -1,2 +1,5 @@
-opencv-python
+opencv-python==3.4.2.16
+opencv-contrib-python==3.4.2.16
+pyautogui===0.9.39
 numpy
+matplotlib
