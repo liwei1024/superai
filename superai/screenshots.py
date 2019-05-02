@@ -1,10 +1,9 @@
 import sys
 import os
 
-import cv2
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+import cv2
 import numpy as np
 import win32api
 import win32con
@@ -110,14 +109,14 @@ def WindowCaptureToMem(windowClassName: str, windowName: str, defer):
 
 
 def main():
-    # DesktopCaptureToFile("E:/win/tmp/capture")
+    DesktopCaptureToFile("E:/win/tmp/capture")
 
-    # WindowCaptureToFile("地下城与勇士", "地下城与勇士", "E:/win/tmp/capture")
+    WindowCaptureToFile("地下城与勇士", "地下城与勇士", "E:/win/tmp/capture")
 
-    img = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
-    cv2.imshow('my img', img)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
+    # img = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
+    # cv2.imshow('my img', img)
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":

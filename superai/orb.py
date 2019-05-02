@@ -1,24 +1,37 @@
+import sys
+import os
+import time
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
+
 import cv2
-from matplotlib import pyplot as plt
+
+from superai.screenshots import WindowCaptureToMem
 
 
 def main():
-    man = cv2.imread("E:/win/tmp/capture/man.bmp")
-    map1_1 = cv2.imread("E:/win/tmp/capture/map_1.bmp")
-
     orb = cv2.ORB_create()
-
-    kp1, des1 = orb.detectAndCompute(man, None)
-    kp2, des2 = orb.detectAndCompute(map1_1, None)
-
     bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
-    matches = bf.match(des1, des2)
 
-    matches = sorted(matches, key=lambda x: x.distance)
+    manImg = cv2.imread("E:/win/tmp/capture/palading.bmp")
+    manKp, manDes = orb.detectAndCompute(manImg, None)
 
-    resultImg = cv2.drawMatches(man, kp1, map1_1, kp2, matches[:25], map1_1, flags=2)
+    while True:
+        sceneImg = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
+        sceneKp, scensDes = orb.detectAndCompute(sceneImg, None)
 
-    plt.imshow(resultImg), plt.show()
+        matches = bf.match(manDes, scensDes)
+        matches = sorted(matches, key=lambda x: x.distance)
+        resultImg = cv2.drawMatches(manImg, manKp, sceneImg, sceneKp, matches[:25], sceneImg, flags=2)
+
+        cv2.imshow('my img', resultImg)
+
+        if (cv2.waitKey(30) & 0xFF) in [ord('q'), 27]:
+            break
+
+        time.sleep(0.1)
+
+    cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":

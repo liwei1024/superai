@@ -10,7 +10,8 @@ def main():
     print("size: {}".format(img.size))
     print("datatype: {}".format(img.dtype))
 
-    # plt.imshow(img), plt.show()
+    # plt.imshow(img)
+    # plt.show()
 
     cv2.imshow('my img', img)
     cv2.waitKey()
