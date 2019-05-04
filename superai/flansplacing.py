@@ -61,7 +61,18 @@ def main():
         # <class 'numpy.ndarray'>
         # print(type(dst_pts))
 
-        newimg = cv2.warpPerspective(img2, M, (800, 600))
+        # newimg = cv2.warpPerspective(img1, M, (800, 600))
+
+        h, w, _ = img1.shape
+        rect1 = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2) # 行数未知, 1列, 2个维度
+        print("矩形1: {}".format(rect1))
+        rect2 = cv2.perspectiveTransform(rect1, M)
+
+        print("矩形2(变换后): {}".format([np.int32(rect2)]))
+        # newimg = cv2.polylines(img2, [np.int32(rect2)], True, [51, 153, 255], 1, cv2.LINE_8)
+
+        newimg = cv2.warpPerspective()
+
 
         cv2.imshow('my img', newimg)
         cv2.waitKey()
@@ -69,10 +80,9 @@ def main():
 
         exit(0)
 
-        # h, w = img1.shape
+        # 画方框
+        # h, w, _ = img1.shape
         # pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
-
-        # 透视变换
         # dst = cv2.perspectiveTransform(pts, M)
         # img2 = cv2.polylines(img2, [np.int32(dst)], True, 255, 3, cv2.LINE_AA)
 
