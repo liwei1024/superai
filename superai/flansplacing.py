@@ -40,13 +40,13 @@ def main():
 
     if len(good) > MIN_MATCH_COUNT:
         # src 特征点
-        src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
+        img2_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
 
         # dst 特征点
-        dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
+        img1_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
 
-        # 计算出关键点的变换
-        M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+        # img2 相对于 img1的 变换, 计算出关键点的变换
+        M, mask = cv2.findHomography(img2_pts, img1_pts, cv2.RANSAC, 5.0)
 
         print("变换矩阵:\n {}".format(M))
 
@@ -63,15 +63,15 @@ def main():
 
         # newimg = cv2.warpPerspective(img1, M, (800, 600))
 
-        h, w, _ = img1.shape
-        rect1 = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2) # 行数未知, 1列, 2个维度
-        print("矩形1: {}".format(rect1))
-        rect2 = cv2.perspectiveTransform(rect1, M)
+        h, w, _ = img2.shape
+        rect2 = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2) # 行数未知, 1列, 2个维度
+        print("矩形2: {}".format(rect2))
+        rect2 = cv2.perspectiveTransform(rect2, M)
 
         print("矩形2(变换后): {}".format([np.int32(rect2)]))
-        # newimg = cv2.polylines(img2, [np.int32(rect2)], True, [51, 153, 255], 1, cv2.LINE_8)
+        newimg = cv2.polylines(img1, [np.int32(rect2)], True, [51, 153, 255], 1, cv2.LINE_8)
 
-        newimg = cv2.warpPerspective()
+        # newimg = cv2.warpPerspective()
 
 
         cv2.imshow('my img', newimg)
