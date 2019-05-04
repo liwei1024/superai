@@ -6,6 +6,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import numpy as np
 
+import threading
+
 from matplotlib import pyplot as plt
 
 from superai.screenshots import WindowCaptureToMem
@@ -13,20 +15,25 @@ import cv2
 
 MIN_MATCH_COUNT = 10
 
+TEST = False
 
 def main():
-    TEST = False
+    global TEST
 
     if len(sys.argv) > 1:
         if sys.argv[1] == "test":
             TEST = True
 
+    imgAlready = None
+
     while True:
+        if imgAlready is None:
+            a = input("初始图片,press any key")
+            img1 = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
+        else:
+            img1 = imgAlready
 
-        a = input("截图1, any key")
-        img1 = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
-
-        b = input("截图2, any key")
+        b = input("拼接图片, press any key")
         img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
 
         # img1 = cv2.imread("E:/win/tmp/capture/1.bmp")
@@ -96,6 +103,8 @@ def main():
                 tranminh = min(img1h, newimgh)
 
                 newimg[0:tranminh, 0:tranminw] = img1[0:tranminh, 0:tranminw]
+
+                imgAlready = newimg
 
                 cv2.imshow('my img', newimg)
                 cv2.waitKey()
