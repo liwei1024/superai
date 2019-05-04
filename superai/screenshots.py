@@ -58,7 +58,7 @@ def WindowCaptureToFile(windowClassName: str, windowName: str, captureDir: str, 
     # print("窗口 左上角 x:{} y:{} 右下角 x:{} y:{}, 分辨率: {}x{}".format(left, top, right, bot, w, h))
 
     # DNF
-    h = 520
+    h = 530
 
     windowDC = win32gui.GetWindowDC(hwnd)
     defer(lambda: (win32gui.ReleaseDC(hwnd, windowDC)))
@@ -88,7 +88,7 @@ def WindowCaptureToMem(windowClassName: str, windowName: str, defer):
     w, h = right - left, bot - top
 
     # DNF
-    h = 520
+    h = 530
 
     windowDC = win32gui.GetWindowDC(hwnd)
     defer(lambda: (win32gui.ReleaseDC(hwnd, windowDC)))
