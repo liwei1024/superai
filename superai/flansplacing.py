@@ -17,6 +17,7 @@ MIN_MATCH_COUNT = 10
 
 TEST = False
 
+
 def main():
     global TEST
 
@@ -28,12 +29,22 @@ def main():
 
     while True:
         if imgAlready is None:
-            a = input("初始图片,press any key")
+            a = input("初始图片,press any key\n")
             img1 = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
         else:
             img1 = imgAlready
 
-        b = input("拼接图片, press any key")
+        b = input("p=拼接图片, s=存储图片\n")
+        if b.lower() == 's':
+            # TODO 小地图矩形判断场景数 + 位置 + 当前是第几个图
+            a = input("input sceneidx x y\n")
+            num, x, y = [t(s) for t, s in zip((int, int, int), a.split())]
+            saveImgName = "E:/win/studio/dxf/picture/001_005_yaml/sceneA_{}_{}_{}.png".format(num, x, y)
+            cv2.imwrite(saveImgName, imgAlready, [int(cv2.IMWRITE_PNG_COMPRESSION)])
+            print("图片: {} 存储成功".format(saveImgName))
+            imgAlready = None
+            continue
+
         img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
 
         # img1 = cv2.imread("E:/win/tmp/capture/1.bmp")
@@ -106,9 +117,9 @@ def main():
 
                 imgAlready = newimg
 
-                cv2.imshow('my img', newimg)
-                cv2.waitKey()
-                cv2.destroyAllWindows()
+                # cv2.imshow('my img', newimg)
+                # cv2.waitKey()
+                # cv2.destroyAllWindows()
 
                 continue
             else:
