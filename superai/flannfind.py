@@ -4,7 +4,6 @@ import time
 
 import numpy as np
 
-from matplotlib import pyplot as plt
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 

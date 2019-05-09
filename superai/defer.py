@@ -19,11 +19,8 @@ def defer(func):
 # @defer
 # def main(defer):
 #     file = open('test.txt', 'w+')
-#     defer(lambda: (file.close(),
-#                    print(123)))
-#
-#     defer(lambda: print(456))
-#
-#
+#     defer(lambda: (file.close())
+
+
 # if __name__ == "__main__":
 #     main()

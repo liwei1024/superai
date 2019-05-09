@@ -8,7 +8,6 @@ import numpy as np
 
 import threading
 
-from matplotlib import pyplot as plt
 
 from superai.screenshots import WindowCaptureToMem
 import cv2
