@@ -36,10 +36,13 @@ def main():
         b = input("p=拼接图片, s=存储图片\n")
         if b.lower() == 's':
             # TODO 小地图矩形判断场景数 + 位置 + 当前是第几个图
-            a = input("input sceneidx x y\n")
-            num, x, y = [t(s) for t, s in zip((int, int, int), a.split())]
-            saveImgName = "E:/win/studio/dxf/picture/001_005_yaml/sceneA_{}_{}_{}.png".format(num, x, y)
-            cv2.imwrite(saveImgName, imgAlready, [int(cv2.IMWRITE_PNG_COMPRESSION)])
+            a = input("input idx\n")
+            # num,  = [t(s) for t, s in zip((int), a.split())]
+
+            num = a
+
+            saveImgName = "E:/win/studio/dxf/picture/001_005_yaml/sceneA_{}.jpg".format(num)
+            cv2.imwrite(saveImgName, imgAlready, [int(cv2.IMWRITE_JPEG_QUALITY), 90])
             print("图片: {} 存储成功".format(saveImgName))
             imgAlready = None
             continue
