@@ -1,11 +1,13 @@
 import sys
 import os
 
+from win32api import Sleep
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from ctypes import *
 
-lib = CDLL("E:/win/reference/project/xxiii/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
+lib = CDLL("E:/win/reference/project/xxiii/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
 
 
 class XY(Structure):
@@ -15,36 +17,27 @@ class XY(Structure):
 
 class OBJ(Structure):
     _fields_ = [
-        ("object", c_int),
-        ("type", c_int),
-        ("zhenying", c_int),
+        ("object", c_int32),
+        ("type", c_int32),
+        ("zhenying", c_int32),
         ("x", c_float),
         ("y", c_float),
-        ("name", c_char * 64),
+        ("name", c_char * 60)
     ]
 
     def __str__(self):
-        return "对象: %08X 类型: %04X 阵营: %04X  坐标:(%.0f,%.0f) 名称: %s" % \
-               (self.object, self.type, self.zhenying, self.x, self.y, str(self.name))
-
-
-class OBJArray(Structure):
-    _fields_ = [
-        ("count", c_int),
-        ("obj", OBJ * 10),
-    ]
+        return "对象: %08X 类型: %04X 阵营: %04X  名称: %s 坐标:(%.0f,%.0f) " % \
+               (self.object & 0xffffffff, self.type, self.zhenying, self.name.decode("gbk"), self.x, self.y)
 
 
 lib.Init.argtypes = []
 lib.Init.restype = c_bool
 
 lib.GetManXY.argtypes = [POINTER(XY)]
-lib.GetManXY.restype = c_bool
 
-lib.GetObjArray.argtypes = []
-lib.GetObjArray.restype = POINTER(OBJArray)
+lib.GetObjArray.argtypes = [POINTER(POINTER(OBJ)), POINTER(c_int)]
 
-lib.FreeObjArray.argtypes = [POINTER(OBJArray)]
+lib.FreeObjArray.argtypes = [POINTER(OBJ)]
 
 
 def main():
@@ -53,21 +46,20 @@ def main():
     else:
         print("Init err")
 
-    xy = XY()
+    while True:
+        Sleep(1000)
 
-    lib.GetManXY(byref(xy))
+        xy = XY()
+        lib.GetManXY(pointer(xy))
+        print("人物坐标: [{0},{1}]".format(xy.x, xy.y))
 
-    print("人物坐标: [{0},{1}]".format(xy.x, xy.y))
+        objarray = POINTER(OBJ)()
+        count = c_int(0)
+        lib.GetObjArray(pointer(objarray), pointer(count))
+        for i in range(count.value):
+            print(objarray[i])
 
-    objArray = lib.GetObjArray()
-
-    array = cast(byref(objArray.obj), POINTER(OBJ * objArray.count)).contents
-
-    print(array[1])
-    # for val in array:
-    #     print(val)
-
-    lib.FreeObjArray(objArray)
+        lib.FreeObjArray(objarray)
 
 
 if __name__ == "__main__":
