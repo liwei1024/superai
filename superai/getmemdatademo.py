@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from ctypes import *
 
-lib = CDLL("E:/win/reference/project/xxiii/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
+lib = CDLL("E:/win/reference/project/xxiii/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
 
 
 class XY(Structure):
@@ -48,6 +48,7 @@ def main():
 
     while True:
         Sleep(1000)
+
 
         xy = XY()
         lib.GetManXY(pointer(xy))

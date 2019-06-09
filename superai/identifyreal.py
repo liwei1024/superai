@@ -210,7 +210,7 @@ def getNames(metaPath: str) -> [str]:
         result = match.group(1)
         if os.path.exists(result):
             with open(result) as fnames:
-                namesList = fnames.read().strip().split("/n")
+                namesList = fnames.read().strip().split("\n")
                 altNames = [x.strip() for x in namesList]
     return altNames
 
