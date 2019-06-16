@@ -26,7 +26,7 @@ class OBJ(Structure):
     ]
 
     def __str__(self):
-        return "对象: %08X 类型: %04X 阵营: %04X  名称: %s 坐标:(%.0f,%.0f) " % \
+        return "对象: 0x%08X 类型: 0x%X 阵营: 0x%X 名称: %s 坐标:(%.0f,%.0f) " % \
                (self.object & 0xffffffff, self.type, self.zhenying, self.name.decode("gbk"), self.x, self.y)
 
 
@@ -34,10 +34,9 @@ lib.Init.argtypes = []
 lib.Init.restype = c_bool
 
 lib.GetManXY.argtypes = [POINTER(XY)]
-
 lib.GetObjArray.argtypes = [POINTER(POINTER(OBJ)), POINTER(c_int)]
 
-lib.FreeObjArray.argtypes = [POINTER(OBJ)]
+lib.Free.argtypes = [c_void_p]
 
 
 def main():
@@ -49,7 +48,6 @@ def main():
     while True:
         Sleep(1000)
 
-
         xy = XY()
         lib.GetManXY(pointer(xy))
         print("人物坐标: [{0},{1}]".format(xy.x, xy.y))
@@ -60,7 +58,7 @@ def main():
         for i in range(count.value):
             print(objarray[i])
 
-        lib.FreeObjArray(objarray)
+        lib.FreeObjArray(c_void_p(objarray))
 
 
 if __name__ == "__main__":
