@@ -58,7 +58,7 @@ def main():
         for i in range(count.value):
             print(objarray[i])
 
-        lib.FreeObjArray(c_void_p(objarray))
+        lib.Free(objarray)
 
 
 if __name__ == "__main__":
