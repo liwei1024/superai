@@ -95,12 +95,29 @@ def testkeyboard():
     pass
 
 
+h = None
+x = None
+
+
+def YijianshuInit() -> bool:
+    global h
+    global x
+
+    h = lib.M_Open(1)
+    x = c_void_p(h)
+    return h != 0
+
+
+def AttackPress():
+    lib.M_KeyPress2(h, VK_CODE["x"], 1)
+
+
 def main():
     h = lib.M_Open(1)
     x = c_void_p(h)
     print("handle: %x , %s" % (x.value, type(x)))
     time.sleep(3)
-    lib.M_KeyPress2(h, VK_CODE["a"], 5)
+    lib.M_KeyPress2(h, VK_CODE["x"], 5)
     lib.M_ResetMousePos(x)
 
 

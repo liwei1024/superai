@@ -20,6 +20,26 @@ class Header(Structure):
                 ("type", c_uint32)]
 
 
+def MoveCall(x: int, y: int):
+    zuobiaomsg = ZuoBiaoMsg()
+    zuobiaomsg.x = x
+    zuobiaomsg.y = y
+
+    header = Header()
+    header.len = len(bytes(zuobiaomsg))
+    header.type = 1
+
+    with open("C:\\xxiii\\ipc", "wb+") as f:
+        hfile = win32file._get_osfhandle(f.fileno())
+
+        win32file.LockFileEx(
+            hfile,
+            win32con.LOCKFILE_EXCLUSIVE_LOCK, 0, 0xffffffff, pywintypes.OVERLAPPED())
+        f.write(bytes(header))
+        f.write(bytes(zuobiaomsg))
+        win32file.UnlockFileEx(hfile, 0, 0xffffffff, pywintypes.OVERLAPPED())
+
+
 def main():
     zuobiaomsg = ZuoBiaoMsg()
     zuobiaomsg.x = 100
