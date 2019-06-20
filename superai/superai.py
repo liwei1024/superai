@@ -51,12 +51,12 @@ def main():
         # 锁定怪物
         curMon = monsters[0]
         while True:
-            Sleep(200)
+            Sleep(50)
             curMon = GetMonster(curMon)
             if curMon is None:
                 break
             MoveCall(int(curMon.x), int(curMon.y))
-            Sleep(50)
+            Sleep(30)
             AttackPress()
 
         Sleep(300)
