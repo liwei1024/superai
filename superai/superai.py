@@ -40,24 +40,28 @@ def main():
             key=lambda mon: distance(manx, many, mon.x, mon.y)
         )
 
+        # 取最大x
+        # print(max(monsters, key=lambda mon: int(mon.x)).x)
+
         for mon in monsters:
             print("距离: {} {}".format(distance(manx, many, mon.x, mon.y), mon))
 
         # 没有怪物了
-        if len(monsters) < 1:
-            break
+        if len(monsters) > 0:
+            # 锁定怪物
+            curMon = monsters[0]
+            while True:
+                Sleep(50)
+                curMon = GetMonster(curMon)
+                if curMon is not None:
+                    MoveCall(int(curMon.x), int(curMon.y))
+                    Sleep(30)
+                    AttackPress()
+                else:
+                    break
+        else:
             # TODO 找图, 过图
-
-        # 锁定怪物
-        curMon = monsters[0]
-        while True:
-            Sleep(50)
-            curMon = GetMonster(curMon)
-            if curMon is None:
-                break
-            MoveCall(int(curMon.x), int(curMon.y))
-            Sleep(30)
-            AttackPress()
+            pass
 
         Sleep(300)
 
