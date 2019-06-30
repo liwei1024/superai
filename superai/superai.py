@@ -103,8 +103,6 @@ class Player:
             if self.KeyDowned():
                 if self.latestDown == quad:
                     print("seek: 目标(%.f, %.f)在%s, 维持" % (objx, objy, quad.name))
-                # elif self.SwitchFangxiang(quad):
-                #     print("seek: 目标(%.f, %.f)在%s, 去掉一个方向的速度" % (objx, objy, quad.name))
                 else:
                     print("seek: 目标(%.f, %.f)在%s, 更换方向" % (objx, objy, quad.name))
                     self.UpLatestKey()
@@ -145,55 +143,6 @@ class Player:
             JiPaoYou()
 
         self.injipao = True
-
-    # 疾跑斜方向象限移动到水平或垂直位置时. 保留一个方向的速度. 并按键弹起释放另一个方向的速度
-    # def SwitchFangxiang(self, quad) -> bool:
-    #     if not self.KeyDowned():
-    #         return False
-    #     if self.latestDown == quad:
-    #         return False
-    #
-    #     if self.latestDown == Quardant.ZUOSHANG:
-    #         if quad == Quardant.ZUO:
-    #             UpSHANG()
-    #             self.latestDown = Quardant.ZUO
-    #         elif quad == Quardant.SHANG:
-    #             UpZUO()
-    #             self.latestDown = Quardant.SHANG
-    #         else:
-    #             return False
-    #
-    #     if self.latestDown == Quardant.YOUSHANG:
-    #         if quad == Quardant.YOU:
-    #             UpSHANG()
-    #             self.latestDown = Quardant.YOU
-    #         elif quad == Quardant.SHANG:
-    #             UpYOU()
-    #             self.latestDown = Quardant.SHANG
-    #         else:
-    #             return False
-    #
-    #     if self.latestDown == Quardant.ZUOXIA:
-    #         if quad == Quardant.ZUO:
-    #             UpXIA()
-    #             self.latestDown = Quardant.ZUO
-    #         elif quad == Quardant.XIA:
-    #             UpZUO()
-    #             self.latestDown = Quardant.XIA
-    #         else:
-    #             return False
-    #
-    #     if self.latestDown == Quardant.YOUXIA:
-    #         if quad == Quardant.YOU:
-    #             UpXIA()
-    #             self.latestDown = Quardant.YOU
-    #         elif quad == Quardant.XIA:
-    #             UpYOU()
-    #             self.latestDown = Quardant.XIA
-    #         else:
-    #             return False
-    #
-    #     return True
 
     # 键已经按过
     def KeyDowned(self):
