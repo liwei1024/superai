@@ -12,11 +12,11 @@ import math
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressRight, \
-    PressLeft, JiPaoZuo, JiPaoYou, PressAtack
+    PressLeft, JiPaoZuo, JiPaoYou, PressAtack, ReleaseAllKey
 
 from superai.gameapi import GameApiInit, FlushPid, PrintMenInfo, PrintMapInfo, PrintSkillObj, PrintNextMen, PrintMapObj, \
     GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, IsClosed, GetFangxiang, \
-    GetMenChaoxiang, RIGHT, WithInDistance, WithInDistanceExtra, Skills
+    GetMenChaoxiang, RIGHT, WithInDistance, WithInDistanceExtra, Skills, UpdateMonsterInfo, LEFT
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -89,7 +89,7 @@ class Player:
 
             # 上一次的按键恢复
             self.UpLatestKey()
-            # self.ChaoxiangFangxiang(menx, objx)
+            self.ChaoxiangFangxiang(menx, objx)
 
         else:
             quad = GetQuadrant(menx, meny, objx, objy)
@@ -101,14 +101,14 @@ class Player:
                   (quad.name, withined, jipao, dis, kuandu, changdu))
 
             if self.KeyDowned():
-                # 疾跑
                 if self.latestDown == quad:
                     print("seek: 目标(%.f, %.f)在%s, 维持" % (objx, objy, quad.name))
-                elif self.SwitchFangxiang(quad):
-                    print("seek: 目标(%.f, %.f)在%s, 去掉一个方向的速度" % (objx, objy, quad.name))
+                # elif self.SwitchFangxiang(quad):
+                #     print("seek: 目标(%.f, %.f)在%s, 去掉一个方向的速度" % (objx, objy, quad.name))
                 else:
                     print("seek: 目标(%.f, %.f)在%s, 更换方向" % (objx, objy, quad.name))
                     self.UpLatestKey()
+
                     if jipao:
                         self.KeyJiPao(quad)
                     self.DownKey(quad)
@@ -121,19 +121,24 @@ class Player:
 
     def ChaoxiangFangxiang(self, menx, objx):
         # 是否面向对方
-        if not GetFangxiang(menx, objx) == GetMenChaoxiang():
+
+        guaiwuweizhi = GetFangxiang(menx, objx)
+        renwufangxiang = GetMenChaoxiang()
+
+        if guaiwuweizhi != renwufangxiang:
             # 调整朝向
-            if GetFangxiang(menx, objx) == RIGHT:
-                PressRight()
-            else:
+            if renwufangxiang == RIGHT and guaiwuweizhi == LEFT:
+                print("调整朝向 人物: %d 怪物: %d, 向左调整" % (renwufangxiang, guaiwuweizhi))
                 PressLeft()
+            else:
+                print("调整朝向 人物: %d 怪物: %d, 向右调整" % (renwufangxiang, guaiwuweizhi))
+                PressRight()
 
     # 开启疾跑状态
     def KeyJiPao(self, quad):
         if self.injipao:
             return
-
-        if quad in [Quardant.ZUO, Quardant.SHANG, Quardant.XIA, Quardant.ZUOSHANG, Quardant.ZUOXIA]:
+        if quad in [Quardant.ZUO, Quardant.ZUOSHANG, Quardant.ZUOXIA, Quardant.SHANG, Quardant.XIA]:
             JiPaoZuo()
 
         if quad in [Quardant.YOU, Quardant.YOUSHANG, Quardant.YOUXIA]:
@@ -142,53 +147,53 @@ class Player:
         self.injipao = True
 
     # 疾跑斜方向象限移动到水平或垂直位置时. 保留一个方向的速度. 并按键弹起释放另一个方向的速度
-    def SwitchFangxiang(self, quad) -> bool:
-        if not self.KeyDowned():
-            return False
-        if self.latestDown == quad:
-            return False
-
-        if self.latestDown == Quardant.ZUOSHANG:
-            if quad == Quardant.ZUO:
-                UpSHANG()
-                self.latestDown = Quardant.ZUO
-            elif quad == Quardant.SHANG:
-                UpZUO()
-                self.latestDown = Quardant.SHANG
-            else:
-                return False
-
-        if self.latestDown == Quardant.YOUSHANG:
-            if quad == Quardant.YOU:
-                UpSHANG()
-                self.latestDown = Quardant.YOU
-            elif quad == Quardant.SHANG:
-                UpYOU()
-                self.latestDown = Quardant.SHANG
-            else:
-                return False
-
-        if self.latestDown == Quardant.ZUOXIA:
-            if quad == Quardant.ZUO:
-                UpXIA()
-                self.latestDown = Quardant.ZUO
-            elif quad == Quardant.XIA:
-                UpZUO()
-                self.latestDown = Quardant.XIA
-            else:
-                return False
-
-        if self.latestDown == Quardant.YOUXIA:
-            if quad == Quardant.YOU:
-                UpXIA()
-                self.latestDown = Quardant.YOU
-            elif quad == Quardant.XIA:
-                UpYOU()
-                self.latestDown = Quardant.XIA
-            else:
-                return False
-
-        return True
+    # def SwitchFangxiang(self, quad) -> bool:
+    #     if not self.KeyDowned():
+    #         return False
+    #     if self.latestDown == quad:
+    #         return False
+    #
+    #     if self.latestDown == Quardant.ZUOSHANG:
+    #         if quad == Quardant.ZUO:
+    #             UpSHANG()
+    #             self.latestDown = Quardant.ZUO
+    #         elif quad == Quardant.SHANG:
+    #             UpZUO()
+    #             self.latestDown = Quardant.SHANG
+    #         else:
+    #             return False
+    #
+    #     if self.latestDown == Quardant.YOUSHANG:
+    #         if quad == Quardant.YOU:
+    #             UpSHANG()
+    #             self.latestDown = Quardant.YOU
+    #         elif quad == Quardant.SHANG:
+    #             UpYOU()
+    #             self.latestDown = Quardant.SHANG
+    #         else:
+    #             return False
+    #
+    #     if self.latestDown == Quardant.ZUOXIA:
+    #         if quad == Quardant.ZUO:
+    #             UpXIA()
+    #             self.latestDown = Quardant.ZUO
+    #         elif quad == Quardant.XIA:
+    #             UpZUO()
+    #             self.latestDown = Quardant.XIA
+    #         else:
+    #             return False
+    #
+    #     if self.latestDown == Quardant.YOUXIA:
+    #         if quad == Quardant.YOU:
+    #             UpXIA()
+    #             self.latestDown = Quardant.YOU
+    #         elif quad == Quardant.XIA:
+    #             UpYOU()
+    #             self.latestDown = Quardant.XIA
+    #         else:
+    #             return False
+    #
+    #     return True
 
     # 键已经按过
     def KeyDowned(self):
@@ -206,9 +211,10 @@ class Player:
     # 恢复之前按的键
     def UpLatestKey(self):
         if self.KeyDowned():
-            QuadKeyUpMap[self.latestDown]()
-            self.ResetKey()
+            # QuadKeyUpMap[self.latestDown]()
 
+            ReleaseAllKey()
+            self.ResetKey()
             # 疾跑 -> 八方位移动.  恢复站立状态 -> 疾跑状态关闭
             self.injipao = False
 
@@ -227,19 +233,48 @@ class StandState(State):
 
 # 靠近并攻击怪物
 class SeekAndAttackMonster(State):
+    selectedMonster = None
+
     def Execute(self, player):
-        obj = NearestMonster()
+
+        # 更新选中怪物信息
+        if self.selectedMonster is not None:
+            self.selectedMonster = UpdateMonsterInfo(self.selectedMonster)
+
+        # 如果选中的怪物死亡了, 或者没有选中怪物
+        if self.selectedMonster is None:
+            obj = NearestMonster()
+            self.selectedMonster = obj
+        else:
+            obj = self.selectedMonster
+
+        if obj.hp < 1:
+            return
 
         objx, objy = obj.x, obj.y
         menx, meny = GetMenXY()
         if IsClosed(menx, meny, objx, objy):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
+
+            # 朝向更新
             player.ChaoxiangFangxiang(menx, objx)
 
             print("SeekAndAttackMonster: 开始攻击 %.f, %.f" % (objx, objy))
 
+            time.sleep(0.08)
             PressAtack()
+
+            # 普通攻击后判断一下血量
+            newobj = UpdateMonsterInfo(obj)
+            if newobj is None or newobj.hp < 1:
+                return
+
+            # 普通攻击后判断一下朝向
+            objx, objy = newobj.x, newobj.y
+            menx, meny = GetMenXY()
+            player.ChaoxiangFangxiang(menx, objx)
+
             skill = player.skills.GetMaxLevelAttackSkill()
             if skill is not None:
                 print("使用技能 %s" % skill.name)
@@ -269,6 +304,7 @@ def main():
         exit(0)
 
     FlushPid()
+    ReleaseAllKey()
 
     hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
     win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,

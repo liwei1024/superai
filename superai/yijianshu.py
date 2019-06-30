@@ -35,6 +35,10 @@ lib.M_KeyDown2.restype = c_int
 lib.M_KeyUp2.argtypes = [c_void_p, c_int]
 lib.M_KeyUp2.restype = c_int
 
+# 弹起所有按键
+lib.M_ReleaseAllKey.argtypes = [c_void_p]
+lib.M_KeyUp2.restype = c_int
+
 # 读取按键状态
 lib.M_KeyState2.argtypes = [c_void_p, c_int]
 lib.M_KeyState2.restype = c_int
@@ -108,22 +112,28 @@ def YijianshuInit() -> bool:
     return h != 0
 
 
+def ReleaseAllKey():
+    lib.M_ReleaseAllKey(h, x)
+
+
 def JiPaoYou():
+    time.sleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    time.sleep(0.15)
+    time.sleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
     time.sleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    time.sleep(0.05)
+    time.sleep(0.1)
 
 
 def JiPaoZuo():
+    time.sleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    time.sleep(0.15)
+    time.sleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
     time.sleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    time.sleep(0.05)
+    time.sleep(0.1)
 
 
 # 八方位移动
@@ -201,25 +211,30 @@ def UpYOUXIA():
 
 
 def PressRight():
-    lib.M_KeyPress2(h, VK_CODE["right_arrow"], 1)
+    lib.M_KeyDown2(h, VK_CODE["right_arrow"])
+    time.sleep(0.20)
+    lib.M_KeyUp2(h, VK_CODE["right_arrow"])
 
 
 def PressLeft():
-    lib.M_KeyPress2(h, VK_CODE["left_arrow"], 1)
+    lib.M_KeyDown2(h, VK_CODE["left_arrow"])
+    time.sleep(0.20)
+    lib.M_KeyUp2(h, VK_CODE["left_arrow"])
 
 
-def PressSkill(key, delay=0.1, afterdelay=0.15):
+def PressSkill(key, delay=0.1, afterdelay=0.35):
     lib.M_KeyDown2(h, key)
     time.sleep(delay)
     lib.M_KeyUp2(h, key)
     time.sleep(afterdelay)
 
 
-def PressAtack(deay=0.8, afterdealy=0.15):
+def PressAtack(deay=1, afterdealy=0.25):
     lib.M_KeyDown2(h, VK_CODE["x"])
     time.sleep(deay)
     lib.M_KeyUp2(h, VK_CODE["x"])
     time.sleep(afterdealy)
+
 
 def TestAttackPress():
     lib.M_KeyPress2(h, VK_CODE["x"], 1)

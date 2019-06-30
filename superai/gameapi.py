@@ -266,7 +266,7 @@ def IsClosedExtra(x1, y1, x2, y2):
     kuandu = abs(y1 - y2)
     changdu = abs(x1 - x2)
 
-    if kuandu < 20 and changdu < 120:
+    if kuandu < 20 and changdu < 70:
         return True, dis, kuandu, changdu
 
     return False, dis, kuandu, changdu
@@ -283,7 +283,7 @@ def WithInDistanceExtra(x1, y1, x2, y2):
     kuandu = abs(y1 - y2)
     changdu = abs(x1 - x2)
 
-    if kuandu < 50 and changdu < 150:
+    if kuandu < 40 and changdu < 100:
         return True, dis, kuandu, changdu
 
     return False, dis, kuandu, changdu
@@ -535,6 +535,14 @@ def GetMenChaoxiang():
     meninfo = GetMenInfo()
     return meninfo.fangxiang
 
+
+# 更新怪物对象信息
+def UpdateMonsterInfo(monster):
+    objs = GetMonsters()
+    for obj in objs:
+        if obj.object == monster.object and obj.hp > 0:
+            return obj
+    return None
 
 # class
 
