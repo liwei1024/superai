@@ -2,6 +2,9 @@ import sys
 import os
 import time
 
+import win32con
+import win32gui
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from ctypes import *
@@ -90,15 +93,12 @@ lib.M_MoveTo2.restype = c_int
 lib.M_GetCurrMousePos2.argtypes = [POINTER(c_int)]
 lib.M_GetCurrMousePos2.restype = c_int
 
-
-def testkeyboard():
-    pass
-
-
+# 全局变量
 h = None
 x = None
 
 
+# 初始化函数
 def YijianshuInit() -> bool:
     global h
     global x
@@ -108,17 +108,165 @@ def YijianshuInit() -> bool:
     return h != 0
 
 
-def AttackPress():
+def JiPaoYou():
+    lib.M_KeyDown2(h, VK_CODE["right_arrow"])
+    time.sleep(0.15)
+    lib.M_KeyUp2(h, VK_CODE["right_arrow"])
+    time.sleep(0.1)
+    lib.M_KeyDown2(h, VK_CODE["right_arrow"])
+    time.sleep(0.05)
+
+
+def JiPaoZuo():
+    lib.M_KeyDown2(h, VK_CODE["left_arrow"])
+    time.sleep(0.15)
+    lib.M_KeyUp2(h, VK_CODE["left_arrow"])
+    time.sleep(0.1)
+    lib.M_KeyDown2(h, VK_CODE["left_arrow"])
+    time.sleep(0.05)
+
+
+# 八方位移动
+
+def DownSHANG(jipao=False):
+    lib.M_KeyDown2(h, VK_CODE["up_arrow"])
+
+
+def DownXIA():
+    lib.M_KeyDown2(h, VK_CODE["down_arrow"])
+
+
+def DownZUO():
+    lib.M_KeyDown2(h, VK_CODE["left_arrow"])
+
+
+def DownYOU():
+    lib.M_KeyDown2(h, VK_CODE["right_arrow"])
+
+
+def DownZUOSHANG():
+    DownZUO()
+    DownSHANG()
+
+
+def DownZUOXIA():
+    DownZUO()
+    DownXIA()
+
+
+def DownYOUSHANG():
+    DownYOU()
+    DownSHANG()
+
+
+def DownYOUXIA():
+    DownYOU()
+    DownXIA()
+
+
+def UpSHANG():
+    lib.M_KeyUp2(h, VK_CODE["up_arrow"])
+
+
+def UpXIA():
+    lib.M_KeyUp2(h, VK_CODE["down_arrow"])
+
+
+def UpZUO():
+    lib.M_KeyUp2(h, VK_CODE["left_arrow"])
+
+
+def UpYOU():
+    lib.M_KeyUp2(h, VK_CODE["right_arrow"])
+
+
+def UpZUOSHANG():
+    UpZUO()
+    UpSHANG()
+
+
+def UpZUOXIA():
+    UpZUO()
+    UpXIA()
+
+
+def UpYOUSHANG():
+    UpYOU()
+    UpSHANG()
+
+
+def UpYOUXIA():
+    UpYOU()
+    UpXIA()
+
+
+def PressRight():
+    lib.M_KeyPress2(h, VK_CODE["right_arrow"], 1)
+
+
+def PressLeft():
+    lib.M_KeyPress2(h, VK_CODE["left_arrow"], 1)
+
+
+def TestAttackPress():
     lib.M_KeyPress2(h, VK_CODE["x"], 1)
 
 
-def main():
-    h = lib.M_Open(1)
-    x = c_void_p(h)
+def TestSimple():
     print("handle: %x , %s" % (x.value, type(x)))
-    time.sleep(3)
+    time.sleep(1)
     lib.M_KeyPress2(h, VK_CODE["x"], 5)
-    lib.M_ResetMousePos(x)
+    # lib.M_ResetMousePos(x)
+
+
+def TestFangxiang():
+    time.sleep(3)
+    lib.M_KeyDown2(h, VK_CODE["right_arrow"])
+    lib.M_KeyDown2(h, VK_CODE["up_arrow"])
+    time.sleep(3)
+    lib.M_KeyUp2(h, VK_CODE["right_arrow"])
+    lib.M_KeyUp2(h, VK_CODE["up_arrow"])
+
+
+def TestJiPao():
+    JiPaoZuo()
+    lib.M_KeyDown2(h, VK_CODE["up_arrow"])
+    time.sleep(2)
+
+    lib.M_KeyUp2(h, VK_CODE["left_arrow"])
+    lib.M_KeyDown2(h, VK_CODE["up_arrow"])
+
+
+def TestPutongGongji():
+    lib.M_KeyDown2(h, VK_CODE["x"])
+    time.sleep(0.8)
+    lib.M_KeyUp2(h, VK_CODE["x"])
+    lib.M_KeyDown2(h, VK_CODE["z"])
+    time.sleep(0.1)
+    lib.M_KeyUp2(h, VK_CODE["z"])
+
+
+def main():
+    if YijianshuInit():
+        print("Init 易键鼠 ok")
+    else:
+        print("Init 易键鼠 err")
+        exit(0)
+
+    global h
+    global x
+
+    hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
+    win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
+                          win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+    win32gui.SetForegroundWindow(hwnd)
+    # TestJiPao()
+
+    # TestSimple()
+
+    # TestFangxiang(h, x)
+
+    TestPutongGongji()
 
 
 if __name__ == "__main__":
