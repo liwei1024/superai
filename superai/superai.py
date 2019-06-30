@@ -12,11 +12,11 @@ import math
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressRight, \
-    PressLeft, JiPaoZuo, JiPaoYou
+    PressLeft, JiPaoZuo, JiPaoYou, PressAtack
 
 from superai.gameapi import GameApiInit, FlushPid, PrintMenInfo, PrintMapInfo, PrintSkillObj, PrintNextMen, PrintMapObj, \
     GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, IsClosed, GetFangxiang, \
-    GetMenChaoxiang, RIGHT, WithInDistance, WithInDistanceExtra
+    GetMenChaoxiang, RIGHT, WithInDistance, WithInDistanceExtra, Skills
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -67,6 +67,9 @@ class Player:
     # 正在疾跑
     injipao = False
 
+    # 持有技能
+    skills = Skills()
+
     def __init__(self):
         self.stateMachine = StateMachine(self)
 
@@ -86,7 +89,7 @@ class Player:
 
             # 上一次的按键恢复
             self.UpLatestKey()
-            self.ChaoxiangFangxiang(menx, objx)
+            # self.ChaoxiangFangxiang(menx, objx)
 
         else:
             quad = GetQuadrant(menx, meny, objx, objy)
@@ -230,12 +233,20 @@ class SeekAndAttackMonster(State):
         objx, objy = obj.x, obj.y
         menx, meny = GetMenXY()
         if IsClosed(menx, meny, objx, objy):
-            # 上一次的按键恢复
+            # 上一次的跑动的按键恢复
             player.UpLatestKey()
             player.ChaoxiangFangxiang(menx, objx)
 
             print("SeekAndAttackMonster: 开始攻击 %.f, %.f" % (objx, objy))
 
+            PressAtack()
+            skill = player.skills.GetMaxLevelAttackSkill()
+            if skill is not None:
+                print("使用技能 %s" % skill.name)
+                skill.Use()
+                player.skills.Update()
+            else:
+                print("没有技能可释放")
         else:
             player.Seek(objx, objy)
 
@@ -266,6 +277,9 @@ def main():
 
     player = Player()
     player.ChangeState(SeekAndAttackMonsterInstance)
+
+    player.skills.Update()
+    player.skills.FlushAllTime()
 
     try:
         while True:

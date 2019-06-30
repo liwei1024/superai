@@ -1,14 +1,16 @@
 import copy
 import sys
 import os
+import time
 from enum import Enum
-from typing import List
 
 import math
 from win32api import Sleep
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+from superai.yijianshu import PressSkill
+from superai.vkcode import VK_CODE
 from superai.defer import defer
 
 from ctypes import *
@@ -101,12 +103,13 @@ class MapObj(Structure):
         ("name", c_wchar * 100),
         ("x", c_float),
         ("y", c_float),
+        ("hp", c_uint32)
     ]
 
     def __str__(self):
         return (
-                "对象: 0x%08X 类型: 0x%X 阵营: 0x%X 名称: %s 坐标:(%.0f,%.0f)" % (
-            self.object, self.type, self.zhenying, self.name, self.x, self.y))
+                "对象: 0x%08X 类型: 0x%X 阵营: 0x%X 名称: %s 坐标:(%.0f,%.0f) 生命: %d" % (
+            self.object, self.type, self.zhenying, self.name, self.x, self.y, self.hp))
 
 
 class BagObj(Structure):
@@ -239,9 +242,9 @@ def distance(x1, y1, x2, y2) -> int:
 # 获取对象在右边还是左边
 def GetFangxiang(x1, x2):
     if x2 - x1 > 0:
-        return 1
+        return RIGHT
     else:
-        return 0
+        return LEFT
 
 
 # 八个方向
@@ -478,7 +481,9 @@ def GetMonsters():
     for obj in outlst:
         if obj.type in [MONSTER, MAN] and \
                 obj.zhenying in [ENEMY, ENEMY2, MOGU, ZHAOHUAN]:
-            monsters.append(obj)
+
+            if obj.hp > 0:
+                monsters.append(obj)
     return monsters
 
 
@@ -533,13 +538,149 @@ def GetMenChaoxiang():
 
 # class
 
+idxkeymap = {
+    0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
+    6: VK_CODE['q'], 7: VK_CODE['w'], 8: VK_CODE['e'], 9: VK_CODE['r'], 10: VK_CODE['t'], 11: VK_CODE['y'],
+}
+
+
+class SkillType(Enum):
+    Yidong = 1,
+    Gongji = 2,
+    Buff = 3
+
+
+skillsInit = {
+    "鬼斩": {"changdu": 100, "type": SkillType.Gongji, "level": 5},
+    "上挑": {"changdu": 100, "type": SkillType.Gongji, "level": 3},
+    "后跳": {"type": SkillType.Yidong},
+}
+
+
+class Skill:
+    exist = False
+
+    cooding = 0
+    name = ""
+    gamelatestusedtime = 0
+    key = None
+
+    # python记录 实际上次使用时间
+    lastusedtime = 0
+
+    # 长度
+    changdu = 0
+
+    # 类型
+    type = None
+
+    # 释放等级
+    level = 0
+
+    # 可以使用
+    def CanbeUsed(self):
+
+        # 是否存在
+        if not self.exist:
+            return False
+
+        # 是否从未使用
+        if self.cooding == 0 and self.gamelatestusedtime == 0:
+            return True
+
+        # 使用过,并且 当且时间减去过去时间 大于冷却时间
+        escaped = (int(time.time()) - self.lastusedtime) * 1000
+        if escaped > self.cooding:
+            return True
+
+        return False
+
+    # 设置按键
+    def SetKey(self, idx):
+        self.key = idxkeymap[idx]
+
+    # 更新python内部使用时间
+    def UpdateUsedTime(self):
+        self.lastusedtime = int(time.time())
+
+    # 没有初始化
+    def DidnotInit(self):
+        return self.type is None
+
+    # 初始化类型,宽度等
+    def Init(self):
+        self.changdu = skillsInit[self.name].get("changdu", 0)
+        self.type = skillsInit[self.name]["type"]
+        self.level = skillsInit[self.name].get("level", 0)
+
+    # 使用
+    def Use(self):
+        PressSkill(self.key)
 
 
 class Skills:
-    skillmap = None
+    def __init__(self):
+        self.skilllst = []
+        for i in range(12):
+            self.skilllst.append(Skill())
 
+    # 用完技能马上更新一下状态. (释放时间变化, python内部释放时间就变化)
     def Update(self):
-        pass
+        objs = GetSkillObj()
+        for obj in objs:
+            self.skilllst[obj.idx].exist = True
+            self.skilllst[obj.idx].cooding = obj.cooling
+            self.skilllst[obj.idx].name = obj.name
+
+            if self.skilllst[obj.idx].gamelatestusedtime != obj.sendtime:
+                self.skilllst[obj.idx].UpdateUsedTime()
+
+            self.skilllst[obj.idx].gamelatestusedtime = obj.sendtime
+            self.skilllst[obj.idx].SetKey(obj.idx)
+
+            if self.skilllst[obj.idx].DidnotInit():
+                self.skilllst[obj.idx].Init()
+
+        # 技能对象是否存在
+        for skillobj in self.skilllst:
+            skillobj.exist = False
+
+        for obj in objs:
+            self.skilllst[obj.idx].exist = True
+
+    # 获取可以使用的技能
+    def GetCanBeUsedAttackSkill(self):
+        outlst = []
+        for skill in self.skilllst:
+            if skill.CanbeUsed() and skill.type == SkillType.Gongji:
+                outlst.append(skill)
+        return outlst
+
+    # 刷新所有冷却时间 (python内部)
+    def FlushAllTime(self):
+        for skill in self.skilllst:
+            skill.lastusedtime = 0
+
+    # 获得高等级的技能释放
+    def GetMaxLevelAttackSkill(self):
+        skills = self.GetCanBeUsedAttackSkill()
+        if len(skills) < 1:
+            return None
+        return max(skills, key=lambda skill: skill.level)
+
+
+def PrintCanBeUsedSkill():
+    skills = Skills()
+    skills.Update()
+    skills.FlushAllTime()
+
+    while True:
+        time.sleep(1)
+        print("===可以使用的技能===")
+        skills.Update()
+        canbeused = skills.GetCanBeUsedAttackSkill()
+        for skill in canbeused:
+            print(skill.name)
 
 
 def main():
@@ -552,14 +693,16 @@ def main():
 
     # PrintMenInfo()
     # PrintMapInfo()
-    # PrintMapObj()
+    PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
-    PrintSkillObj()
+    # PrintSkillObj()
     # PrintTaskObj()
     # PrintNextMen()
 
     # PrintMonsterXY()
+
+    # PrintCanBeUsedSkill()
 
 
 if __name__ == "__main__":

@@ -208,6 +208,19 @@ def PressLeft():
     lib.M_KeyPress2(h, VK_CODE["left_arrow"], 1)
 
 
+def PressSkill(key, delay=0.1, afterdelay=0.15):
+    lib.M_KeyDown2(h, key)
+    time.sleep(delay)
+    lib.M_KeyUp2(h, key)
+    time.sleep(afterdelay)
+
+
+def PressAtack(deay=0.8, afterdealy=0.15):
+    lib.M_KeyDown2(h, VK_CODE["x"])
+    time.sleep(deay)
+    lib.M_KeyUp2(h, VK_CODE["x"])
+    time.sleep(afterdealy)
+
 def TestAttackPress():
     lib.M_KeyPress2(h, VK_CODE["x"], 1)
 
