@@ -9,6 +9,7 @@ from win32api import Sleep
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import math
+import random
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressRight, \
@@ -181,6 +182,17 @@ class State:
         raise NotImplementedError()
 
 
+class FirstInMap(State):
+    def Execute(self, player):
+        if player.skills.HaveBuffCanBeUse():
+            skills = player.skills.GetCanBeUseBuffSkills()
+            for skill in skills:
+                skill.Use()
+                player.skills.Update()
+
+        player.ChangeState(StandStateInstance)
+
+
 # 图内站立
 class StandState(State):
     def Execute(self, player):
@@ -191,24 +203,16 @@ class StandState(State):
         elif (not IsCurrentInBossFangjian()) and IsNextDoorOpen():
             player.ChangeState(DoorOpenGotoNextInstance)
         else:
+            time.sleep(0.3)
             print("state can not switch")
 
 
 # 靠近并攻击怪物
 class SeekAndAttackMonster(State):
-    selectedMonster = None
 
     def Execute(self, player):
-        # 更新选中怪物信息
-        if self.selectedMonster is not None:
-            self.selectedMonster = UpdateMonsterInfo(self.selectedMonster)
 
-        # 如果选中的怪物死亡了, 或者没有选中怪物
-        if self.selectedMonster is None:
-            obj = NearestMonster()
-            self.selectedMonster = obj
-        else:
-            obj = self.selectedMonster
+        obj = NearestMonster()
 
         # 如果没有怪物了,那么切换状态
         if obj is None:
@@ -225,30 +229,23 @@ class SeekAndAttackMonster(State):
 
             # 朝向更新
             player.ChaoxiangFangxiang(men.x, obj.x)
-
             print("SeekAndAttackMonster: 开始攻击 %.f, %.f" % (obj.x, obj.y))
 
-            time.sleep(0.15)
-            PressAtack()
-
-            # 普通攻击后判断一下血量,距离
-            obj = UpdateMonsterInfo(obj)
-            if obj is None or obj.hp < 1:
-                return
-            men = GetMenInfo()
-            if not CanBeAttack(men.x, men.y, obj.x, obj.y):
-                return
-
-            player.ChaoxiangFangxiang(men.x, obj.x)
-            skill = player.skills.GetMaxLevelAttackSkill()
-            if skill is not None:
-                print("使用技能 %s" % skill.name)
-                skill.Use()
-                player.skills.Update()
+            if random.uniform(0, 1) < 0.3:
+                time.sleep(0.1)
+                PressAtack()
             else:
-                print("没有技能可释放")
+                skill = player.skills.GetMaxLevelAttackSkill()
+                if skill is not None:
+                    print("使用技能 %s" % skill.name)
+                    skill.Use()
+                    player.skills.Update()
+
         else:
-            player.Seek(obj.x, obj.y)
+            if GetFangxiang(men.x, obj.x) == RIGHT:
+                player.Seek(obj.x - 80, obj.y)
+            else:
+                player.Seek(obj.x + 80, obj.y)
 
 
 # 靠近并捡取物品
@@ -290,7 +287,7 @@ class DoorOpenGotoNext(State):
             door = GetNextDoor()
             if door.x == 0 and door.y == 0:
                 player.UpLatestKey()
-                time.sleep(1.0)
+                time.sleep(0.4)
                 player.ChangeState(StandStateInstance)
                 return
             player.Seek(door.x, door.y)
@@ -300,6 +297,7 @@ StandStateInstance = StandState()
 SeekAndAttackMonsterInstance = SeekAndAttackMonster()
 SeekAndPickUpInstance = SeekAndPickUp()
 DoorOpenGotoNextInstance = DoorOpenGotoNext()
+FirstInMapInstance = FirstInMap()
 
 
 def main():
@@ -326,7 +324,7 @@ def main():
     time.sleep(0.8)
 
     player = Player()
-    player.ChangeState(StandStateInstance)
+    player.ChangeState(FirstInMapInstance)
 
     player.skills.Update()
     player.skills.FlushAllTime()

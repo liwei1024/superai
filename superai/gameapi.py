@@ -47,22 +47,22 @@ class MenInfo(Structure):
 
 class Door(Structure):
     _fields_ = [
-        ("x", c_uint32),
-        ("y", c_uint32),
-        ("xf", c_uint32),
-        ("yf", c_uint32),
+        ("x", c_int32),
+        ("y", c_int32),
+        ("xf", c_int32),
+        ("yf", c_int32),
 
-        ("cx", c_uint32),
-        ("cy", c_uint32),
+        ("cx", c_int32),
+        ("cy", c_int32),
 
-        ("prevcx", c_uint32),
-        ("prevcy", c_uint32),
+        ("prevcx", c_int32),
+        ("prevcy", c_int32),
 
-        ("firstcx", c_uint32),
-        ("firstcy", c_uint32),
+        ("firstcx", c_int32),
+        ("firstcy", c_int32),
 
-        ("secondcx", c_uint32),
-        ("secondcy", c_uint32),
+        ("secondcx", c_int32),
+        ("secondcy", c_int32),
     ]
 
 
@@ -159,8 +159,8 @@ class TaskObj(Structure):
 
 class ExGuoToMenZuoBiao(Structure):
     _fields_ = [
-        ("x", c_uint32),
-        ("y", c_uint32),
+        ("x", c_int32),
+        ("y", c_int32),
     ]
 
     def __str__(self):
@@ -268,7 +268,7 @@ PICKUP_V_WIDTH = 40 / 2
 PICKUP_H_WIDTH = 40 / 2
 
 # 攻击矩形
-ATTACK_V_WIDTH = 150 / 2
+ATTACK_V_WIDTH = 200 / 2
 ATTACK_H_WIDTH = 40 / 2
 
 
@@ -329,8 +329,14 @@ def CanbePickup(x1, y1, x2, y2):
 def CanBeAttack(x1, y1, x2, y2):
     V_WIDTH = abs(x2 - x1)
     H_WIDTH = abs(y2 - y1)
+
+    # 太近也不好
+    if V_WIDTH < MOVE_SMALL_V_WIDTH:
+        return False
+
     if V_WIDTH < ATTACK_V_WIDTH and H_WIDTH < ATTACK_H_WIDTH:
         return True
+
     return False
 
 
@@ -557,22 +563,6 @@ def GetMenXY():
     return meninfo.x, meninfo.y
 
 
-# 打印和怪物坐标
-def PrintMonsterXY():
-    while True:
-        Sleep(1000)
-
-        menx, meny = GetMenXY()
-        monster = NearestMonster()
-        if monster is None:
-            continue
-        objx = monster.x
-        objy = monster.y
-        quad = GetQuadrant(menx, meny, monster.x, monster.y)
-        closed, dis, kuandu, changdu = IsClosedExtra(menx, meny, objx, objy)
-        print("%s 靠近: %d 距离: %d 宽度: %d 长度: %d" % (quad.name, closed, dis, kuandu, changdu))
-
-
 # 获得朝向
 def GetMenChaoxiang():
     meninfo = GetMenInfo()
@@ -591,7 +581,7 @@ def UpdateMonsterInfo(monster):
 # 获取门是否开的信息
 def IsNextDoorOpen():
     door = GetNextDoor()
-    return door.x > 0 and door.y > 0
+    return door.x != 0 and door.y != 0
 
 
 # 是否当前处在boss房间
@@ -611,7 +601,9 @@ def GetCurrentMapXy():
     return mapinfo.curx, mapinfo.cury
 
 
-# class
+# 技能包装.
+
+
 idxkeymap = {
     0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
     6: VK_CODE['q'], 7: VK_CODE['w'], 8: VK_CODE['e'], 9: VK_CODE['r'], 10: VK_CODE['t'], 11: VK_CODE['y'],
@@ -627,7 +619,12 @@ class SkillType(Enum):
 skillsInit = {
     "鬼斩": {"changdu": 100, "type": SkillType.Gongji, "level": 5},
     "上挑": {"changdu": 100, "type": SkillType.Gongji, "level": 3},
+    "裂波斩": {"changdu": 100, "type": SkillType.Gongji, "level": 11},
+    "地裂 · 波动剑": {"changdu": 100, "type": SkillType.Gongji, "level": 13},
+    "鬼连斩": {"changdu": 100, "type": SkillType.Gongji, "level": 12},
+    "鬼印珠": {"changdu": 300, "type": SkillType.Gongji, "level": 14},
     "后跳": {"type": SkillType.Yidong},
+    "波动刻印": {"type": SkillType.Buff}
 }
 
 
@@ -722,25 +719,43 @@ class Skills:
         for obj in objs:
             self.skilllst[obj.idx].exist = True
 
-    # 获取可以使用的技能
-    def GetCanBeUsedAttackSkill(self):
+    # 刷新所有冷却时间 (python内部)
+    def FlushAllTime(self):
+        for skill in self.skilllst:
+            skill.lastusedtime = 0
+
+    # 获取可以使用的技能列表
+    def GetCanBeUsedAttackSkills(self):
         outlst = []
         for skill in self.skilllst:
             if skill.CanbeUsed() and skill.type == SkillType.Gongji:
                 outlst.append(skill)
         return outlst
 
-    # 刷新所有冷却时间 (python内部)
-    def FlushAllTime(self):
+    # 获取可使用Buff技能的列表
+    def GetCanBeUseBuffSkills(self):
+        outlst = []
         for skill in self.skilllst:
-            skill.lastusedtime = 0
+            if skill.CanbeUsed() and skill.type == SkillType.Buff:
+                outlst.append(skill)
+        return outlst
 
     # 获得高等级的技能释放
     def GetMaxLevelAttackSkill(self):
-        skills = self.GetCanBeUsedAttackSkill()
+        skills = self.GetCanBeUsedAttackSkills()
         if len(skills) < 1:
             return None
         return max(skills, key=lambda skill: skill.level)
+
+    # 有技能可以被释放
+    def HaveSkillCanBeUse(self):
+        skills = self.GetCanBeUsedAttackSkills()
+        return len(skills) > 0
+
+    # 有buff可以被释放
+    def HaveBuffCanBeUse(self):
+        skills = self.GetCanBeUseBuffSkills()
+        return len(skills) > 0
 
 
 # 打印可以被使用的技能
@@ -753,7 +768,7 @@ def PrintCanBeUsedSkill():
         time.sleep(1)
         print("===可以使用的技能===")
         skills.Update()
-        canbeused = skills.GetCanBeUsedAttackSkill()
+        canbeused = skills.GetCanBeUsedAttackSkills()
         for skill in canbeused:
             print(skill.name)
 
@@ -783,13 +798,12 @@ def main():
 
     # print(IsCurrentInBossFangjian())
     #
-    # print(GetNextDoor())
+    print(GetNextDoor())
 
-    while True:
-        x, y = GetMenXY()
-
-        print(x, y)
-        time.sleep(1)
+    # while True:
+    #     x, y = GetMenXY()
+    #     print(x, y)
+    #     time.sleep(1)
 
 
 if __name__ == "__main__":
