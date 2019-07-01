@@ -117,7 +117,7 @@ def ReleaseAllKey():
 
 
 def JiPaoYou():
-    time.sleep(0.1)
+    time.sleep(0.2)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
     time.sleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
@@ -127,7 +127,7 @@ def JiPaoYou():
 
 
 def JiPaoZuo():
-    time.sleep(0.1)
+    time.sleep(0.2)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
     time.sleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])

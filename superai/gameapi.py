@@ -84,15 +84,16 @@ class MapInfo(Structure):
         ("kaimen", c_bool),
         ("mapobj", c_uint32),
         ("name", c_wchar * 100),
-        # 	std::vector<DWORD> doors; 开门方式 # TODO 怎么传递std::vector
+        ("doorslen", c_uint32),
+        ("doors", c_uint32 * 100),
     ]
 
     def __str__(self):
         return (
                 "地图对象: 0x%08X 地图名称: %s 地图编号: %d 起始位置: (%d,%d) BOSS位置: (%d,%d) 当前位置: (%d, %d) 宽高: (%d,%d) 开门: %d" % (
             self.mapobj, self.name, self.mapid, self.beginx, self.beginy, self.bossx, self.bossy, self.curx, self.cury,
-            self.w, self.h,
-            self.kaimen))
+            self.w, self.h, self.kaimen))
+
 
 
 class MapObj(Structure):
@@ -282,7 +283,7 @@ def IsInEqualLocation(x1, y1, x2, y2):
     kuandu = abs(y1 - y2)
     changdu = abs(x1 - x2)
 
-    if kuandu < 20 and changdu < 20:
+    if kuandu < 25 and changdu < 25:
         return True
 
     return False
@@ -294,7 +295,7 @@ def WithInDistanceExtra(x1, y1, x2, y2):
     kuandu = abs(y1 - y2)
     changdu = abs(x1 - x2)
 
-    if kuandu < 40 and changdu < 100:
+    if kuandu < 100 and changdu < 150:
         return True, dis, kuandu, changdu
 
     return False, dis, kuandu, changdu
@@ -316,14 +317,14 @@ def GetQuadrant(x1, y1, x2, y2):
         return Quardant.YOU
 
     # 同一个垂直位置
-    if abs(newx2) < 15:
+    if abs(newx2) < 100:
         if newy2 > 0:
             return Quardant.XIA
         else:
             return Quardant.SHANG
 
     # 同一个水平位置
-    if abs(newy2) < 15:
+    if abs(newy2) < 100:
         if newx2 > 0:
             return Quardant.YOU
         else:
@@ -586,9 +587,22 @@ def IsNextDoorOpen():
     door = GetNextDoor()
     return door.x > 0 and door.y > 0
 
-# 获取当前x,y
-def GetCurrentXY():
-    pass
+
+# 是否当前处在boss房间
+def IsCurrentInBossFangjian():
+    mapinfo = GetMapInfo()
+
+    if mapinfo.curx == mapinfo.bossx and \
+            mapinfo.cury == mapinfo.bossy:
+        return True
+
+    return False
+
+
+# 获取当前房间的x,y
+def GetCurrentMapXy():
+    mapinfo = GetMapInfo()
+    return mapinfo.curx, mapinfo.cury
 
 
 # class
@@ -738,8 +752,6 @@ def PrintCanBeUsedSkill():
             print(skill.name)
 
 
-
-
 def main():
     if GameApiInit():
         print("Init helpdll-xxiii.dll ok")
@@ -749,8 +761,8 @@ def main():
     FlushPid()
 
     # PrintMenInfo()
-    # PrintMapInfo()
-    PrintMapObj()
+    PrintMapInfo()
+    # PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
     # PrintSkillObj()
@@ -760,6 +772,12 @@ def main():
     # PrintMonsterXY()
 
     # PrintCanBeUsedSkill()
+
+    # print(GetNextDoor())
+
+    # print(IsCurrentInBossFangjian())
+    #
+    # print(GetNextDoor())
 
 
 if __name__ == "__main__":

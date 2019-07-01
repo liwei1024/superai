@@ -17,7 +17,7 @@ from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHAN
 from superai.gameapi import GameApiInit, FlushPid, PrintMenInfo, PrintMapInfo, PrintSkillObj, PrintNextMen, PrintMapObj, \
     GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, IsClosed, GetFangxiang, \
     GetMenChaoxiang, RIGHT, WithInDistance, WithInDistanceExtra, Skills, UpdateMonsterInfo, LEFT, HaveGoods, \
-    NearestGood, IsInEqualLocation, IsNextDoorOpen, GetNextDoor
+    NearestGood, IsInEqualLocation, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetCurrentMapXy
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -82,7 +82,7 @@ class Player:
     def Update(self):
         self.stateMachine.Update()
 
-    # 靠近 (怪物攻击范围内)
+    # 靠近到攻击范围内
     def Seek(self, objx, objy):
         menx, meny = GetMenXY()
 
@@ -106,6 +106,7 @@ class Player:
             if self.KeyDowned():
                 if self.latestDown == quad:
                     print("seek: 目标(%.f, %.f)在%s, 维持" % (objx, objy, quad.name))
+                    self.DownKey(quad)
                 else:
                     print("seek: 目标(%.f, %.f)在%s, 更换方向" % (objx, objy, quad.name))
                     self.UpLatestKey()
@@ -120,17 +121,18 @@ class Player:
                     self.KeyJiPao(quad)
                 self.DownKey(quad)
 
-    # 靠近 (捡取)
+    # 靠近到具体位置
     def Seek2(self, objx, objy):
         menx, meny = GetMenXY()
 
-        # 是否在范围内
+        # 是否处于相同位置
         if IsInEqualLocation(menx, meny, objx, objy):
-            print("seek: 目标(%.f, %.f)在范围内" % (objx, objy))
-
             # 上一次的按键恢复
             self.UpLatestKey()
-            # self.ChaoxiangFangxiang(menx, objx)
+
+            print("seek: 目标(%.f, %.f)在范围内" % (objx, objy))
+
+            self.ChaoxiangFangxiang(menx, objx)
 
         else:
             quad = GetQuadrant(menx, meny, objx, objy)
@@ -144,6 +146,7 @@ class Player:
             if self.KeyDowned():
                 if self.latestDown == quad:
                     print("seek: 目标(%.f, %.f)在%s, 维持" % (objx, objy, quad.name))
+                    self.DownKey(quad)
                 else:
                     print("seek: 目标(%.f, %.f)在%s, 更换方向" % (objx, objy, quad.name))
                     self.UpLatestKey()
@@ -201,7 +204,7 @@ class Player:
     # 恢复之前按的键
     def UpLatestKey(self):
         if self.KeyDowned():
-            # QuadKeyUpMap[self.latestDown]()
+            QuadKeyUpMap[self.latestDown]()
 
             ReleaseAllKey()
             self.ResetKey()
@@ -217,30 +220,34 @@ class State:
 # 图内站立
 class StandState(State):
     def Execute(self, player):
-        if IsLive() and HaveMonsters():
+        if HaveMonsters():
             player.ChangeState(SeekAndAttackMonsterInstance)
-        elif IsLive() and HaveGoods():
+        elif HaveGoods():
             player.ChangeState(SeekAndPickUpInstance)
-        # elif IsLive() and IsNextDoorOpen():
-        #     player.ChangeState(DoorOpenGotoNextInstance)
-        #
+        elif (not IsCurrentInBossFangjian()) and IsNextDoorOpen():
+            player.ChangeState(DoorOpenGotoNextInstance)
+        else:
+            print("state can not switch")
+
 
 # 靠近并攻击怪物
 class SeekAndAttackMonster(State):
-    selectedMonster = None
+    # selectedMonster = None
 
     def Execute(self, player):
 
-        # 更新选中怪物信息
-        if self.selectedMonster is not None:
-            self.selectedMonster = UpdateMonsterInfo(self.selectedMonster)
+        # # 更新选中怪物信息
+        # if self.selectedMonster is not None:
+        #     self.selectedMonster = UpdateMonsterInfo(self.selectedMonster)
+        #
+        # # 如果选中的怪物死亡了, 或者没有选中怪物
+        # if self.selectedMonster is None:
+        #     obj = NearestMonster()
+        #     self.selectedMonster = obj
+        # else:
+        #     obj = self.selectedMonster
 
-        # 如果选中的怪物死亡了, 或者没有选中怪物
-        if self.selectedMonster is None:
-            obj = NearestMonster()
-            self.selectedMonster = obj
-        else:
-            obj = self.selectedMonster
+        obj = NearestMonster()
 
         # 如果没有怪物了,那么切换状态
         if obj is None:
@@ -287,7 +294,6 @@ class SeekAndAttackMonster(State):
 
 # 靠近并捡取物品
 class SeekAndPickUp(State):
-
     def Execute(self, player):
         obj = NearestGood()
 
@@ -301,29 +307,32 @@ class SeekAndPickUp(State):
         if IsInEqualLocation(menx, meny, objx, objy):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
-
             print("捡取")
-
-            time.sleep(0.15)
+            time.sleep(0.35)
             PressX()
-
         else:
             player.Seek2(objx, objy)
 
 
 # 门已开,去过图
 class DoorOpenGotoNext(State):
-
-
     currentx = None
     currenty = None
 
     def Execute(self, player):
-
-        door = GetNextDoor()
-        player.Seek2(door.x, door.y)
-
-
+        # 进到新的地图
+        curx, cury = GetCurrentMapXy()
+        if curx != self.currentx and cury != self.currenty:
+            player.ChangeState(StandStateInstance)
+            self.currentx = curx
+            self.currenty = cury
+            return
+        else:
+            door = GetNextDoor()
+            if door.x == 0 and door.y == 0:
+                player.ChangeState(StandStateInstance)
+                return
+            player.Seek2(door.x, door.y)
 
 
 StandStateInstance = StandState()
@@ -361,7 +370,7 @@ def main():
 
     try:
         while True:
-            Sleep(100)
+            Sleep(30)
             player.Update()
     except KeyboardInterrupt:
         player.UpLatestKey()
