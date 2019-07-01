@@ -271,6 +271,9 @@ PICKUP_H_WIDTH = 40 / 2
 ATTACK_V_WIDTH = 200 / 2
 ATTACK_H_WIDTH = 40 / 2
 
+# 怪物在太远的距离,先捡物品
+PICK_DISTANCE = 200
+
 
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
     # 同一个垂直位置
@@ -525,6 +528,17 @@ def GetGoods():
 def HaveMonsters():
     monsters = GetMonsters()
     return len(monsters) > 0
+
+
+# 怪物太远了
+def MonsterIsToofar():
+    monster = NearestMonster()
+    if monster is None:
+        raise NotImplementedError()
+    men = GetMenInfo()
+    if distance(men.x, men.y, monster.x, monster.y) > PICK_DISTANCE:
+        return True
+    return False
 
 
 # 地面有物品

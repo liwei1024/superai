@@ -19,7 +19,7 @@ from superai.gameapi import GameApiInit, FlushPid, PrintMenInfo, PrintMapInfo, P
     GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
     GetMenChaoxiang, RIGHT, Skills, UpdateMonsterInfo, LEFT, HaveGoods, \
     NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetCurrentMapXy, GetMenInfo, \
-    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, CanBeAttack
+    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, CanBeAttack, MonsterIsToofar
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -196,15 +196,24 @@ class FirstInMap(State):
 # 图内站立
 class StandState(State):
     def Execute(self, player):
+        if HaveMonsters() and MonsterIsToofar() and HaveGoods():
+            player.ChangeState(SeekAndPickUpInstance)
+            return
+
         if HaveMonsters():
             player.ChangeState(SeekAndAttackMonsterInstance)
-        elif HaveGoods():
+            return
+
+        if HaveGoods():
             player.ChangeState(SeekAndPickUpInstance)
-        elif (not IsCurrentInBossFangjian()) and IsNextDoorOpen():
+            return
+
+        if (not IsCurrentInBossFangjian()) and IsNextDoorOpen():
             player.ChangeState(DoorOpenGotoNextInstance)
-        else:
-            time.sleep(0.3)
-            print("state can not switch")
+            return
+
+        time.sleep(0.3)
+        print("state can not switch")
 
 
 # 靠近并攻击怪物
