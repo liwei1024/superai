@@ -222,6 +222,12 @@ def PressLeft():
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
 
 
+def PressX():
+    lib.M_KeyDown2(h, VK_CODE["x"])
+    time.sleep(0.05)
+    lib.M_KeyUp2(h, VK_CODE["x"])
+
+
 def PressSkill(key, delay=0.1, afterdelay=0.35):
     lib.M_KeyDown2(h, key)
     time.sleep(delay)

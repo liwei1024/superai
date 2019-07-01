@@ -277,6 +277,17 @@ def IsClosed(x1, y1, x2, y2):
     return rtn
 
 
+# 是否在捡取范围
+def IsInEqualLocation(x1, y1, x2, y2):
+    kuandu = abs(y1 - y2)
+    changdu = abs(x1 - x2)
+
+    if kuandu < 20 and changdu < 20:
+        return True
+
+    return False
+
+
 # 在指定距离内 (慢走过去)
 def WithInDistanceExtra(x1, y1, x2, y2):
     dis = distance(x1, y1, x2, y2)
@@ -487,10 +498,26 @@ def GetMonsters():
     return monsters
 
 
+# 获取物品
+def GetGoods():
+    outlst = GetMapObj()
+    goods = []
+    for obj in outlst:
+        if obj.type in [GOOD]:
+            goods.append(obj)
+    return goods
+
+
 # 有怪物
 def HaveMonsters():
     monsters = GetMonsters()
     return len(monsters) > 0
+
+
+# 地面有物品
+def HaveGoods():
+    goods = GetGoods()
+    return len(goods) > 0
 
 
 # 最近怪物对象
@@ -500,6 +527,15 @@ def NearestMonster():
     if len(monsters) < 1:
         return None
     return min(monsters, key=lambda mon: distance(mon.x, mon.y, menInfo.x, menInfo.y))
+
+
+# 最近物品对象
+def NearestGood():
+    menInfo = GetMenInfo()
+    goods = GetGoods()
+    if len(goods) < 1:
+        return None
+    return min(goods, key=lambda good: distance(good.x, good.y, menInfo.x, menInfo.y))
 
 
 # 没死亡
@@ -544,8 +580,18 @@ def UpdateMonsterInfo(monster):
             return obj
     return None
 
-# class
 
+# 获取门是否开的信息
+def IsNextDoorOpen():
+    door = GetNextDoor()
+    return door.x > 0 and door.y > 0
+
+# 获取当前x,y
+def GetCurrentXY():
+    pass
+
+
+# class
 idxkeymap = {
     0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
     6: VK_CODE['q'], 7: VK_CODE['w'], 8: VK_CODE['e'], 9: VK_CODE['r'], 10: VK_CODE['t'], 11: VK_CODE['y'],
@@ -677,6 +723,7 @@ class Skills:
         return max(skills, key=lambda skill: skill.level)
 
 
+# 打印可以被使用的技能
 def PrintCanBeUsedSkill():
     skills = Skills()
     skills.Update()
@@ -689,6 +736,8 @@ def PrintCanBeUsedSkill():
         canbeused = skills.GetCanBeUsedAttackSkill()
         for skill in canbeused:
             print(skill.name)
+
+
 
 
 def main():
