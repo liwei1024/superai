@@ -15,9 +15,10 @@ from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHAN
     PressLeft, JiPaoZuo, JiPaoYou, PressAtack, ReleaseAllKey, PressX
 
 from superai.gameapi import GameApiInit, FlushPid, PrintMenInfo, PrintMapInfo, PrintSkillObj, PrintNextMen, PrintMapObj, \
-    GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, IsClosed, GetFangxiang, \
-    GetMenChaoxiang, RIGHT, WithInDistance, WithInDistanceExtra, Skills, UpdateMonsterInfo, LEFT, HaveGoods, \
-    NearestGood, IsInEqualLocation, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetCurrentMapXy
+    GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
+    GetMenChaoxiang, RIGHT, Skills, UpdateMonsterInfo, LEFT, HaveGoods, \
+    NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetCurrentMapXy, GetMenInfo, \
+    BIG_RENT, CanbePickup, WithInManzou
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -28,17 +29,6 @@ QuadKeyDownMap = {
     Quardant.ZUOXIA: DownZUOXIA,
     Quardant.YOUSHANG: DownYOUSHANG,
     Quardant.YOUXIA: DownYOUXIA
-}
-
-QuadKeyUpMap = {
-    Quardant.ZUO: UpZUO,
-    Quardant.YOU: UpYOU,
-    Quardant.SHANG: UpSHANG,
-    Quardant.XIA: UpXIA,
-    Quardant.ZUOSHANG: UpZUOSHANG,
-    Quardant.ZUOXIA: UpZUOXIA,
-    Quardant.YOUSHANG: UpYOUSHANG,
-    Quardant.YOUXIA: UpYOUXIA
 }
 
 
@@ -67,11 +57,10 @@ class Player:
     # 上一次按下的键
     latestDown = None
 
-    # 正在疾跑
-    injipao = False
-
     # 持有技能
     skills = Skills()
+
+    injipao = False
 
     def __init__(self):
         self.stateMachine = StateMachine(self)
@@ -81,112 +70,6 @@ class Player:
 
     def Update(self):
         self.stateMachine.Update()
-
-    # 靠近到攻击范围内
-    def Seek(self, objx, objy):
-        menx, meny = GetMenXY()
-
-        # 是否在范围内
-        if IsClosed(menx, meny, objx, objy):
-            print("seek: 目标(%.f, %.f)在范围内" % (objx, objy))
-
-            # 上一次的按键恢复
-            self.UpLatestKey()
-            self.ChaoxiangFangxiang(menx, objx)
-
-        else:
-            quad = GetQuadrant(menx, meny, objx, objy)
-
-            withined, dis, kuandu, changdu = WithInDistanceExtra(menx, meny, objx, objy)
-            jipao = not withined
-
-            print("seek: 目标: %s 在慢走范围内: %d 疾跑: %d 距离: %d 宽度: %d 长度: %d" %
-                  (quad.name, withined, jipao, dis, kuandu, changdu))
-
-            if self.KeyDowned():
-                if self.latestDown == quad:
-                    print("seek: 目标(%.f, %.f)在%s, 维持" % (objx, objy, quad.name))
-                    self.DownKey(quad)
-                else:
-                    print("seek: 目标(%.f, %.f)在%s, 更换方向" % (objx, objy, quad.name))
-                    self.UpLatestKey()
-
-                    if jipao:
-                        self.KeyJiPao(quad)
-                    self.DownKey(quad)
-            else:
-                print("seek: 目标(%.f, %.f)在%s, 首次靠近" % (objx, objy, quad.name))
-
-                if jipao:
-                    self.KeyJiPao(quad)
-                self.DownKey(quad)
-
-    # 靠近到具体位置
-    def Seek2(self, objx, objy):
-        menx, meny = GetMenXY()
-
-        # 是否处于相同位置
-        if IsInEqualLocation(menx, meny, objx, objy):
-            # 上一次的按键恢复
-            self.UpLatestKey()
-
-            print("seek: 目标(%.f, %.f)在范围内" % (objx, objy))
-
-            self.ChaoxiangFangxiang(menx, objx)
-
-        else:
-            quad = GetQuadrant(menx, meny, objx, objy)
-
-            withined, dis, kuandu, changdu = WithInDistanceExtra(menx, meny, objx, objy)
-            jipao = not withined
-
-            print("seek: 目标: %s 在慢走范围内: %d 疾跑: %d 距离: %d 宽度: %d 长度: %d" %
-                  (quad.name, withined, jipao, dis, kuandu, changdu))
-
-            if self.KeyDowned():
-                if self.latestDown == quad:
-                    print("seek: 目标(%.f, %.f)在%s, 维持" % (objx, objy, quad.name))
-                    self.DownKey(quad)
-                else:
-                    print("seek: 目标(%.f, %.f)在%s, 更换方向" % (objx, objy, quad.name))
-                    self.UpLatestKey()
-
-                    if jipao:
-                        self.KeyJiPao(quad)
-                    self.DownKey(quad)
-            else:
-                print("seek: 目标(%.f, %.f)在%s, 首次靠近" % (objx, objy, quad.name))
-
-                if jipao:
-                    self.KeyJiPao(quad)
-                self.DownKey(quad)
-
-    def ChaoxiangFangxiang(self, menx, objx):
-        # 是否面向对方
-
-        guaiwuweizhi = GetFangxiang(menx, objx)
-        renwufangxiang = GetMenChaoxiang()
-
-        if guaiwuweizhi != renwufangxiang:
-            # 调整朝向
-            if renwufangxiang == RIGHT and guaiwuweizhi == LEFT:
-                print("调整朝向 人物: %d 怪物: %d, 向左调整" % (renwufangxiang, guaiwuweizhi))
-                PressLeft()
-            else:
-                print("调整朝向 人物: %d 怪物: %d, 向右调整" % (renwufangxiang, guaiwuweizhi))
-                PressRight()
-
-    # 开启疾跑状态
-    def KeyJiPao(self, quad):
-        if self.injipao:
-            return
-        if quad in [Quardant.ZUO, Quardant.ZUOSHANG, Quardant.ZUOXIA, Quardant.SHANG, Quardant.XIA]:
-            JiPaoZuo()
-
-        if quad in [Quardant.YOU, Quardant.YOUSHANG, Quardant.YOUXIA]:
-            JiPaoYou()
-
-        self.injipao = True
 
     # 键已经按过
     def KeyDowned(self):
@@ -204,12 +87,75 @@ class Player:
     # 恢复之前按的键
     def UpLatestKey(self):
         if self.KeyDowned():
-            QuadKeyUpMap[self.latestDown]()
-
+            # QuadKeyUpMap[self.latestDown]()
             ReleaseAllKey()
             self.ResetKey()
             # 疾跑 -> 八方位移动.  恢复站立状态 -> 疾跑状态关闭
             self.injipao = False
+
+    # 疾跑
+    def KeyJiPao(self, quad):
+        if self.injipao:
+            return
+
+        if quad in [Quardant.SHANG, Quardant.XIA]:
+            return
+
+        if quad in [Quardant.ZUO, Quardant.ZUOSHANG, Quardant.ZUOXIA]:
+            JiPaoZuo()
+
+        if quad in [Quardant.YOU, Quardant.YOUSHANG, Quardant.YOUXIA]:
+            JiPaoYou()
+
+        self.injipao = True
+
+    # 靠近
+    def Seek(self, destx, desty):
+        menx, meny = GetMenXY()
+        quad, rent = GetQuadrant(menx, meny, destx, desty)
+
+        if quad == Quardant.CHONGDIE:
+            self.UpLatestKey()
+            print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 重叠" % (menx, meny, destx, desty, quad.name))
+            return
+
+        jizou = not WithInManzou(menx, meny, destx, desty)
+
+        jizoustr = ""
+        if jizou:
+            jizoustr = "疾走"
+
+        # 目标是否在右边
+        right = (destx - menx) > 0
+
+        if rent == BIG_RENT:
+            if self.KeyDowned():
+                if self.latestDown == quad:
+                    self.DownKey(quad)
+                    # print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
+                    # (menx, meny, destx, desty, quad.name, jizoustr))
+                else:
+                    print(
+                        "seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 更换方向 %s" % (menx, meny, destx, desty, quad.name, jizoustr))
+                    self.UpLatestKey()
+
+                    if jizou:
+                        self.KeyJiPao(quad)
+                    self.DownKey(quad)
+
+            else:
+                print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 首次靠近 %s" % (menx, meny, destx, desty, quad.name, jizoustr))
+
+                if jizou:
+                    self.KeyJiPao(quad)
+                self.DownKey(quad)
+        else:
+            self.UpLatestKey()
+            print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 微小距离靠近" % (menx, meny, destx, desty, quad.name))
+
+            QuadKeyDownMap[quad]()
+            time.sleep(0.2)
+            ReleaseAllKey()
 
 
 class State:
@@ -232,64 +178,8 @@ class StandState(State):
 
 # 靠近并攻击怪物
 class SeekAndAttackMonster(State):
-    # selectedMonster = None
-
     def Execute(self, player):
-
-        # # 更新选中怪物信息
-        # if self.selectedMonster is not None:
-        #     self.selectedMonster = UpdateMonsterInfo(self.selectedMonster)
-        #
-        # # 如果选中的怪物死亡了, 或者没有选中怪物
-        # if self.selectedMonster is None:
-        #     obj = NearestMonster()
-        #     self.selectedMonster = obj
-        # else:
-        #     obj = self.selectedMonster
-
-        obj = NearestMonster()
-
-        # 如果没有怪物了,那么切换状态
-        if obj is None:
-            player.ChangeState(StandStateInstance)
-            return
-
-        if obj.hp < 1:
-            return
-
-        objx, objy = obj.x, obj.y
-        menx, meny = GetMenXY()
-        if IsClosed(menx, meny, objx, objy):
-            # 上一次的跑动的按键恢复
-            player.UpLatestKey()
-
-            # 朝向更新
-            player.ChaoxiangFangxiang(menx, objx)
-
-            print("SeekAndAttackMonster: 开始攻击 %.f, %.f" % (objx, objy))
-
-            time.sleep(0.15)
-            PressAtack()
-
-            # 普通攻击后判断一下血量
-            newobj = UpdateMonsterInfo(obj)
-            if newobj is None or newobj.hp < 1:
-                return
-
-            # 普通攻击后判断一下朝向
-            objx, objy = newobj.x, newobj.y
-            menx, meny = GetMenXY()
-            player.ChaoxiangFangxiang(menx, objx)
-
-            skill = player.skills.GetMaxLevelAttackSkill()
-            if skill is not None:
-                print("使用技能 %s" % skill.name)
-                skill.Use()
-                player.skills.Update()
-            else:
-                print("没有技能可释放")
-        else:
-            player.Seek(objx, objy)
+        pass
 
 
 # 靠近并捡取物品
@@ -302,37 +192,21 @@ class SeekAndPickUp(State):
             player.ChangeState(StandStateInstance)
             return
 
-        objx, objy = obj.x, obj.y
         menx, meny = GetMenXY()
-        if IsInEqualLocation(menx, meny, objx, objy):
+        if CanbePickup(menx, meny, obj.x, obj.y):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
-            print("捡取")
-            time.sleep(0.35)
+            print("捡取 (%d,%d)" % (obj.x, obj.y))
+            time.sleep(0.1)
             PressX()
         else:
-            player.Seek2(objx, objy)
+            player.Seek(obj.x, obj.y)
 
 
 # 门已开,去过图
 class DoorOpenGotoNext(State):
-    currentx = None
-    currenty = None
-
     def Execute(self, player):
-        # 进到新的地图
-        curx, cury = GetCurrentMapXy()
-        if curx != self.currentx and cury != self.currenty:
-            player.ChangeState(StandStateInstance)
-            self.currentx = curx
-            self.currenty = cury
-            return
-        else:
-            door = GetNextDoor()
-            if door.x == 0 and door.y == 0:
-                player.ChangeState(StandStateInstance)
-                return
-            player.Seek2(door.x, door.y)
+        pass
 
 
 StandStateInstance = StandState()

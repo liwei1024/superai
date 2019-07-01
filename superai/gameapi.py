@@ -95,7 +95,6 @@ class MapInfo(Structure):
             self.w, self.h, self.kaimen))
 
 
-
 class MapObj(Structure):
     _fields_ = [
         ("object", c_uint32),
@@ -235,19 +234,6 @@ def distance(x1, y1, x2, y2) -> int:
     return int(math.sqrt(xseparation * xseparation + yseparation * yseparation))
 
 
-# 点积
-# def Dot(x1, y1, x2, y2):
-#     return x1 * x2 + y1 * y2
-
-
-# 获取对象在右边还是左边
-def GetFangxiang(x1, x2):
-    if x2 - x1 > 0:
-        return RIGHT
-    else:
-        return LEFT
-
-
 # 八个方向
 class Quardant(Enum):
     ZUO = 0
@@ -258,91 +244,91 @@ class Quardant(Enum):
     YOUSHANG = 5
     ZUOXIA = 6
     YOUXIA = 7
-    # CHONGDIE = 8
+    CHONGDIE = 8
 
 
-# 是否靠近 (垂直范围小一些(攻击宽度), 水平范围大一些)
-def IsClosedExtra(x1, y1, x2, y2):
-    dis = distance(x1, y1, x2, y2)
-    kuandu = abs(y1 - y2)
-    changdu = abs(x1 - x2)
+# 大矩阵
+MOVE_BIG_V_WIDTH = 80 / 2
+MOVE_BIG_H_WIDTH = 80 / 2
 
-    if kuandu < 20 and changdu < 70:
-        return True, dis, kuandu, changdu
+# 误差
+MOVE_SMALL_V_WIDTH = 20 / 2
+MOVE_SMALL_H_WIDTH = 20 / 2
 
-    return False, dis, kuandu, changdu
+# 大小矩阵
+BIG_RENT = 1
+SMALL_RENT = 2
 
+# 慢走矩形
+MANZOU_V_WIDTH = 150 / 2
+MANZOU_H_WIDTH = 200 / 2
 
-def IsClosed(x1, y1, x2, y2):
-    rtn, _, _, _ = IsClosedExtra(x1, y1, x2, y2)
-    return rtn
-
-
-# 是否在捡取范围
-def IsInEqualLocation(x1, y1, x2, y2):
-    kuandu = abs(y1 - y2)
-    changdu = abs(x1 - x2)
-
-    if kuandu < 25 and changdu < 25:
-        return True
-
-    return False
+# 拾取矩形
+PICKUP_V_WIDTH = 40 / 2
+PICKUP_H_WIDTH = 40 / 2
 
 
-# 在指定距离内 (慢走过去)
-def WithInDistanceExtra(x1, y1, x2, y2):
-    dis = distance(x1, y1, x2, y2)
-    kuandu = abs(y1 - y2)
-    changdu = abs(x1 - x2)
+def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
+    # 同一个垂直位置
+    if abs(x2) < chuizhikuandu:
+        if y2 > 0:
+            return Quardant.XIA
+        else:
+            return Quardant.SHANG
 
-    if kuandu < 100 and changdu < 150:
-        return True, dis, kuandu, changdu
+    # 同一个水平位置
+    if abs(y2) < shuipingkuandu:
+        if x2 > 0:
+            return Quardant.YOU
+        else:
+            return Quardant.ZUO
 
-    return False, dis, kuandu, changdu
+    # 右上,右下
+    if x2 > 0:
+        if y2 > 0:
+            return Quardant.YOUXIA
+        else:
+            return Quardant.YOUSHANG
 
+    # 左上,左下
+    if x2 < 0:
+        if y2 > 0:
+            return Quardant.ZUOXIA
+        else:
+            return Quardant.ZUOSHANG
 
-def WithInDistance(x1, y1, x2, y2):
-    rtn, _, _, _ = WithInDistanceExtra(x1, y1, x2, y2)
-    return rtn
+    raise NotImplementedError()
 
 
 # 象限 (x1,y1,x2,y2) 是左上角开始算的坐标系
 def GetQuadrant(x1, y1, x2, y2):
     # 转换成以x1, y1为坐标起点的坐标系
     newx2, newy2 = x2 - x1, y2 - y1
+    if abs(newx2) < MOVE_BIG_V_WIDTH and abs(newy2) < MOVE_BIG_H_WIDTH:
+        # 在中间的小矩阵
+        if abs(newx2) < MOVE_SMALL_V_WIDTH and abs(newy2) < MOVE_SMALL_H_WIDTH:
+            return Quardant.CHONGDIE, SMALL_RENT
+        return QuardrantWithOutRent(newx2, newy2, MOVE_SMALL_V_WIDTH, MOVE_SMALL_H_WIDTH), SMALL_RENT
+    return QuardrantWithOutRent(newx2, newy2, MOVE_BIG_V_WIDTH, MOVE_BIG_H_WIDTH), BIG_RENT
 
-    if newx2 == 0 and newy2 == 0:
-        # 不可能会重叠吧
-        # return Quardant.CHONGDIE
-        return Quardant.YOU
 
-    # 同一个垂直位置
-    if abs(newx2) < 100:
-        if newy2 > 0:
-            return Quardant.XIA
-        else:
-            return Quardant.SHANG
+# 是否在捡取范围
+def CanbePickup(x1, y1, x2, y2):
+    V_WIDTH = abs(x2 - x1)
+    H_WIDTH = abs(y2 - y1)
+    if V_WIDTH < PICKUP_V_WIDTH and H_WIDTH < PICKUP_H_WIDTH:
+        return True
+    return False
 
-    # 同一个水平位置
-    if abs(newy2) < 100:
-        if newx2 > 0:
-            return Quardant.YOU
-        else:
-            return Quardant.ZUO
 
-    # 右上,右下
-    if newx2 > 0:
-        if newy2 > 0:
-            return Quardant.YOUXIA
-        else:
-            return Quardant.YOUSHANG
+# 是否在慢走范围内
+def WithInManzou(x1, y1, x2, y2):
+    V_WIDTH = abs(x2 - x1)
+    H_WIDTH = abs(y2 - y1)
+    if V_WIDTH < MANZOU_V_WIDTH and H_WIDTH < MANZOU_H_WIDTH:
+        return True
+    return False
 
-    # 左上,左下
-    if newx2 < 0:
-        if newy2 > 0:
-            return Quardant.ZUOXIA
-        else:
-            return Quardant.ZUOSHANG
 
 
 # === help dll 基础
@@ -761,7 +747,7 @@ def main():
     FlushPid()
 
     # PrintMenInfo()
-    PrintMapInfo()
+    # PrintMapInfo()
     # PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
@@ -778,6 +764,12 @@ def main():
     # print(IsCurrentInBossFangjian())
     #
     # print(GetNextDoor())
+
+    while True:
+        x, y = GetMenXY()
+
+        print(x, y)
+        time.sleep(1)
 
 
 if __name__ == "__main__":

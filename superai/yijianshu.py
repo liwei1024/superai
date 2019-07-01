@@ -117,28 +117,23 @@ def ReleaseAllKey():
 
 
 def JiPaoYou():
-    time.sleep(0.2)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
     time.sleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
     time.sleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    time.sleep(0.1)
-
+    time.sleep(0.2)
 
 def JiPaoZuo():
-    time.sleep(0.2)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
     time.sleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
     time.sleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    time.sleep(0.1)
-
+    time.sleep(0.2)
 
 # 八方位移动
-
-def DownSHANG(jipao=False):
+def DownSHANG():
     lib.M_KeyDown2(h, VK_CODE["up_arrow"])
 
 
@@ -224,7 +219,7 @@ def PressLeft():
 
 def PressX():
     lib.M_KeyDown2(h, VK_CODE["x"])
-    time.sleep(0.05)
+    time.sleep(0.03)
     lib.M_KeyUp2(h, VK_CODE["x"])
 
 
@@ -263,12 +258,11 @@ def TestFangxiang():
 
 
 def TestJiPao():
-    JiPaoZuo()
+    JiPaoYou()
     lib.M_KeyDown2(h, VK_CODE["up_arrow"])
+    lib.M_KeyUp2(h, VK_CODE["right_arrow"])
     time.sleep(2)
-
-    lib.M_KeyUp2(h, VK_CODE["left_arrow"])
-    lib.M_KeyDown2(h, VK_CODE["up_arrow"])
+    lib.M_ReleaseAllKey(h, x)
 
 
 def TestPutongGongji():
@@ -300,7 +294,7 @@ def main():
 
     # TestFangxiang(h, x)
 
-    TestPutongGongji()
+    TestJiPao()
 
 
 if __name__ == "__main__":
