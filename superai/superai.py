@@ -37,6 +37,8 @@ class StateMachine:
 
     owner = None
 
+    globalState = None
+
     def __init__(self, owner):
         self.owner = owner
 
@@ -46,6 +48,9 @@ class StateMachine:
         print("状态切换 %s -> %s" % (type(tmp), type(self.currentState)))
 
     def Update(self):
+        if self.globalState is not None:
+            self.globalState.Execute(self.owner)
+
         if self.currentState is not None:
             self.currentState.Execute(self.owner)
 
@@ -93,11 +98,13 @@ class Player:
             # 疾跑 -> 八方位移动.  恢复站立状态 -> 疾跑状态关闭
             self.injipao = False
 
+    def Kasi(self):
+        pass
+
     # 疾跑
     def KeyJiPao(self, quad):
         if self.injipao:
             return
-
         if quad in [Quardant.SHANG, Quardant.XIA]:
             return
         elif quad in [Quardant.ZUO, Quardant.ZUOSHANG, Quardant.ZUOXIA]:
@@ -211,30 +218,28 @@ class SeekAndAttackMonster(State):
         if obj.hp < 1:
             return
 
-        objx, objy = obj.x, obj.y
-        menx, meny = GetMenXY()
-        if CanBeAttack(menx, meny, objx, objy):
+        men = GetMenInfo()
+        if CanBeAttack(men.x, men.y, obj.x, obj.y):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
 
             # 朝向更新
-            player.ChaoxiangFangxiang(menx, objx)
+            player.ChaoxiangFangxiang(men.x, obj.x)
 
-            print("SeekAndAttackMonster: 开始攻击 %.f, %.f" % (objx, objy))
+            print("SeekAndAttackMonster: 开始攻击 %.f, %.f" % (obj.x, obj.y))
 
             time.sleep(0.15)
             PressAtack()
 
-            # 普通攻击后判断一下血量
-            newobj = UpdateMonsterInfo(obj)
-            if newobj is None or newobj.hp < 1:
+            # 普通攻击后判断一下血量,距离
+            obj = UpdateMonsterInfo(obj)
+            if obj is None or obj.hp < 1:
+                return
+            men = GetMenInfo()
+            if not CanBeAttack(men.x, men.y, obj.x, obj.y):
                 return
 
-            # 普通攻击后判断一下朝向
-            objx, objy = newobj.x, newobj.y
-            menx, meny = GetMenXY()
-            player.ChaoxiangFangxiang(menx, objx)
-
+            player.ChaoxiangFangxiang(men.x, obj.x)
             skill = player.skills.GetMaxLevelAttackSkill()
             if skill is not None:
                 print("使用技能 %s" % skill.name)
@@ -243,7 +248,7 @@ class SeekAndAttackMonster(State):
             else:
                 print("没有技能可释放")
         else:
-            player.Seek(objx, objy)
+            player.Seek(obj.x, obj.y)
 
 
 # 靠近并捡取物品
@@ -284,6 +289,8 @@ class DoorOpenGotoNext(State):
         else:
             door = GetNextDoor()
             if door.x == 0 and door.y == 0:
+                player.UpLatestKey()
+                time.sleep(1.0)
                 player.ChangeState(StandStateInstance)
                 return
             player.Seek(door.x, door.y)
