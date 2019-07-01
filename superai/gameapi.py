@@ -260,12 +260,16 @@ BIG_RENT = 1
 SMALL_RENT = 2
 
 # 慢走矩形
-MANZOU_V_WIDTH = 150 / 2
+MANZOU_V_WIDTH = 200 / 2
 MANZOU_H_WIDTH = 200 / 2
 
 # 拾取矩形
 PICKUP_V_WIDTH = 40 / 2
 PICKUP_H_WIDTH = 40 / 2
+
+# 攻击矩形
+ATTACK_V_WIDTH = 150 / 2
+ATTACK_H_WIDTH = 40 / 2
 
 
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
@@ -321,6 +325,15 @@ def CanbePickup(x1, y1, x2, y2):
     return False
 
 
+# 是否在攻击范围内
+def CanBeAttack(x1, y1, x2, y2):
+    V_WIDTH = abs(x2 - x1)
+    H_WIDTH = abs(y2 - y1)
+    if V_WIDTH < ATTACK_V_WIDTH and H_WIDTH < ATTACK_H_WIDTH:
+        return True
+    return False
+
+
 # 是否在慢走范围内
 def WithInManzou(x1, y1, x2, y2):
     V_WIDTH = abs(x2 - x1)
@@ -329,6 +342,13 @@ def WithInManzou(x1, y1, x2, y2):
         return True
     return False
 
+
+# 获取对象在右边还是左边
+def GetFangxiang(x1, x2):
+    if x2 - x1 > 0:
+        return RIGHT
+    else:
+        return LEFT
 
 
 # === help dll 基础

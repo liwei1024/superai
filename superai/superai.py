@@ -18,7 +18,7 @@ from superai.gameapi import GameApiInit, FlushPid, PrintMenInfo, PrintMapInfo, P
     GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
     GetMenChaoxiang, RIGHT, Skills, UpdateMonsterInfo, LEFT, HaveGoods, \
     NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetCurrentMapXy, GetMenInfo, \
-    BIG_RENT, CanbePickup, WithInManzou
+    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, CanBeAttack
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -100,14 +100,28 @@ class Player:
 
         if quad in [Quardant.SHANG, Quardant.XIA]:
             return
-
-        if quad in [Quardant.ZUO, Quardant.ZUOSHANG, Quardant.ZUOXIA]:
+        elif quad in [Quardant.ZUO, Quardant.ZUOSHANG, Quardant.ZUOXIA]:
             JiPaoZuo()
-
-        if quad in [Quardant.YOU, Quardant.YOUSHANG, Quardant.YOUXIA]:
+        elif quad in [Quardant.YOU, Quardant.YOUSHANG, Quardant.YOUXIA]:
             JiPaoYou()
-
+        else:
+            raise NotImplementedError()
         self.injipao = True
+
+    def ChaoxiangFangxiang(self, menx, objx):
+        # 是否面向对方
+
+        guaiwuweizhi = GetFangxiang(menx, objx)
+        renwufangxiang = GetMenChaoxiang()
+
+        if guaiwuweizhi != renwufangxiang:
+            # 调整朝向
+            if renwufangxiang == RIGHT and guaiwuweizhi == LEFT:
+                print("调整朝向 人物: %d 怪物: %d, 向左调整" % (renwufangxiang, guaiwuweizhi))
+                PressLeft()
+            else:
+                print("调整朝向 人物: %d 怪物: %d, 向右调整" % (renwufangxiang, guaiwuweizhi))
+                PressRight()
 
     # 靠近
     def Seek(self, destx, desty):
@@ -124,9 +138,6 @@ class Player:
         jizoustr = ""
         if jizou:
             jizoustr = "疾走"
-
-        # 目标是否在右边
-        right = (destx - menx) > 0
 
         if rent == BIG_RENT:
             if self.KeyDowned():
@@ -178,8 +189,61 @@ class StandState(State):
 
 # 靠近并攻击怪物
 class SeekAndAttackMonster(State):
+    selectedMonster = None
+
     def Execute(self, player):
-        pass
+        # 更新选中怪物信息
+        if self.selectedMonster is not None:
+            self.selectedMonster = UpdateMonsterInfo(self.selectedMonster)
+
+        # 如果选中的怪物死亡了, 或者没有选中怪物
+        if self.selectedMonster is None:
+            obj = NearestMonster()
+            self.selectedMonster = obj
+        else:
+            obj = self.selectedMonster
+
+        # 如果没有怪物了,那么切换状态
+        if obj is None:
+            player.ChangeState(StandStateInstance)
+            return
+
+        if obj.hp < 1:
+            return
+
+        objx, objy = obj.x, obj.y
+        menx, meny = GetMenXY()
+        if CanBeAttack(menx, meny, objx, objy):
+            # 上一次的跑动的按键恢复
+            player.UpLatestKey()
+
+            # 朝向更新
+            player.ChaoxiangFangxiang(menx, objx)
+
+            print("SeekAndAttackMonster: 开始攻击 %.f, %.f" % (objx, objy))
+
+            time.sleep(0.15)
+            PressAtack()
+
+            # 普通攻击后判断一下血量
+            newobj = UpdateMonsterInfo(obj)
+            if newobj is None or newobj.hp < 1:
+                return
+
+            # 普通攻击后判断一下朝向
+            objx, objy = newobj.x, newobj.y
+            menx, meny = GetMenXY()
+            player.ChaoxiangFangxiang(menx, objx)
+
+            skill = player.skills.GetMaxLevelAttackSkill()
+            if skill is not None:
+                print("使用技能 %s" % skill.name)
+                skill.Use()
+                player.skills.Update()
+            else:
+                print("没有技能可释放")
+        else:
+            player.Seek(objx, objy)
 
 
 # 靠近并捡取物品
@@ -199,14 +263,30 @@ class SeekAndPickUp(State):
             print("捡取 (%d,%d)" % (obj.x, obj.y))
             time.sleep(0.1)
             PressX()
+            time.sleep(0.3)
         else:
             player.Seek(obj.x, obj.y)
 
 
 # 门已开,去过图
 class DoorOpenGotoNext(State):
+    currentx = None
+    currenty = None
+
     def Execute(self, player):
-        pass
+        # 进到新的地图
+        curx, cury = GetCurrentMapXy()
+        if curx != self.currentx and cury != self.currenty:
+            player.ChangeState(StandStateInstance)
+            self.currentx = curx
+            self.currenty = cury
+            return
+        else:
+            door = GetNextDoor()
+            if door.x == 0 and door.y == 0:
+                player.ChangeState(StandStateInstance)
+                return
+            player.Seek(door.x, door.y)
 
 
 StandStateInstance = StandState()
@@ -232,9 +312,11 @@ def main():
     ReleaseAllKey()
 
     hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
-    win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
-                          win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+    # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
+    #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     win32gui.SetForegroundWindow(hwnd)
+
+    time.sleep(0.8)
 
     player = Player()
     player.ChangeState(StandStateInstance)
