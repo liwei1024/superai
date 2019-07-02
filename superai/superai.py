@@ -19,7 +19,7 @@ from superai.gameapi import GameApiInit, FlushPid, PrintMenInfo, PrintMapInfo, P
     GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
     GetMenChaoxiang, RIGHT, Skills, UpdateMonsterInfo, LEFT, HaveGoods, \
     NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetCurrentMapXy, GetMenInfo, \
-    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, CanBeAttack, MonsterIsToofar, ATTACK_V_WIDTH
+    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, MonsterIsToofar, ATTACK_V_WIDTH, simpleAttackSkill
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -66,7 +66,11 @@ class Player:
     # 持有技能
     skills = Skills()
 
+    # 是否在疾跑状态
     injipao = False
+
+    # 当前选择的技能 (保存临时选择的状态,释放完毕才能选择下一个技能)
+    curskill = None
 
     def __init__(self):
         self.stateMachine = StateMachine(self)
@@ -99,6 +103,28 @@ class Player:
             # 疾跑 -> 八方位移动.  恢复站立状态 -> 疾跑状态关闭
             self.injipao = False
 
+    # 随机选择一种技能
+    def SelectSkill(self):
+        if random.uniform(0, 1) < 0.3:
+            self.curskill = simpleAttackSkill
+        else:
+            self.curskill = self.skills.GetMaxLevelAttackSkill()
+            if self.curskill is None:
+                self.curskill = simpleAttackSkill
+
+    # 使用掉随机选择的技能
+    def UseSkill(self):
+        self.curskill.Use()
+        self.skills.Update()
+
+        print("使用技能 %s" % self.curskill.name)
+
+        self.curskill = None
+
+    # 是否已经选择了技能
+    def HasSkillHasBeenSelect(self):
+        return self.curskill is not None
+
     def Kasi(self):
         pass
 
@@ -119,16 +145,20 @@ class Player:
     def ChaoxiangFangxiang(self, menx, objx):
         # 是否面向对方
 
-        guaiwuweizhi = GetFangxiang(menx, objx)
-        renwufangxiang = GetMenChaoxiang()
+        monlocation = GetFangxiang(menx, objx)
+        menfangxiang = GetMenChaoxiang()
 
-        if guaiwuweizhi != renwufangxiang:
+        if monlocation != menfangxiang:
             # 调整朝向
-            if renwufangxiang == RIGHT and guaiwuweizhi == LEFT:
-                print("调整朝向 人物: %d 怪物: %d, 向左调整" % (renwufangxiang, guaiwuweizhi))
+            if menfangxiang == RIGHT and monlocation == LEFT:
+                print("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
+                PressLeft()
+                time.sleep(0.15)
                 PressLeft()
             else:
-                print("调整朝向 人物: %d 怪物: %d, 向右调整" % (renwufangxiang, guaiwuweizhi))
+                print("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
+                PressRight()
+                time.sleep(0.15)
                 PressRight()
 
     # 靠近
@@ -137,15 +167,13 @@ class Player:
         quad, rent = GetQuadrant(menx, meny, destx, desty)
 
         if quad == Quardant.CHONGDIE:
+            # 已经重叠了, 调用者(靠近怪物, 捡物, 过门 应该不会再次调用seek了). 频繁发生就说明写错了
             self.UpLatestKey()
             print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 重叠" % (menx, meny, destx, desty, quad.name))
             return
 
         jizou = not WithInManzou(menx, meny, destx, desty)
-
-        jizoustr = ""
-        if jizou:
-            jizoustr = "疾走"
+        jizoustr = "" if not jizou else "疾走"
 
         if rent == BIG_RENT:
             if self.KeyDowned():
@@ -175,6 +203,10 @@ class Player:
             QuadKeyDownMap[quad]()
             time.sleep(0.2)
             ReleaseAllKey()
+
+    # 水平方向背离 (调整打怪姿势)
+    def FleeH(self):
+        pass
 
 
 class State:
@@ -231,37 +263,35 @@ class SeekAndAttackMonster(State):
             player.ChangeState(SeekAndPickUp())
             return
 
+        # 没有选择技能就选择一个
+        if not player.HasSkillHasBeenSelect():
+            player.SelectSkill()
+
         men = GetMenInfo()
 
-        # TODO. 靠近怪物攻击范围 1. 普通攻击状态  2. 技能释放状态
+        # 在水平宽度内并且垂直宽度太近了, 远离
+        if player.curskill.IsH_WInRange(men.y, obj.y) and \
+                player.curskill.IsV_WTOOClose(men.x, obj.x):
+            seekx, seeky = player.curskill.GetSeekXY(men.x, men.y, obj.x, obj.y)
+            print("目标太接近,无法攻击,选择合适位置: men:(%d,%d) obj:(%d,%d) seek(%d,%d), 技能%s 太靠近垂直水平(%d,%d)" %
+                  (men.x, men.y, obj.x, obj.y, seekx, seeky, player.curskill.name,
+                   player.curskill.skilldata.too_close_v_w, player.curskill.skilldata.h_w))
+            player.Seek(seekx, seeky)
+            time.sleep(0.3)
+            return
 
-        if CanBeAttack(men.x, men.y, obj.x, obj.y):
-            # 上一次的跑动的按键恢复
-            player.UpLatestKey()
-
-            # 朝向更新
+        # 在攻击的水平宽度和垂直宽度之内,攻击
+        if player.curskill.IsH_WInRange(men.y, obj.y) and \
+                player.curskill.isV_WInRange(men.x, obj.x):
+            print("目标在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
+                  (player.curskill.name, player.curskill.skilldata.v_w, player.curskill.skilldata.h_w))
             player.ChaoxiangFangxiang(men.x, obj.x)
-            print("SeekAndAttackMonster: 开始攻击 %.f, %.f" % (obj.x, obj.y))
+            player.UseSkill()
+            return
 
-            # TODO. 微小调整
-
-            if random.uniform(0, 1) < 0.3:
-                time.sleep(0.1)
-                PressAtack()
-            else:
-                skill = player.skills.GetMaxLevelAttackSkill()
-                if skill is not None:
-                    # TODO. 1. 在范围内,攻击 2. 范围太近,远离 3. 范围太远靠近
-
-                    print("使用技能 %s" % skill.name)
-                    skill.Use()
-                    player.skills.Update()
-
-        else:
-            if GetFangxiang(men.x, obj.x) == RIGHT:
-                player.Seek(obj.x, obj.y)
-            else:
-                player.Seek(obj.x, obj.y)
+        # 靠近
+        seekx, seeky = player.curskill.GetSeekXY(men.x, men.y, obj.x, obj.y)
+        player.Seek(seekx, seeky)
 
 
 # 靠近并捡取物品
@@ -269,7 +299,7 @@ class SeekAndPickUp(State):
     def Execute(self, player):
         obj = NearestGood()
 
-        # 如果没有物品了,那么切换状态
+        # 如果没有物品了,那么切换图内状态
         if obj is None:
             player.ChangeState(StandState())
             return
@@ -336,7 +366,7 @@ def main():
 
     try:
         while True:
-            Sleep(30)
+            Sleep(20)
             player.Update()
     except KeyboardInterrupt:
         player.UpLatestKey()

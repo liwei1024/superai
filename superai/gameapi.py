@@ -267,15 +267,15 @@ MANZOU_H_WIDTH = 200 / 2
 PICKUP_V_WIDTH = 40 / 2
 PICKUP_H_WIDTH = 40 / 2
 
-# 攻击矩形
-ATTACK_V_WIDTH = 200 / 2
+# 怪物在太远的距离,先捡物品
+PICK_DISTANCE = 300
+
+# 普通攻击矩形
+ATTACK_V_WIDTH = 160 / 2
 ATTACK_H_WIDTH = 40 / 2
 
-# 怪物在太远的距离,先捡物品
-PICK_DISTANCE = 200
-
-# 攻击怪物范围,走过去时别走到怪物脸上
-ATTACK_V_WIDTH = 80 / 2
+# 攻击太靠近的垂直宽度
+ATTACK_TOO_CLOSE_V_WIDTH = 60 / 2
 
 
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
@@ -322,23 +322,26 @@ def GetQuadrant(x1, y1, x2, y2):
     return QuardrantWithOutRent(newx2, newy2, MOVE_BIG_V_WIDTH, MOVE_BIG_H_WIDTH), BIG_RENT
 
 
+# 获得水平方向反向
+# def GetFleeQuadrant(x1, y1, x2, y2):
+#     quad, rent = GetQuadrant(x1, y1, x2, y2)
+#     if quad in [Quardant.YOU, Quardant.YOUXIA, Quardant.YOUSHANG]:
+#         return Quardant.ZUO, rent
+#     if quad in [Quardant.ZUO, Quardant.ZUOXIA, Quardant.ZUOSHANG]:
+#         return Quardant.YOU, rent
+#     if quad in [Quardant.SHANG, Quardant.XIA, Quardant.CHONGDIE]:
+#         if GetFangxiang(x1, x2) == RIGHT:
+#             return Quardant.ZUO
+#         else:
+#             return Quardant.YOU
+
+
 # 是否在捡取范围
 def CanbePickup(x1, y1, x2, y2):
     V_WIDTH = abs(x2 - x1)
     H_WIDTH = abs(y2 - y1)
     if V_WIDTH < PICKUP_V_WIDTH and H_WIDTH < PICKUP_H_WIDTH:
         return True
-    return False
-
-
-# 是否在攻击范围内
-def CanBeAttack(x1, y1, x2, y2):
-    V_WIDTH = abs(x2 - x1)
-    H_WIDTH = abs(y2 - y1)
-
-    if V_WIDTH < ATTACK_V_WIDTH and H_WIDTH < ATTACK_H_WIDTH:
-        return True
-
     return False
 
 
@@ -631,54 +634,94 @@ class SkillType(Enum):
 class SkillData:
     # 技能种类
     type = None
-    # 垂直宽度
-    V_WIDTH = 100
-    # 水平宽度
-    H_WIDTH = 100
+
+    # 攻击垂直宽度
+    v_w = ATTACK_V_WIDTH
+    # 攻击水平宽度
+    h_w = ATTACK_H_WIDTH
+
+    # 攻击太靠近的垂直宽度
+    too_close_v_w = ATTACK_TOO_CLOSE_V_WIDTH
+
+    # 释放级别. 越高级的越先释放
+    level = 0
+
+    # 按键延迟时间
+    delaytime = 0.1
+
+    def __init__(self, **kw):
+        for k, w in kw.items():
+            setattr(self, k, w)
 
 
-skillsInit = {
+skillSettingMap = {
     # 移动
-    "后跳": {"type": SkillType.Yidong},
+    "后跳": SkillData(type=SkillType.Yidong),
 
     # buff
-    "波动刻印": {"type": SkillType.Buff},
+    "波动刻印": SkillData(type=SkillType.Buff),
 
     # 近
-    "鬼斩": {"changdu": 100, "type": SkillType.Gongji, "level": 5},  # 1
-    "上挑": {"changdu": 100, "type": SkillType.Gongji, "level": 3},  # 1
-    "裂波斩": {"changdu": 100, "type": SkillType.Gongji, "level": 11},  # 10
-    "鬼连斩": {"changdu": 100, "type": SkillType.Gongji, "level": 12},  # 10 转职后没有
+    "上挑": SkillData(type=SkillType.Gongji, level=3),
+    "鬼斩": SkillData(type=SkillType.Gongji, level=5),
+    "裂波斩": SkillData(type=SkillType.Gongji, level=7),
+    "鬼连斩": SkillData(type=SkillType.Gongji, level=8),
 
     # 远
-    "地裂 · 波动剑": {"changdu": 100, "type": SkillType.Gongji, "level": 13},  # 15
-    "鬼印珠": {"changdu": 300, "type": SkillType.Gongji, "level": 14},  # 18
+    "地裂 · 波动剑": SkillData(type=SkillType.Gongji, level=10, v_w=200 / 2, h_w=40 / 2),
+    "鬼印珠": SkillData(type=SkillType.Gongji, level=12, v_w=400 / 2, h_w=40 / 2, too_close_v_w=140 / 2),
+    "邪光斩": SkillData(type=SkillType.Gongji, level=15, v_w=400 / 2, h_w=40 / 2, delaytime=0.8),
 }
 
 
 class Skill:
+    # 是否存在
     exist = False
 
+    # 内存读出来的冷却时间
     cooding = 0
+    # 名称
     name = ""
+    # 内存上次使用时间
     gamelatestusedtime = 0
+    # 快捷键
     key = None
-
-    # python记录 实际上次使用时间
+    # python内部记录 实际上次使用时间
     lastusedtime = 0
+    # python对技能的配置
+    skilldata = SkillData(type=SkillType.Gongji)
 
-    # 长度
-    changdu = 0
+    def __init__(self, **kw):
+        for k, w in kw.items():
+            setattr(self, k, w)
 
-    # 类型
-    type = None
+    # 是否垂直宽度太靠近致使攻击不能命中
+    def IsV_WTOOClose(self, menx, objx):
+        newx = objx - menx
+        return abs(newx) < self.skilldata.too_close_v_w
 
-    # 释放等级
-    level = 0
+    # 是否水平宽度在技能范围内
+    def IsH_WInRange(self, meny, objy):
+        newy = objy - meny
+        return abs(newy) < self.skilldata.h_w
+
+    # 是否垂直宽度在技能范围内
+    def isV_WInRange(self, menx, objx):
+        newx = objx - menx
+        return abs(newx) < self.skilldata.v_w
+
+    # 人物靠近怪物时不靠近怪物坐标,而是靠近到该技能的范围中点
+    def GetSeekXY(self, menx, meny, objx, objy):
+        if GetFangxiang(menx, objx) == RIGHT:
+            return objx - (self.skilldata.v_w - self.skilldata.too_close_v_w) / 2 - self.skilldata.too_close_v_w, objy
+
+        if GetFangxiang(menx, objx) == LEFT:
+            return objx + (self.skilldata.v_w - self.skilldata.too_close_v_w) / 2 + self.skilldata.too_close_v_w, objy
+
+        raise NotImplementedError()
 
     # 可以使用
     def CanbeUsed(self):
-
         # 是否存在
         if not self.exist:
             return False
@@ -702,19 +745,19 @@ class Skill:
     def UpdateUsedTime(self):
         self.lastusedtime = int(time.time())
 
-    # 没有初始化
-    def DidnotInit(self):
-        return self.type is None
-
-    # 初始化类型,宽度等
+    # 初始化技能在内存中的设置
     def Init(self):
-        self.changdu = skillsInit[self.name].get("changdu", 0)
-        self.type = skillsInit[self.name]["type"]
-        self.level = skillsInit[self.name].get("level", 0)
+        if self.name in skillSettingMap:
+            self.skilldata = skillSettingMap[self.name]
 
     # 使用
     def Use(self):
-        PressSkill(self.key)
+        PressSkill(self.key, self.skilldata.delaytime)
+
+
+# 普通攻击
+simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击")
+simpleAttackSkill.skilldata.delaytime = 0.8
 
 
 class Skills:
@@ -737,8 +780,7 @@ class Skills:
             self.skilllst[obj.idx].gamelatestusedtime = obj.sendtime
             self.skilllst[obj.idx].SetKey(obj.idx)
 
-            if self.skilllst[obj.idx].DidnotInit():
-                self.skilllst[obj.idx].Init()
+            self.skilllst[obj.idx].Init()
 
         # 技能对象是否存在
         for skillobj in self.skilllst:
@@ -756,7 +798,7 @@ class Skills:
     def GetCanBeUsedAttackSkills(self):
         outlst = []
         for skill in self.skilllst:
-            if skill.CanbeUsed() and skill.type == SkillType.Gongji:
+            if skill.CanbeUsed() and skill.skilldata.type == SkillType.Gongji:
                 outlst.append(skill)
         return outlst
 
@@ -764,7 +806,7 @@ class Skills:
     def GetCanBeUseBuffSkills(self):
         outlst = []
         for skill in self.skilllst:
-            if skill.CanbeUsed() and skill.type == SkillType.Buff:
+            if skill.CanbeUsed() and skill.skilldata.type == SkillType.Buff:
                 outlst.append(skill)
         return outlst
 
@@ -773,7 +815,7 @@ class Skills:
         skills = self.GetCanBeUsedAttackSkills()
         if len(skills) < 1:
             return None
-        return max(skills, key=lambda skill: skill.level)
+        return max(skills, key=lambda skill: skill.skilldata.level)
 
     # 有技能可以被释放
     def HaveSkillCanBeUse(self):
@@ -799,6 +841,14 @@ def PrintCanBeUsedSkill():
         canbeused = skills.GetCanBeUsedAttackSkills()
         for skill in canbeused:
             print(skill.name)
+
+
+# 不断打印坐标
+def PrintXY():
+    while True:
+        x, y = GetMenXY()
+        print(x, y)
+        time.sleep(1)
 
 
 def main():
@@ -827,11 +877,6 @@ def main():
     # print(IsCurrentInBossFangjian())
     #
     # print(GetNextDoor())
-
-    while True:
-        x, y = GetMenXY()
-        print(x, y)
-        time.sleep(1)
 
 
 if __name__ == "__main__":
