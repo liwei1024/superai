@@ -119,9 +119,9 @@ def ReleaseAllKey():
 def JiPaoYou():
     time.sleep(0.2)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    time.sleep(0.1)
+    time.sleep(0.2)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
-    time.sleep(0.1)
+    time.sleep(0.2)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
     time.sleep(0.2)
 
@@ -129,9 +129,9 @@ def JiPaoYou():
 def JiPaoZuo():
     time.sleep(0.2)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    time.sleep(0.1)
+    time.sleep(0.2)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
-    time.sleep(0.1)
+    time.sleep(0.2)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
     time.sleep(0.2)
 
@@ -216,7 +216,6 @@ def PressRight():
 
 
 def PressLeft():
-
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
     time.sleep(0.15)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
@@ -240,6 +239,15 @@ def PressAtack(deay=1, afterdealy=0.25):
     time.sleep(deay)
     lib.M_KeyUp2(h, VK_CODE["x"])
     time.sleep(afterdealy)
+
+
+def PressHouTiao():
+    lib.M_KeyDown2(h, VK_CODE["down_arrow"])
+    time.sleep(0.1)
+    lib.M_KeyDown2(h, VK_CODE["c"])
+    time.sleep(0.1)
+    lib.M_KeyUp2(h, VK_CODE["c"])
+    lib.M_KeyUp2(h, VK_CODE["down_arrow"])
 
 
 def TestAttackPress():
@@ -279,6 +287,10 @@ def TestPutongGongji():
     lib.M_KeyUp2(h, VK_CODE["z"])
 
 
+def TestHouTiao():
+    PressHouTiao()
+
+
 def main():
     if YijianshuInit():
         print("Init 易键鼠 ok")
@@ -299,7 +311,9 @@ def main():
 
     # TestFangxiang(h, x)
 
-    TestJiPao()
+    # TestJiPao()
+
+    TestHouTiao()
 
 
 if __name__ == "__main__":

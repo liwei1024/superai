@@ -13,7 +13,7 @@ import random
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressRight, \
-    PressLeft, JiPaoZuo, JiPaoYou, PressAtack, ReleaseAllKey, PressX
+    PressLeft, JiPaoZuo, JiPaoYou, PressAtack, ReleaseAllKey, PressX, PressHouTiao
 
 from superai.gameapi import GameApiInit, FlushPid, PrintMenInfo, PrintMapInfo, PrintSkillObj, PrintNextMen, PrintMapObj, \
     GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
@@ -153,12 +153,8 @@ class Player:
             if menfangxiang == RIGHT and monlocation == LEFT:
                 print("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
                 PressLeft()
-                time.sleep(0.15)
-                PressLeft()
             else:
                 print("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
-                PressRight()
-                time.sleep(0.15)
                 PressRight()
 
     # 靠近
@@ -276,8 +272,13 @@ class SeekAndAttackMonster(State):
             print("目标太接近,无法攻击,选择合适位置: men:(%d,%d) obj:(%d,%d) seek(%d,%d), 技能%s 太靠近垂直水平(%d,%d)" %
                   (men.x, men.y, obj.x, obj.y, seekx, seeky, player.curskill.name,
                    player.curskill.skilldata.too_close_v_w, player.curskill.skilldata.h_w))
-            player.Seek(seekx, seeky)
-            time.sleep(0.3)
+
+            if random.uniform(0, 1) < 0.8:
+                PressHouTiao()
+                time.sleep(0.1)
+            else:
+                player.Seek(seekx, seeky)
+                time.sleep(0.1)
             return
 
         # 在攻击的水平宽度和垂直宽度之内,攻击

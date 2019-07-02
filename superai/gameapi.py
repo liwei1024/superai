@@ -323,17 +323,17 @@ def GetQuadrant(x1, y1, x2, y2):
 
 
 # 获得水平方向反向
-# def GetFleeQuadrant(x1, y1, x2, y2):
-#     quad, rent = GetQuadrant(x1, y1, x2, y2)
-#     if quad in [Quardant.YOU, Quardant.YOUXIA, Quardant.YOUSHANG]:
-#         return Quardant.ZUO, rent
-#     if quad in [Quardant.ZUO, Quardant.ZUOXIA, Quardant.ZUOSHANG]:
-#         return Quardant.YOU, rent
-#     if quad in [Quardant.SHANG, Quardant.XIA, Quardant.CHONGDIE]:
-#         if GetFangxiang(x1, x2) == RIGHT:
-#             return Quardant.ZUO
-#         else:
-#             return Quardant.YOU
+def GetFleeQuadrant(x1, y1, x2, y2):
+    quad, rent = GetQuadrant(x1, y1, x2, y2)
+    if quad in [Quardant.YOU, Quardant.YOUXIA, Quardant.YOUSHANG]:
+        return Quardant.ZUO, rent
+    if quad in [Quardant.ZUO, Quardant.ZUOXIA, Quardant.ZUOSHANG]:
+        return Quardant.YOU, rent
+    if quad in [Quardant.SHANG, Quardant.XIA, Quardant.CHONGDIE]:
+        if GetFangxiang(x1, x2) == RIGHT:
+            return Quardant.ZUO
+        else:
+            return Quardant.YOU
 
 
 # 是否在捡取范围
