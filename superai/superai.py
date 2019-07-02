@@ -79,6 +79,7 @@ class Player:
         self.stateMachine = StateMachine(self)
 
     def ChangeState(self, state):
+        self.UpLatestKey()
         self.stateMachine.ChangeState(state)
 
     def SetGlobalState(self, state):
@@ -252,7 +253,7 @@ class Player:
             if self.KeyDowned():
                 if self.latestDown == quad:
                     self.DownKey(quad)
-                    # print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在hhhhhhhhhhhhhhhhhhhhhhhh%s, 维持 %s" %
+                    # print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
                     # (menx, meny, destx, desty, quad.name, jizoustr))
 
                 elif self.SwitchFangxiang(quad):
@@ -263,21 +264,19 @@ class Player:
                     print(
                         "seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 更换方向 %s" % (menx, meny, destx, desty, quad.name, jizoustr))
                     self.UpLatestKey()
-                    time.sleep(0.15)
                     if jizou:
                         self.KeyJiPao(quad)
                     self.DownKey(quad)
 
             else:
+                self.UpLatestKey()
                 print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 首次靠近 %s" % (menx, meny, destx, desty, quad.name, jizoustr))
-                time.sleep(0.15)
                 if jizou:
                     self.KeyJiPao(quad)
                 self.DownKey(quad)
         else:
             self.UpLatestKey()
             print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 微小距离靠近" % (menx, meny, destx, desty, quad.name))
-
             QuadKeyDownMap[quad]()
             time.sleep(0.2)
             ReleaseAllKey()
@@ -319,7 +318,7 @@ class StuckGlobalState(State):
             if math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
                 self.Reset()
                 player.ChangeState(StandState())
-                print("1s 坐标都没有移动卡死了, 重置状态")
+                print("卡死了, 重置状态")
             else:
                 self.Reset()
 
@@ -397,6 +396,7 @@ class SeekAndAttackMonster(State):
                    player.curskill.skilldata.too_close_v_w, player.curskill.skilldata.h_w))
 
             # 后跳解决问题
+            player.UpLatestKey()
             if random.uniform(0, 1) < 0.8:
                 PressHouTiao()
                 time.sleep(0.2)
@@ -454,7 +454,6 @@ class DoorOpenGotoNext(State):
         door = GetNextDoor()
         if not IsNextDoorOpen():
             # 进入到了新的门
-            player.UpLatestKey()
             player.ChangeState(StandState())
             return
         else:
