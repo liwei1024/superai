@@ -32,6 +32,9 @@ QuadKeyDownMap = {
     Quardant.YOUXIA: DownYOUXIA
 }
 
+# 多少毫秒执行一次状态机
+StateMachineSleep = 20
+
 
 class StateMachine:
     currentState = None
@@ -78,6 +81,9 @@ class Player:
     def ChangeState(self, state):
         self.stateMachine.ChangeState(state)
 
+    def SetGlobalState(self, state):
+        self.stateMachine.globalState = state
+
     def Update(self):
         self.stateMachine.Update()
 
@@ -116,17 +122,12 @@ class Player:
     def UseSkill(self):
         self.curskill.Use()
         self.skills.Update()
-
         print("使用技能 %s" % self.curskill.name)
-
         self.curskill = None
 
     # 是否已经选择了技能
     def HasSkillHasBeenSelect(self):
         return self.curskill is not None
-
-    def Kasi(self):
-        pass
 
     # 疾跑
     def KeyJiPao(self, quad):
@@ -144,7 +145,6 @@ class Player:
 
     def ChaoxiangFangxiang(self, menx, objx):
         # 是否面向对方
-
         monlocation = GetFangxiang(menx, objx)
         menfangxiang = GetMenChaoxiang()
 
@@ -200,14 +200,44 @@ class Player:
             time.sleep(0.2)
             ReleaseAllKey()
 
-    # 水平方向背离 (调整打怪姿势)
-    def FleeH(self):
-        pass
-
 
 class State:
     def Execute(self, player):
         raise NotImplementedError()
+
+
+# 防卡死状态机
+class StuckGlobalState(State):
+    counter = 0
+    beginx = None
+    beginy = None
+
+    def Reset(self):
+        self.counter = 0
+        self.beginx = None
+        self.beginy = None
+
+    def Execute(self, player):
+
+        if isinstance(player.stateMachine.currentState, SeekAndPickUp) or \
+                isinstance(player.stateMachine.currentState, DoorOpenGotoNext) or \
+                isinstance(player.stateMachine.currentState, SeekAndAttackMonster):
+            self.counter += 1
+
+        if isinstance(player.stateMachine.currentState, StandState):
+            self.Reset()
+
+        # 重置坐标
+        if self.counter == 1:
+            self.beginx, self.beginy = GetMenXY()
+
+        # 1s过去了
+        if self.counter == 1000 / StateMachineSleep:
+            curx, cury = GetMenXY()
+            if curx == self.beginx and cury == self.beginy:
+                self.Reset()
+                player.ChangeState(StandState())
+                print("1s 坐标都没有移动卡死了, 重置状态")
 
 
 # 初次进图,加buff
@@ -273,9 +303,10 @@ class SeekAndAttackMonster(State):
                   (men.x, men.y, obj.x, obj.y, seekx, seeky, player.curskill.name,
                    player.curskill.skilldata.too_close_v_w, player.curskill.skilldata.h_w))
 
+            # 后跳解决问题
             if random.uniform(0, 1) < 0.8:
                 PressHouTiao()
-                time.sleep(0.1)
+                time.sleep(0.2)
             else:
                 player.Seek(seekx, seeky)
                 time.sleep(0.1)
@@ -286,6 +317,7 @@ class SeekAndAttackMonster(State):
                 player.curskill.isV_WInRange(men.x, obj.x):
             print("目标在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
                   (player.curskill.name, player.curskill.skilldata.v_w, player.curskill.skilldata.h_w))
+            player.UpLatestKey()
             player.ChaoxiangFangxiang(men.x, obj.x)
             player.UseSkill()
             return
@@ -361,13 +393,14 @@ def main():
 
     player = Player()
     player.ChangeState(FirstInMap())
+    player.SetGlobalState(StuckGlobalState())
 
     player.skills.Update()
     player.skills.FlushAllTime()
 
     try:
         while True:
-            Sleep(20)
+            Sleep(StateMachineSleep)
             player.Update()
     except KeyboardInterrupt:
         player.UpLatestKey()

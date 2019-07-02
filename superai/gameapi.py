@@ -275,7 +275,7 @@ ATTACK_V_WIDTH = 160 / 2
 ATTACK_H_WIDTH = 40 / 2
 
 # 攻击太靠近的垂直宽度
-ATTACK_TOO_CLOSE_V_WIDTH = 60 / 2
+ATTACK_TOO_CLOSE_V_WIDTH = 40 / 2
 
 
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
@@ -647,7 +647,7 @@ class SkillData:
     level = 0
 
     # 按键延迟时间
-    delaytime = 0.1
+    delaytime = 0.2
 
     def __init__(self, **kw):
         for k, w in kw.items():
@@ -877,6 +877,8 @@ def main():
     # print(IsCurrentInBossFangjian())
     #
     # print(GetNextDoor())
+
+    PrintXY()
 
 
 if __name__ == "__main__":

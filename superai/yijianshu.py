@@ -211,13 +211,13 @@ def UpYOUXIA():
 
 def PressRight():
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    time.sleep(0.15)
+    time.sleep(0.10)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
 
 
 def PressLeft():
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    time.sleep(0.15)
+    time.sleep(0.10)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
 
 
