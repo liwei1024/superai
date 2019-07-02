@@ -19,7 +19,7 @@ from superai.gameapi import GameApiInit, FlushPid, PrintMenInfo, PrintMapInfo, P
     GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
     GetMenChaoxiang, RIGHT, Skills, UpdateMonsterInfo, LEFT, HaveGoods, \
     NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetCurrentMapXy, GetMenInfo, \
-    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, CanBeAttack, MonsterIsToofar
+    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, CanBeAttack, MonsterIsToofar, ATTACK_V_WIDTH
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -182,6 +182,7 @@ class State:
         raise NotImplementedError()
 
 
+# 初次进图,加buff
 class FirstInMap(State):
     def Execute(self, player):
         if player.skills.HaveBuffCanBeUse():
@@ -190,26 +191,20 @@ class FirstInMap(State):
                 skill.Use()
                 player.skills.Update()
 
-        player.ChangeState(StandStateInstance)
+        player.ChangeState(StandState())
 
 
 # 图内站立
 class StandState(State):
     def Execute(self, player):
-        if HaveMonsters() and MonsterIsToofar() and HaveGoods():
-            player.ChangeState(SeekAndPickUpInstance)
-            return
-
         if HaveMonsters():
-            player.ChangeState(SeekAndAttackMonsterInstance)
+            player.ChangeState(SeekAndAttackMonster())
             return
-
-        if HaveGoods():
-            player.ChangeState(SeekAndPickUpInstance)
+        elif HaveGoods():
+            player.ChangeState(SeekAndPickUp())
             return
-
-        if (not IsCurrentInBossFangjian()) and IsNextDoorOpen():
-            player.ChangeState(DoorOpenGotoNextInstance)
+        elif (not IsCurrentInBossFangjian()) and IsNextDoorOpen():
+            player.ChangeState(DoorOpenGotoNext())
             return
 
         time.sleep(0.3)
@@ -220,18 +215,26 @@ class StandState(State):
 class SeekAndAttackMonster(State):
 
     def Execute(self, player):
-
         obj = NearestMonster()
 
         # 如果没有怪物了,那么切换状态
         if obj is None:
-            player.ChangeState(StandStateInstance)
+            player.ChangeState(StandState())
             return
 
+        # 怪物血量太少, 重新进入 Execute 选择怪物
         if obj.hp < 1:
             return
 
+        # 怪物在太远的距离, 有物品捡物
+        if MonsterIsToofar() and HaveGoods():
+            player.ChangeState(SeekAndPickUp())
+            return
+
         men = GetMenInfo()
+
+        # TODO. 靠近怪物攻击范围 1. 普通攻击状态  2. 技能释放状态
+
         if CanBeAttack(men.x, men.y, obj.x, obj.y):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
@@ -240,21 +243,25 @@ class SeekAndAttackMonster(State):
             player.ChaoxiangFangxiang(men.x, obj.x)
             print("SeekAndAttackMonster: 开始攻击 %.f, %.f" % (obj.x, obj.y))
 
+            # TODO. 微小调整
+
             if random.uniform(0, 1) < 0.3:
                 time.sleep(0.1)
                 PressAtack()
             else:
                 skill = player.skills.GetMaxLevelAttackSkill()
                 if skill is not None:
+                    # TODO. 1. 在范围内,攻击 2. 范围太近,远离 3. 范围太远靠近
+
                     print("使用技能 %s" % skill.name)
                     skill.Use()
                     player.skills.Update()
 
         else:
             if GetFangxiang(men.x, obj.x) == RIGHT:
-                player.Seek(obj.x - 80, obj.y)
+                player.Seek(obj.x, obj.y)
             else:
-                player.Seek(obj.x + 80, obj.y)
+                player.Seek(obj.x, obj.y)
 
 
 # 靠近并捡取物品
@@ -264,7 +271,12 @@ class SeekAndPickUp(State):
 
         # 如果没有物品了,那么切换状态
         if obj is None:
-            player.ChangeState(StandStateInstance)
+            player.ChangeState(StandState())
+            return
+
+        # 有怪物在范围内,紧急切换
+        if not MonsterIsToofar():
+            player.ChangeState(SeekAndAttackMonster())
             return
 
         menx, meny = GetMenXY()
@@ -281,32 +293,16 @@ class SeekAndPickUp(State):
 
 # 门已开,去过图
 class DoorOpenGotoNext(State):
-    currentx = None
-    currenty = None
-
     def Execute(self, player):
         # 进到新的地图
-        curx, cury = GetCurrentMapXy()
-        if curx != self.currentx and cury != self.currenty:
-            player.ChangeState(StandStateInstance)
-            self.currentx = curx
-            self.currenty = cury
+        door = GetNextDoor()
+        if not IsNextDoorOpen():
+            # 进入到了新的门
+            player.UpLatestKey()
+            player.ChangeState(StandState())
             return
         else:
-            door = GetNextDoor()
-            if door.x == 0 and door.y == 0:
-                player.UpLatestKey()
-                time.sleep(0.4)
-                player.ChangeState(StandStateInstance)
-                return
             player.Seek(door.x, door.y)
-
-
-StandStateInstance = StandState()
-SeekAndAttackMonsterInstance = SeekAndAttackMonster()
-SeekAndPickUpInstance = SeekAndPickUp()
-DoorOpenGotoNextInstance = DoorOpenGotoNext()
-FirstInMapInstance = FirstInMap()
 
 
 def main():
@@ -333,7 +329,7 @@ def main():
     time.sleep(0.8)
 
     player = Player()
-    player.ChangeState(FirstInMapInstance)
+    player.ChangeState(FirstInMap())
 
     player.skills.Update()
     player.skills.FlushAllTime()

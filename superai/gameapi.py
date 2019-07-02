@@ -274,6 +274,9 @@ ATTACK_H_WIDTH = 40 / 2
 # 怪物在太远的距离,先捡物品
 PICK_DISTANCE = 200
 
+# 攻击怪物范围,走过去时别走到怪物脸上
+ATTACK_V_WIDTH = 80 / 2
+
 
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
     # 同一个垂直位置
@@ -332,10 +335,6 @@ def CanbePickup(x1, y1, x2, y2):
 def CanBeAttack(x1, y1, x2, y2):
     V_WIDTH = abs(x2 - x1)
     H_WIDTH = abs(y2 - y1)
-
-    # 太近也不好
-    if V_WIDTH < MOVE_SMALL_V_WIDTH:
-        return False
 
     if V_WIDTH < ATTACK_V_WIDTH and H_WIDTH < ATTACK_H_WIDTH:
         return True
@@ -534,7 +533,7 @@ def HaveMonsters():
 def MonsterIsToofar():
     monster = NearestMonster()
     if monster is None:
-        raise NotImplementedError()
+        return True
     men = GetMenInfo()
     if distance(men.x, men.y, monster.x, monster.y) > PICK_DISTANCE:
         return True
@@ -617,7 +616,6 @@ def GetCurrentMapXy():
 
 # 技能包装.
 
-
 idxkeymap = {
     0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
     6: VK_CODE['q'], 7: VK_CODE['w'], 8: VK_CODE['e'], 9: VK_CODE['r'], 10: VK_CODE['t'], 11: VK_CODE['y'],
@@ -630,15 +628,31 @@ class SkillType(Enum):
     Buff = 3
 
 
+class SkillData:
+    # 技能种类
+    type = None
+    # 垂直宽度
+    V_WIDTH = 100
+    # 水平宽度
+    H_WIDTH = 100
+
+
 skillsInit = {
-    "鬼斩": {"changdu": 100, "type": SkillType.Gongji, "level": 5},
-    "上挑": {"changdu": 100, "type": SkillType.Gongji, "level": 3},
-    "裂波斩": {"changdu": 100, "type": SkillType.Gongji, "level": 11},
-    "地裂 · 波动剑": {"changdu": 100, "type": SkillType.Gongji, "level": 13},
-    "鬼连斩": {"changdu": 100, "type": SkillType.Gongji, "level": 12},
-    "鬼印珠": {"changdu": 300, "type": SkillType.Gongji, "level": 14},
+    # 移动
     "后跳": {"type": SkillType.Yidong},
-    "波动刻印": {"type": SkillType.Buff}
+
+    # buff
+    "波动刻印": {"type": SkillType.Buff},
+
+    # 近
+    "鬼斩": {"changdu": 100, "type": SkillType.Gongji, "level": 5},  # 1
+    "上挑": {"changdu": 100, "type": SkillType.Gongji, "level": 3},  # 1
+    "裂波斩": {"changdu": 100, "type": SkillType.Gongji, "level": 11},  # 10
+    "鬼连斩": {"changdu": 100, "type": SkillType.Gongji, "level": 12},  # 10 转职后没有
+
+    # 远
+    "地裂 · 波动剑": {"changdu": 100, "type": SkillType.Gongji, "level": 13},  # 15
+    "鬼印珠": {"changdu": 300, "type": SkillType.Gongji, "level": 14},  # 18
 }
 
 
@@ -812,12 +826,12 @@ def main():
 
     # print(IsCurrentInBossFangjian())
     #
-    print(GetNextDoor())
+    # print(GetNextDoor())
 
-    # while True:
-    #     x, y = GetMenXY()
-    #     print(x, y)
-    #     time.sleep(1)
+    while True:
+        x, y = GetMenXY()
+        print(x, y)
+        time.sleep(1)
 
 
 if __name__ == "__main__":
