@@ -22,6 +22,7 @@ class MenInfo(Structure):
     _fields_ = [
         ("x", c_float),
         ("y", c_float),
+        ("z", c_float),
         ("money", c_wchar * 100),
         ("fuzhongcur", c_uint32),
         ("fuzhongmax", c_uint32),
@@ -39,9 +40,9 @@ class MenInfo(Structure):
 
     def __str__(self):
         return (
-                "obj: 0x%08X 名称: %s 等级: %d hp: %d mp: %d 疲劳: %d/%d 状态: %s 方向: %d 人物坐标 (%.f,%.f) 负重 (%d,%d)" % (
+                "obj: 0x%08X 名称: %s 等级: %d hp: %d mp: %d 疲劳: %d/%d 状态: %s 方向: %d 人物坐标 (%.f,%.f,%.f)  负重 (%d,%d)" % (
             self.object, self.name, self.level, self.hp, self.mp,
-            self.maxpilao - self.curpilao, self.maxpilao, self.statestr, self.fangxiang, self.x, self.y,
+            self.maxpilao - self.curpilao, self.maxpilao, self.statestr, self.fangxiang, self.x, self.y, self.z,
             self.fuzhongcur, self.fuzhongmax))
 
 
@@ -103,13 +104,18 @@ class MapObj(Structure):
         ("name", c_wchar * 100),
         ("x", c_float),
         ("y", c_float),
-        ("hp", c_uint32)
+        ("z", c_float),
+        ("hp", c_uint32),
+        ("code", c_uint32),
+        ("width", c_uint32),
+        ("height", c_uint32),
     ]
 
     def __str__(self):
         return (
-                "对象: 0x%08X 类型: 0x%X 阵营: 0x%X 名称: %s 坐标:(%.0f,%.0f) 生命: %d" % (
-            self.object, self.type, self.zhenying, self.name, self.x, self.y, self.hp))
+                "对象: 0x%08X 类型: 0x%X 阵营: 0x%X 名称: %s 坐标:(%.f,%.f,%.f)  生命: %d 代码: %d w: %d h: %d" % (
+            self.object, self.type, self.zhenying, self.name, self.x, self.y, self.z, self.hp,
+            self.code, self.width, self.height))
 
 
 class BagObj(Structure):
@@ -625,12 +631,14 @@ idxkeymap = {
 }
 
 
+# 技能种类
 class SkillType(Enum):
     Yidong = 1,
     Gongji = 2,
     Buff = 3
 
 
+# 技能属性包装
 class SkillData:
     # 技能种类
     type = None
@@ -654,6 +662,7 @@ class SkillData:
             setattr(self, k, w)
 
 
+# 初始化技能配置. 因为内存中读取不到
 skillSettingMap = {
     # 移动
     "后跳": SkillData(type=SkillType.Yidong),
@@ -674,6 +683,7 @@ skillSettingMap = {
 }
 
 
+# 技能包装
 class Skill:
     # 是否存在
     exist = False
@@ -759,6 +769,7 @@ simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击")
 simpleAttackSkill.skilldata.delaytime = 0.8
 
 
+# 技能列表
 class Skills:
     def __init__(self):
         self.skilllst = []
@@ -867,12 +878,12 @@ def main():
 
     FlushPid()
 
-    # PrintMenInfo()
+    PrintMenInfo()
     # PrintMapInfo()
-    # PrintMapObj()
+    PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
-    PrintSkillObj()
+    # PrintSkillObj()
     # PrintTaskObj()
     # PrintNextMen()
 
