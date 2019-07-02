@@ -677,7 +677,6 @@ skillSettingMap = {
 class Skill:
     # 是否存在
     exist = False
-
     # 内存读出来的冷却时间
     cooding = 0
     # 名称
@@ -827,6 +826,15 @@ class Skills:
         skills = self.GetCanBeUseBuffSkills()
         return len(skills) > 0
 
+    # 某个技能是否被释放过(比如修罗的技能
+    def DidSkillHavebeenUsed(self, skillname):
+        objs = GetSkillObj()
+        for obj in objs:
+            if obj.name == skillname:
+                if obj.sendtime != 0:
+                    return True
+        return False
+
 
 # 打印可以被使用的技能
 def PrintCanBeUsedSkill():
@@ -864,7 +872,7 @@ def main():
     # PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
-    # PrintSkillObj()
+    PrintSkillObj()
     # PrintTaskObj()
     # PrintNextMen()
 
@@ -878,7 +886,7 @@ def main():
     #
     # print(GetNextDoor())
 
-    PrintXY()
+    # PrintXY()
 
 
 if __name__ == "__main__":

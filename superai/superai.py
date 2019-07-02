@@ -129,6 +129,20 @@ class Player:
     def HasSkillHasBeenSelect(self):
         return self.curskill is not None
 
+    def ChaoxiangFangxiang(self, menx, objx):
+        # 是否面向对方
+        monlocation = GetFangxiang(menx, objx)
+        menfangxiang = GetMenChaoxiang()
+
+        if monlocation != menfangxiang:
+            # 调整朝向
+            if menfangxiang == RIGHT and monlocation == LEFT:
+                print("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
+                PressLeft()
+            else:
+                print("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
+                PressRight()
+
     # 疾跑
     def KeyJiPao(self, quad):
         if self.injipao:
@@ -143,19 +157,82 @@ class Player:
             raise NotImplementedError()
         self.injipao = True
 
-    def ChaoxiangFangxiang(self, menx, objx):
-        # 是否面向对方
-        monlocation = GetFangxiang(menx, objx)
-        menfangxiang = GetMenChaoxiang()
+    # 疾跑斜方向象限移动到水平或垂直位置时. 保留一个方向的速度. 并按键弹起释放另一个方向的速度
+    def SwitchFangxiang(self, quad) -> bool:
+        if not self.KeyDowned():
+            return False
 
-        if monlocation != menfangxiang:
-            # 调整朝向
-            if menfangxiang == RIGHT and monlocation == LEFT:
-                print("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
-                PressLeft()
+        if self.latestDown == quad:
+            raise NotImplementedError()
+
+        # 左上 -> 左 弹起上
+        # 左上 -> 上 弹起左
+
+        # 左 -> 左上 不处理
+        # 左 -> 左下 不处理
+        # ...
+
+        if self.latestDown == Quardant.ZUO:
+            if quad == Quardant.ZUOSHANG:
+                DownZUOSHANG()
+                self.latestDown = Quardant.ZUOSHANG
+            elif quad == Quardant.ZUOXIA:
+                DownZUOXIA()
+                self.latestDown = Quardant.ZUOXIA
             else:
-                print("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
-                PressRight()
+                return False
+
+        if self.latestDown == Quardant.YOU:
+            if quad == Quardant.YOUSHANG:
+                DownYOUSHANG()
+                self.latestDown = Quardant.YOUSHANG
+            elif quad == Quardant.YOUXIA:
+                DownYOUXIA()
+                self.latestDown = Quardant.YOUXIA
+            else:
+                return False
+
+        if self.latestDown == Quardant.ZUOSHANG:
+            if quad == Quardant.ZUO:
+                UpSHANG()
+                self.latestDown = Quardant.ZUO
+            elif quad == Quardant.SHANG:
+                UpZUO()
+                self.latestDown = Quardant.SHANG
+            else:
+                return False
+
+        if self.latestDown == Quardant.YOUSHANG:
+            if quad == Quardant.YOU:
+                UpSHANG()
+                self.latestDown = Quardant.YOU
+            elif quad == Quardant.SHANG:
+                UpYOU()
+                self.latestDown = Quardant.SHANG
+            else:
+                return False
+
+        if self.latestDown == Quardant.ZUOXIA:
+            if quad == Quardant.ZUO:
+                UpXIA()
+                self.latestDown = Quardant.ZUO
+            elif quad == Quardant.XIA:
+                UpZUO()
+                self.latestDown = Quardant.XIA
+            else:
+                return False
+
+        if self.latestDown == Quardant.YOUXIA:
+            if quad == Quardant.YOU:
+                UpXIA()
+                self.latestDown = Quardant.YOU
+            elif quad == Quardant.XIA:
+                UpYOU()
+                self.latestDown = Quardant.XIA
+            else:
+                return False
+
+        return True
 
     # 靠近
     def Seek(self, destx, desty):
@@ -175,20 +252,25 @@ class Player:
             if self.KeyDowned():
                 if self.latestDown == quad:
                     self.DownKey(quad)
+                    # print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在hhhhhhhhhhhhhhhhhhhhhhhh%s, 维持 %s" %
+                    # (menx, meny, destx, desty, quad.name, jizoustr))
+
+                elif self.SwitchFangxiang(quad):
+                    pass
                     # print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
                     # (menx, meny, destx, desty, quad.name, jizoustr))
                 else:
                     print(
                         "seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 更换方向 %s" % (menx, meny, destx, desty, quad.name, jizoustr))
                     self.UpLatestKey()
-
+                    time.sleep(0.15)
                     if jizou:
                         self.KeyJiPao(quad)
                     self.DownKey(quad)
 
             else:
                 print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 首次靠近 %s" % (menx, meny, destx, desty, quad.name, jizoustr))
-
+                time.sleep(0.15)
                 if jizou:
                     self.KeyJiPao(quad)
                 self.DownKey(quad)
@@ -232,12 +314,14 @@ class StuckGlobalState(State):
             self.beginx, self.beginy = GetMenXY()
 
         # 1s过去了
-        if self.counter == 1000 / StateMachineSleep:
+        if self.counter >= 1000 / StateMachineSleep:
             curx, cury = GetMenXY()
-            if curx == self.beginx and cury == self.beginy:
+            if math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
                 self.Reset()
                 player.ChangeState(StandState())
                 print("1s 坐标都没有移动卡死了, 重置状态")
+            else:
+                self.Reset()
 
 
 # 初次进图,加buff
@@ -246,8 +330,17 @@ class FirstInMap(State):
         if player.skills.HaveBuffCanBeUse():
             skills = player.skills.GetCanBeUseBuffSkills()
             for skill in skills:
+                # 没有用过才释放
+                # if not player.skills.DidSkillHavebeenUsed(skill.name):
+                time.sleep(0.1)
                 skill.Use()
                 player.skills.Update()
+                time.sleep(0.1)
+                #
+                #     # 按键了 没有释放出来. 再次释放..
+                #     time.sleep(0.3)
+                #     if not player.skills.DidSkillHavebeenUsed(skill.name):
+                #         return
 
         player.ChangeState(StandState())
 
@@ -389,7 +482,7 @@ def main():
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     win32gui.SetForegroundWindow(hwnd)
 
-    time.sleep(0.8)
+    time.sleep(1.2)
 
     player = Player()
     player.ChangeState(FirstInMap())
