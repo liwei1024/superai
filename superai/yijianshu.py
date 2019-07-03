@@ -117,24 +117,23 @@ def ReleaseAllKey():
 
 
 def JiPaoYou():
-    time.sleep(0.13)
+    time.sleep(0.15)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    time.sleep(0.13)
+    time.sleep(0.15)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
-    time.sleep(0.13)
+    time.sleep(0.15)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    time.sleep(0.13)
+    time.sleep(0.15)
 
 
 def JiPaoZuo():
-    time.sleep(0.13)
+    time.sleep(0.15)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    time.sleep(0.13)
+    time.sleep(0.15)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
-    time.sleep(0.13)
+    time.sleep(0.15)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    time.sleep(0.13)
-
+    time.sleep(0.15)
 
 # 八方位移动
 def DownSHANG():
@@ -313,7 +312,7 @@ def main():
 
     # TestJiPao()
 
-    TestHouTiao()
+    # TestHouTiao()
 
 
 if __name__ == "__main__":

@@ -278,7 +278,7 @@ class Player:
             self.UpLatestKey()
             print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 微小距离靠近" % (menx, meny, destx, desty, quad.name))
             QuadKeyDownMap[quad]()
-            time.sleep(0.2)
+            time.sleep(0.15)
             ReleaseAllKey()
 
 
@@ -314,6 +314,7 @@ class StuckGlobalState(State):
 
         # 1s过去了
         if self.counter >= 1000 / StateMachineSleep:
+
             curx, cury = GetMenXY()
             if math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
                 self.Reset()
@@ -321,7 +322,6 @@ class StuckGlobalState(State):
                 print("卡死了, 重置状态")
             else:
                 self.Reset()
-
 
 # 初次进图,加buff
 class FirstInMap(State):
@@ -331,10 +331,10 @@ class FirstInMap(State):
             for skill in skills:
                 # 没有用过才释放
                 # if not player.skills.DidSkillHavebeenUsed(skill.name):
-                time.sleep(0.1)
+
+                print("使用buff: %s" % skill.name)
                 skill.Use()
                 player.skills.Update()
-                time.sleep(0.1)
                 #
                 #     # 按键了 没有释放出来. 再次释放..
                 #     time.sleep(0.3)
@@ -380,6 +380,8 @@ class SeekAndAttackMonster(State):
         if MonsterIsToofar() and HaveGoods():
             player.ChangeState(SeekAndPickUp())
             return
+
+        # print("选择了 %s (%.f, %.f)" % ( obj.name, obj.x, obj.y))
 
         # 没有选择技能就选择一个
         if not player.HasSkillHasBeenSelect():
