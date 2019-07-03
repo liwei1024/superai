@@ -13,7 +13,7 @@ import random
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressRight, \
-    PressLeft, JiPaoZuo, JiPaoYou, PressAtack, ReleaseAllKey, PressX, PressHouTiao
+    PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao
 
 from superai.gameapi import GameApiInit, FlushPid, PrintMenInfo, PrintMapInfo, PrintSkillObj, PrintNextMen, PrintMapObj, \
     GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
@@ -312,8 +312,8 @@ class StuckGlobalState(State):
         if self.counter == 1:
             self.beginx, self.beginy = GetMenXY()
 
-        # 1s过去了
-        if self.counter >= 1000 / StateMachineSleep:
+        # ns c过去了
+        if self.counter >= 600 / StateMachineSleep:
 
             curx, cury = GetMenXY()
             if math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
@@ -401,10 +401,10 @@ class SeekAndAttackMonster(State):
             player.UpLatestKey()
             if random.uniform(0, 1) < 0.8:
                 PressHouTiao()
-                time.sleep(0.2)
+                time.sleep(0.05)
             else:
                 player.Seek(seekx, seeky)
-                time.sleep(0.1)
+                time.sleep(0.05)
             return
 
         # 在攻击的水平宽度和垂直宽度之内,攻击
@@ -444,7 +444,7 @@ class SeekAndPickUp(State):
             print("捡取 (%d,%d)" % (obj.x, obj.y))
             time.sleep(0.1)
             PressX()
-            time.sleep(0.3)
+            time.sleep(0.2)
         else:
             player.Seek(obj.x, obj.y)
 

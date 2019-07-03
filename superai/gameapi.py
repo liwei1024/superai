@@ -655,10 +655,10 @@ class SkillData:
     level = 0
 
     # 按键延迟时间
-    delaytime = 0.2
+    delaytime = 0.1
 
     # 事后时间
-    afterdelay = 0.20
+    afterdelay = 0.05
 
     def __init__(self, **kw):
         for k, w in kw.items():
@@ -677,14 +677,14 @@ skillSettingMap = {
     # 近
     "上挑": SkillData(type=SkillType.Gongji, level=3),
     "鬼斩": SkillData(type=SkillType.Gongji, level=5),
-    "裂波斩": SkillData(type=SkillType.Gongji, level=7),
+    "裂波斩": SkillData(type=SkillType.Gongji, level=7, afterdelay=0.3),
     "鬼连斩": SkillData(type=SkillType.Gongji, level=8),
     "波动爆发": SkillData(type=SkillType.Gongji, level=11),
 
     # 远
     "地裂 · 波动剑": SkillData(type=SkillType.Gongji, level=10, v_w=200 / 2, h_w=40 / 2),
-    "鬼印珠": SkillData(type=SkillType.Gongji, level=12, v_w=400 / 2, h_w=40 / 2, too_close_v_w=140 / 2),
-    "邪光斩": SkillData(type=SkillType.Gongji, level=15, v_w=400 / 2, h_w=40 / 2, delaytime=0.6),
+    "鬼印珠": SkillData(type=SkillType.Gongji, level=12, v_w=400 / 2, h_w=40 / 2, too_close_v_w=140 / 2, delaytime=0.3),
+    "邪光斩": SkillData(type=SkillType.Gongji, level=15, v_w=400 / 2, h_w=40 / 2, delaytime=0.5),
     "冰刃 · 波动剑" : SkillData(type=SkillType.Gongji, level=16, v_w=400 / 2, h_w=40 / 2, too_close_v_w=60 / 2),
 }
 
@@ -772,8 +772,8 @@ class Skill:
 
 # 普通攻击
 simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击")
-simpleAttackSkill.skilldata.delaytime = 0.7
-simpleAttackSkill.skilldata.afterdelay = 0.1
+simpleAttackSkill.skilldata.delaytime = 0.8
+simpleAttackSkill.skilldata.afterdelay = 0.05
 
 
 # 技能列表

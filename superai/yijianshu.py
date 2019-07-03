@@ -135,6 +135,7 @@ def JiPaoZuo():
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
     time.sleep(0.15)
 
+
 # 八方位移动
 def DownSHANG():
     lib.M_KeyDown2(h, VK_CODE["up_arrow"])
@@ -231,13 +232,6 @@ def PressSkill(key, delay=0.1, afterdelay=0.35):
     time.sleep(delay)
     lib.M_KeyUp2(h, key)
     time.sleep(afterdelay)
-
-
-def PressAtack(deay=1, afterdealy=0.25):
-    lib.M_KeyDown2(h, VK_CODE["x"])
-    time.sleep(deay)
-    lib.M_KeyUp2(h, VK_CODE["x"])
-    time.sleep(afterdealy)
 
 
 def PressHouTiao():
