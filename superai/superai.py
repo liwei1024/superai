@@ -323,6 +323,7 @@ class StuckGlobalState(State):
             else:
                 self.Reset()
 
+
 # 初次进图,加buff
 class FirstInMap(State):
     def Execute(self, player):

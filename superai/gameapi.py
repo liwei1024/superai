@@ -683,8 +683,8 @@ skillSettingMap = {
 
     # 远
     "地裂 · 波动剑": SkillData(type=SkillType.Gongji, level=10, v_w=200 / 2, h_w=40 / 2),
-    "鬼印珠": SkillData(type=SkillType.Gongji, level=12, v_w=400 / 2, h_w=40 / 2, too_close_v_w=140 / 2, delaytime=0.3),
-    "邪光斩": SkillData(type=SkillType.Gongji, level=15, v_w=400 / 2, h_w=40 / 2, delaytime=0.5),
+    "鬼印珠": SkillData(type=SkillType.Gongji, level=12, v_w=400 / 2, h_w=40 / 2, too_close_v_w=140 / 2, delaytime=0.5),
+    "邪光斩": SkillData(type=SkillType.Gongji, level=15, v_w=400 / 2, h_w=40 / 2, delaytime=0.6),
     "冰刃 · 波动剑" : SkillData(type=SkillType.Gongji, level=16, v_w=400 / 2, h_w=40 / 2, too_close_v_w=60 / 2),
 }
 
@@ -885,12 +885,15 @@ def main():
 
     FlushPid()
 
+    while True:
+        PrintMenInfo()
+        time.sleep(0.1)
     # PrintMenInfo()
     # PrintMapInfo()
     # PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
-    PrintSkillObj()
+    # PrintSkillObj()
     # PrintTaskObj()
     # PrintNextMen()
 
