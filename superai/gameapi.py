@@ -15,7 +15,10 @@ from superai.defer import defer
 
 from ctypes import *
 
-lib = CDLL("E:/win/reference/project/xxiii/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
+if os.path.exists("c:/win/x64/Release/"):
+    lib = CDLL("c:/win/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
+else:
+    lib = CDLL("E:/win/reference/project/xxiii/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
 
 
 class MenInfo(Structure):

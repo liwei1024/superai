@@ -12,7 +12,11 @@ from ctypes import *
 
 from superai.vkcode import *
 
-lib = CDLL("E:/win/reference/project/superai/dll/msdk.dll", RTLD_GLOBAL)
+
+if os.path.exists("c:/win/superai/dll/"):
+    lib = CDLL("c:/win/superai/dll/msdk.dll", RTLD_GLOBAL)
+else:
+    lib = CDLL("E:/win/reference/project/superai/dll/msdk.dll", RTLD_GLOBAL)
 
 # 键盘
 
