@@ -9,7 +9,7 @@ from win32api import Sleep
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from superai.yijianshu import PressSkill
+from superai.yijianshu import PressSkill, RanSleep
 from superai.vkcode import VK_CODE
 from superai.defer import defer
 
@@ -863,7 +863,7 @@ def PrintCanBeUsedSkill():
     skills.FlushAllTime()
 
     while True:
-        time.sleep(1)
+        RanSleep(1)
         print("===可以使用的技能===")
         skills.Update()
         canbeused = skills.GetCanBeUsedAttackSkills()
@@ -876,7 +876,7 @@ def PrintXY():
     while True:
         x, y = GetMenXY()
         print(x, y)
-        time.sleep(1)
+        RanSleep(1)
 
 
 def main():
@@ -887,15 +887,15 @@ def main():
 
     FlushPid()
 
-    # while True:
-    #     PrintMenInfo()
-    #     time.sleep(0.1)
+    while True:
+        PrintMenInfo()
+        RanSleep(0.1)
     # PrintMenInfo()
     # PrintMapInfo()
     # PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
-    PrintSkillObj()
+    # PrintSkillObj()
     # PrintTaskObj()
     # PrintNextMen()
 

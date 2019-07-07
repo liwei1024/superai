@@ -1,3 +1,4 @@
+import random
 import sys
 import os
 import time
@@ -97,6 +98,19 @@ lib.M_MoveTo2.restype = c_int
 lib.M_GetCurrMousePos2.argtypes = [POINTER(c_int)]
 lib.M_GetCurrMousePos2.restype = c_int
 
+
+# 随机时间sleep
+def RanSleep(t):
+    ran = random.uniform(0, 0.05)
+    if random.uniform(0, 1) < 0.5:
+        if t - ran > 0.0:
+            t = t - ran
+        time.sleep(t)
+    else:
+        t = t + ran
+        time.sleep(t)
+
+
 # 全局变量
 h = None
 x = None
@@ -117,23 +131,23 @@ def ReleaseAllKey():
 
 
 def JiPaoYou():
-    time.sleep(0.15)
+    RanSleep(0.15)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    time.sleep(0.15)
+    RanSleep(0.15)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
-    time.sleep(0.15)
+    RanSleep(0.15)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    time.sleep(0.15)
+    RanSleep(0.15)
 
 
 def JiPaoZuo():
-    time.sleep(0.15)
+    RanSleep(0.15)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    time.sleep(0.15)
+    RanSleep(0.15)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
-    time.sleep(0.15)
+    RanSleep(0.15)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    time.sleep(0.15)
+    RanSleep(0.15)
 
 
 # 八方位移动
@@ -211,34 +225,34 @@ def UpYOUXIA():
 
 def PressRight():
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    time.sleep(0.10)
+    RanSleep(0.10)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
 
 
 def PressLeft():
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    time.sleep(0.10)
+    RanSleep(0.10)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
 
 
 def PressX():
     lib.M_KeyDown2(h, VK_CODE["x"])
-    time.sleep(0.03)
+    RanSleep(0.03)
     lib.M_KeyUp2(h, VK_CODE["x"])
 
 
 def PressSkill(key, delay=0.1, afterdelay=0.35):
     lib.M_KeyDown2(h, key)
-    time.sleep(delay)
+    RanSleep(delay)
     lib.M_KeyUp2(h, key)
-    time.sleep(afterdelay)
+    RanSleep(afterdelay)
 
 
 def PressHouTiao():
     lib.M_KeyDown2(h, VK_CODE["down_arrow"])
-    time.sleep(0.1)
+    RanSleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["c"])
-    time.sleep(0.1)
+    RanSleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["c"])
     lib.M_KeyUp2(h, VK_CODE["down_arrow"])
 
@@ -249,16 +263,16 @@ def TestAttackPress():
 
 def TestSimple():
     print("handle: %x , %s" % (x.value, type(x)))
-    time.sleep(1)
+    RanSleep(1)
     lib.M_KeyPress2(h, VK_CODE["x"], 5)
     # lib.M_ResetMousePos(x)
 
 
 def TestFangxiang():
-    time.sleep(3)
+    RanSleep(3)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
     lib.M_KeyDown2(h, VK_CODE["up_arrow"])
-    time.sleep(3)
+    RanSleep(3)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
     lib.M_KeyUp2(h, VK_CODE["up_arrow"])
 
@@ -267,16 +281,16 @@ def TestJiPao():
     JiPaoYou()
     lib.M_KeyDown2(h, VK_CODE["up_arrow"])
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
-    time.sleep(2)
+    RanSleep(2)
     lib.M_ReleaseAllKey(h, x)
 
 
 def TestPutongGongji():
     lib.M_KeyDown2(h, VK_CODE["x"])
-    time.sleep(0.8)
+    RanSleep(0.8)
     lib.M_KeyUp2(h, VK_CODE["x"])
     lib.M_KeyDown2(h, VK_CODE["z"])
-    time.sleep(0.1)
+    RanSleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["z"])
 
 

@@ -13,7 +13,7 @@ import random
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressRight, \
-    PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao
+    PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep
 
 from superai.gameapi import GameApiInit, FlushPid, PrintMenInfo, PrintMapInfo, PrintSkillObj, PrintNextMen, PrintMapObj, \
     GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
@@ -282,7 +282,7 @@ class Player:
             print("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
                   (menx, meny, objname, destx, desty, quad.name))
             QuadKeyDownMap[quad]()
-            time.sleep(0.15)
+            RanSleep(0.15)
             ReleaseAllKey()
 
 
@@ -342,7 +342,7 @@ class FirstInMap(State):
                 player.skills.Update()
                 #
                 #     # 按键了 没有释放出来. 再次释放..
-                #     time.sleep(0.3)
+                #     RanSleep(0.3)
                 #     if not player.skills.DidSkillHavebeenUsed(skill.name):
                 #         return
 
@@ -362,7 +362,7 @@ class StandState(State):
             player.ChangeState(DoorOpenGotoNext())
             return
 
-        time.sleep(0.3)
+        RanSleep(0.3)
         print("state can not switch")
 
 
@@ -406,10 +406,10 @@ class SeekAndAttackMonster(State):
             player.UpLatestKey()
             if random.uniform(0, 1) < 0.8:
                 PressHouTiao()
-                time.sleep(0.05)
+                RanSleep(0.05)
             else:
                 player.Seek(seekx, seeky)
-                time.sleep(0.05)
+                RanSleep(0.05)
             return
 
         # 在攻击的水平宽度和垂直宽度之内,攻击
@@ -447,9 +447,9 @@ class SeekAndPickUp(State):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
             print("捡取 (%d,%d)" % (obj.x, obj.y))
-            time.sleep(0.1)
+            RanSleep(0.1)
             PressX()
-            time.sleep(0.2)
+            RanSleep(0.2)
         else:
             player.Seek(obj.x, obj.y)
 
@@ -488,7 +488,7 @@ def main():
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     win32gui.SetForegroundWindow(hwnd)
 
-    time.sleep(1.2)
+    RanSleep(1.2)
 
     player = Player()
     player.ChangeState(FirstInMap())
