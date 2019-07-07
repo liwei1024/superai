@@ -281,7 +281,7 @@ ATTACK_V_WIDTH = 160 / 2
 ATTACK_H_WIDTH = 40 / 2
 
 # 攻击太靠近的垂直宽度
-ATTACK_TOO_CLOSE_V_WIDTH = 40 / 2
+ATTACK_TOO_CLOSE_V_WIDTH = 1 / 2
 
 
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
@@ -686,8 +686,8 @@ skillSettingMap = {
     "地裂 · 波动剑": SkillData(type=SkillType.Gongji, level=10, v_w=200 / 2, h_w=40 / 2),
     "鬼印珠": SkillData(type=SkillType.Gongji, level=12, v_w=400 / 2, h_w=40 / 2, too_close_v_w=140 / 2, delaytime=0.5),
     "邪光斩": SkillData(type=SkillType.Gongji, level=15, v_w=400 / 2, h_w=40 / 2, delaytime=0.6),
-    "冰刃 · 波动剑": SkillData(type=SkillType.Gongji, level=16, v_w=400 / 2, h_w=40 / 2, too_close_v_w=60 / 2),
-    "爆炎 · 波动剑": SkillData(type=SkillType.Gongji, level=14, v_w=400 / 2, h_w=40 / 2, too_close_v_w=60 / 2),
+    "冰刃 · 波动剑": SkillData(type=SkillType.Gongji, level=16, v_w=400 / 2, h_w=40 / 2),
+    "爆炎 · 波动剑": SkillData(type=SkillType.Gongji, level=14, v_w=400 / 2, h_w=40 / 2),
 }
 
 
