@@ -112,7 +112,7 @@ class Player:
 
     # 随机选择一种技能
     def SelectSkill(self):
-        if random.uniform(0, 1) < 0.3:
+        if random.uniform(0, 1) < 0.1:
             self.curskill = simpleAttackSkill
         else:
             self.curskill = self.skills.GetMaxLevelAttackSkill()
@@ -236,7 +236,7 @@ class Player:
         return True
 
     # 靠近
-    def Seek(self, destx, desty):
+    def Seek(self, destx, desty, obj=None):
         menx, meny = GetMenXY()
         quad, rent = GetQuadrant(menx, meny, destx, desty)
 
@@ -246,6 +246,7 @@ class Player:
             print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 重叠" % (menx, meny, destx, desty, quad.name))
             return
 
+        objname = "name:{} hp:{}".format(obj.name, obj.hp) if obj is not None else ""
         jizou = not WithInManzou(menx, meny, destx, desty)
         jizoustr = "" if not jizou else "疾走"
 
@@ -262,7 +263,8 @@ class Player:
                     # (menx, meny, destx, desty, quad.name, jizoustr))
                 else:
                     print(
-                        "seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 更换方向 %s" % (menx, meny, destx, desty, quad.name, jizoustr))
+                        "seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 更换方向 %s" % (
+                            menx, meny, objname, destx, desty, quad.name, jizoustr))
                     self.UpLatestKey()
                     if jizou:
                         self.KeyJiPao(quad)
@@ -270,13 +272,15 @@ class Player:
 
             else:
                 self.UpLatestKey()
-                print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 首次靠近 %s" % (menx, meny, destx, desty, quad.name, jizoustr))
+                print("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
+                    menx, meny, objname, destx, desty, quad.name, jizoustr))
                 if jizou:
                     self.KeyJiPao(quad)
                 self.DownKey(quad)
         else:
             self.UpLatestKey()
-            print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 微小距离靠近" % (menx, meny, destx, desty, quad.name))
+            print("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
+                  (menx, meny, objname, destx, desty, quad.name))
             QuadKeyDownMap[quad]()
             time.sleep(0.15)
             ReleaseAllKey()
@@ -420,7 +424,7 @@ class SeekAndAttackMonster(State):
 
         # 靠近
         seekx, seeky = player.curskill.GetSeekXY(men.x, men.y, obj.x, obj.y)
-        player.Seek(seekx, seeky)
+        player.Seek(seekx, seeky, obj)
 
 
 # 靠近并捡取物品
