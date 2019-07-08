@@ -171,14 +171,22 @@ class TaskObj(Structure):
 
 class ExGuoToMenZuoBiao(Structure):
     _fields_ = [
-        ("x", c_int32),
-        ("y", c_int32),
+        ("cx", c_int32),
+        ("cy", c_int32),
+        ("prevcx", c_int32),
+        ("prevcy", c_int32),
+
+        ("firstcx", c_int32),
+        ("firstcy", c_int32),
+
+        ("secondcx", c_int32),
+        ("secondcy", c_int32),
     ]
 
     def __str__(self):
         return (
                 "%d %d" % (
-            self.x, self.y))
+            self.cx, self.cy))
 
 
 lib.Init.argtypes = []
@@ -615,7 +623,7 @@ def UpdateMonsterInfo(monster):
 # 获取门是否开的信息
 def IsNextDoorOpen():
     door = GetNextDoor()
-    return door.x != 0 and door.y != 0
+    return door.cx != 0 and door.cy != 0
 
 
 # 是否当前处在boss房间

@@ -460,7 +460,7 @@ class DoorOpenGotoNext(State):
             player.ChangeState(StandState())
             return
         else:
-            player.Seek(door.x, door.y)
+            player.Seek(door.secondcx, door.secondcy)
 
 
 def main():
