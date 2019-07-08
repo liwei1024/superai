@@ -253,7 +253,8 @@ class Player:
         if rent == BIG_RENT:
             if self.KeyDowned():
                 if self.latestDown == quad:
-                    self.DownKey(quad)
+                    pass
+                    # self.DownKey(quad)
                     # print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
                     # (menx, meny, destx, desty, quad.name, jizoustr))
 
@@ -282,7 +283,7 @@ class Player:
             print("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
                   (menx, meny, objname, destx, desty, quad.name))
             QuadKeyDownMap[quad]()
-            RanSleep(0.15)
+            RanSleep(0.1)
             ReleaseAllKey()
 
 
@@ -316,9 +317,8 @@ class StuckGlobalState(State):
         if self.counter == 1:
             self.beginx, self.beginy = GetMenXY()
 
-        # ns c过去了
-        if self.counter >= 600 / StateMachineSleep:
-
+        # 多少时间过去了
+        if self.counter >= 100 / StateMachineSleep:
             curx, cury = GetMenXY()
             if math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
                 self.Reset()
@@ -445,7 +445,7 @@ class SeekAndPickUp(State):
             print("捡取 (%d,%d)" % (obj.x, obj.y))
             RanSleep(0.1)
             PressX()
-            RanSleep(0.2)
+            RanSleep(0.1)
         else:
             player.Seek(obj.x, obj.y)
 
