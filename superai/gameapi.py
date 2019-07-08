@@ -192,6 +192,10 @@ lib.ExGetMapInfo.argtypes = [POINTER(MapInfo)]
 
 lib.ExGetMapObj.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
 
+lib.ExGetMapMonsters.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
+
+lib.ExGetMapGoods.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
+
 lib.ExGetBagObj.argtypes = [POINTER(POINTER(BagObj)), POINTER(c_int)]
 
 lib.ExGetGetEquipObj.argtypes = [POINTER(POINTER(BagObj)), POINTER(c_int)]
@@ -515,24 +519,26 @@ def PrintNextMen():
 
 # 获取怪物
 def GetMonsters():
-    outlst = GetMapObj()
-    monsters = []
-    for obj in outlst:
-        if obj.type in [MONSTER, MAN] and \
-                obj.zhenying not in [OWN]:
-            if obj.hp > 0:
-                monsters.append(obj)
-    return monsters
+    objs = POINTER(MapObj)()
+    count = c_int(0)
+    lib.ExGetMapMonsters(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst = []
+    for i in range(count.value):
+        outlst.append(copy.deepcopy(objs[i]))
+    return outlst
 
 
 # 获取物品
 def GetGoods():
-    outlst = GetMapObj()
-    goods = []
-    for obj in outlst:
-        if obj.type in [GOOD]:
-            goods.append(obj)
-    return goods
+    objs = POINTER(MapObj)()
+    count = c_int(0)
+    lib.ExGetMapGoods(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst = []
+    for i in range(count.value):
+        outlst.append(copy.deepcopy(objs[i]))
+    return outlst
 
 
 # 有怪物
