@@ -377,10 +377,6 @@ class SeekAndAttackMonster(State):
             player.ChangeState(StandState())
             return
 
-        # 怪物血量太少, 重新进入 Execute 选择怪物
-        if obj.hp < 1:
-            return
-
         # 怪物在太远的距离, 有物品捡物
         if MonsterIsToofar() and HaveGoods():
             player.ChangeState(SeekAndPickUp())

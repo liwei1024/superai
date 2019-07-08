@@ -217,6 +217,7 @@ ENEMY = 0x64  # 敌人
 ENEMY2 = 0x65  # 敌人 召唤
 MOGU = 0x32  # 蘑菇人???
 ZHAOHUAN = 0x6e  # 召唤物
+HUANGJINCHONG = 0x78  # 黄金虫子
 
 # 方向
 RIGHT = 1  # 右
@@ -518,8 +519,7 @@ def GetMonsters():
     monsters = []
     for obj in outlst:
         if obj.type in [MONSTER, MAN] and \
-                obj.zhenying in [ENEMY, ENEMY2, MOGU, ZHAOHUAN]:
-
+                obj.zhenying not in [OWN]:
             if obj.hp > 0:
                 monsters.append(obj)
     return monsters
@@ -670,8 +670,13 @@ class SkillData:
 
 # 初始化技能配置. 因为内存中读取不到
 skillSettingMap = {
+
+    # 通用
+
     # 移动
     "后跳": SkillData(type=SkillType.Yidong),
+
+    # 阿修罗
 
     # buff
     "波动刻印": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
@@ -691,6 +696,10 @@ skillSettingMap = {
     "邪光斩": SkillData(type=SkillType.Gongji, level=15, v_w=400 / 2, h_w=40 / 2, delaytime=0.6),
     "冰刃 · 波动剑": SkillData(type=SkillType.Gongji, level=16, v_w=400 / 2, h_w=40 / 2),
     "爆炎 · 波动剑": SkillData(type=SkillType.Gongji, level=14, v_w=400 / 2, h_w=40 / 2),
+
+    # 神龙天女
+    "神谕之祈愿": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+
 }
 
 
