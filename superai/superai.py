@@ -283,7 +283,7 @@ class Player:
             print("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
                   (menx, meny, objname, destx, desty, quad.name))
             QuadKeyDownMap[quad]()
-            RanSleep(0.1)
+            RanSleep(0.15)
             ReleaseAllKey()
 
 
@@ -445,7 +445,7 @@ class SeekAndPickUp(State):
             print("捡取 (%d,%d)" % (obj.x, obj.y))
             RanSleep(0.1)
             PressX()
-            RanSleep(0.1)
+            RanSleep(0.2)
         else:
             player.Seek(obj.x, obj.y)
 

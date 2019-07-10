@@ -717,6 +717,9 @@ skillSettingMap = {
     # 神龙天女
     "神谕之祈愿": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
+
+    # 光枪
+    "能量萃取": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 }
 
 
