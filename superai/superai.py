@@ -10,14 +10,15 @@ import math
 import random
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
-    DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, PressRight, \
+    DownYOUSHANG, DownYOUXIA, PressRight, \
     PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep
 
 from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
     GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
     NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetMenInfo, \
-    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, MonsterIsToofar, simpleAttackSkill, GetBossObj, IsClosedTo
+    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, MonsterIsToofar, simpleAttackSkill, GetBossObj, IsClosedTo, \
+    NearestBuf, HaveBuffs
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -156,83 +157,6 @@ class Player:
             raise NotImplementedError()
         self.injipao = True
 
-    # 疾跑斜方向象限移动到水平或垂直位置时. 保留一个方向的速度. 并按键弹起释放另一个方向的速度
-    def SwitchFangxiang(self, quad) -> bool:
-        if not self.KeyDowned():
-            return False
-
-        if self.latestDown == quad:
-            raise NotImplementedError()
-
-        # 左上 -> 左 弹起上
-        # 左上 -> 上 弹起左
-
-        # 左 -> 左上 不处理
-        # 左 -> 左下 不处理
-        # ...
-
-        if self.latestDown == Quardant.ZUO:
-            if quad == Quardant.ZUOSHANG:
-                DownZUOSHANG()
-                self.latestDown = Quardant.ZUOSHANG
-            elif quad == Quardant.ZUOXIA:
-                DownZUOXIA()
-                self.latestDown = Quardant.ZUOXIA
-            else:
-                return False
-
-        if self.latestDown == Quardant.YOU:
-            if quad == Quardant.YOUSHANG:
-                DownYOUSHANG()
-                self.latestDown = Quardant.YOUSHANG
-            elif quad == Quardant.YOUXIA:
-                DownYOUXIA()
-                self.latestDown = Quardant.YOUXIA
-            else:
-                return False
-
-        if self.latestDown == Quardant.ZUOSHANG:
-            if quad == Quardant.ZUO:
-                UpSHANG()
-                self.latestDown = Quardant.ZUO
-            elif quad == Quardant.SHANG:
-                UpZUO()
-                self.latestDown = Quardant.SHANG
-            else:
-                return False
-
-        if self.latestDown == Quardant.YOUSHANG:
-            if quad == Quardant.YOU:
-                UpSHANG()
-                self.latestDown = Quardant.YOU
-            elif quad == Quardant.SHANG:
-                UpYOU()
-                self.latestDown = Quardant.SHANG
-            else:
-                return False
-
-        if self.latestDown == Quardant.ZUOXIA:
-            if quad == Quardant.ZUO:
-                UpXIA()
-                self.latestDown = Quardant.ZUO
-            elif quad == Quardant.XIA:
-                UpZUO()
-                self.latestDown = Quardant.XIA
-            else:
-                return False
-
-        if self.latestDown == Quardant.YOUXIA:
-            if quad == Quardant.YOU:
-                UpXIA()
-                self.latestDown = Quardant.YOU
-            elif quad == Quardant.XIA:
-                UpYOU()
-                self.latestDown = Quardant.XIA
-            else:
-                return False
-
-        return True
-
     # 靠近
     def Seek(self, destx, desty, obj=None):
         menx, meny = GetMenXY()
@@ -244,7 +168,7 @@ class Player:
             print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 重叠" % (menx, meny, destx, desty, quad.name))
             return
 
-        objname = "name:{} hp:{}".format(obj.name, obj.hp) if obj is not None else ""
+        objname = "name:%s obj:0x%X hp:%d " % (obj.name, obj.object, obj.hp) if obj is not None else ""
         jizou = not WithInManzou(menx, meny, destx, desty)
         jizoustr = "" if not jizou else "疾走"
 
@@ -255,14 +179,9 @@ class Player:
                     # self.DownKey(quad)
                     # print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
                     # (menx, meny, destx, desty, quad.name, jizoustr))
-
-                elif self.SwitchFangxiang(quad):
-                    pass
-                    # print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
-                    # (menx, meny, destx, desty, quad.name, jizoustr))
                 else:
                     print(
-                        "seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 更换方向 %s" % (
+                        "seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 更换方向 %s" % (
                             menx, meny, objname, destx, desty, quad.name, jizoustr))
                     self.UpLatestKey()
                     if jizou:
@@ -362,6 +281,9 @@ class StandState(State):
         elif HaveGoods():
             player.ChangeState(SeekAndPickUp())
             return
+        elif HaveBuffs():
+            player.ChangeState(PickBuf())
+            return
         elif (not IsCurrentInBossFangjian()) and IsNextDoorOpen():
             player.ChangeState(DoorOpenGotoNext())
             return
@@ -390,6 +312,11 @@ class SeekAndAttackMonster(State):
         # 怪物在太远的距离, 有物品捡物
         if MonsterIsToofar() and HaveGoods():
             player.ChangeState(SeekAndPickUp())
+            return
+
+        # 怪物在太远的距离, 有buff捡
+        if MonsterIsToofar() and HaveBuffs():
+            player.ChangeState(PickBuf())
             return
 
         # print("选择了 %s (%.f, %.f)" % ( obj.name, obj.x, obj.y))
@@ -484,6 +411,31 @@ class DoorStuckGoToPrev(State):
             player.ChangeState(DoorOpenGotoNext())
         else:
             player.Seek(door.prevcx, door.prevcy)
+
+
+# 靠近并捡起buff
+class PickBuf(State):
+    def Execute(self, player):
+        obj = NearestBuf()
+
+        # 如果没有buff了,那么切换图内状态
+        if obj is None:
+            player.ChangeState(StandState())
+            return
+
+        # 有怪物在范围内,紧急切换
+        if not MonsterIsToofar():
+            player.ChangeState(SeekAndAttackMonster())
+            return
+
+        menx, meny = GetMenXY()
+        if CanbePickup(menx, meny, obj.x, obj.y):
+            # 上一次的跑动的按键恢复
+            player.UpLatestKey()
+            print("捡取buff (%d,%d)" % (obj.x, obj.y))
+            RanSleep(0.05)
+        else:
+            player.Seek(obj.x, obj.y)
 
 
 def main():

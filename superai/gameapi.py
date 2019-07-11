@@ -207,6 +207,8 @@ lib.ExGetMapMonsters.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
 
 lib.ExGetMapGoods.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
 
+lib.ExGetMapBuff.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
+
 lib.ExGetBagObj.argtypes = [POINTER(POINTER(BagObj)), POINTER(c_int)]
 
 lib.ExGetGetEquipObj.argtypes = [POINTER(POINTER(BagObj)), POINTER(c_int)]
@@ -430,6 +432,42 @@ def GetMapObj():
     return outlst
 
 
+# 获取怪物
+def GetMonsters():
+    objs = POINTER(MapObj)()
+    count = c_int(0)
+    lib.ExGetMapMonsters(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst = []
+    for i in range(count.value):
+        outlst.append(copy.deepcopy(objs[i]))
+    return outlst
+
+
+# 获取物品
+def GetGoods():
+    objs = POINTER(MapObj)()
+    count = c_int(0)
+    lib.ExGetMapGoods(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst = []
+    for i in range(count.value):
+        outlst.append(copy.deepcopy(objs[i]))
+    return outlst
+
+
+# 获取buff
+def GetBuff():
+    objs = POINTER(MapObj)()
+    count = c_int(0)
+    lib.ExGetMapBuff(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst = []
+    for i in range(count.value):
+        outlst.append(copy.deepcopy(objs[i]))
+    return outlst
+
+
 # 背包数组
 def GetBagObj():
     objs = POINTER(BagObj)()
@@ -534,29 +572,6 @@ def PrintNextMen():
 
 # === 2次包装
 
-# 获取怪物
-def GetMonsters():
-    objs = POINTER(MapObj)()
-    count = c_int(0)
-    lib.ExGetMapMonsters(pointer(objs), pointer(count))
-    defer(lambda: (lib.Free(objs)))
-    outlst = []
-    for i in range(count.value):
-        outlst.append(copy.deepcopy(objs[i]))
-    return outlst
-
-
-# 获取物品
-def GetGoods():
-    objs = POINTER(MapObj)()
-    count = c_int(0)
-    lib.ExGetMapGoods(pointer(objs), pointer(count))
-    defer(lambda: (lib.Free(objs)))
-    outlst = []
-    for i in range(count.value):
-        outlst.append(copy.deepcopy(objs[i]))
-    return outlst
-
 
 # 有怪物
 def HaveMonsters():
@@ -580,6 +595,11 @@ def HaveGoods():
     goods = GetGoods()
     return len(goods) > 0
 
+# 地面有buff
+def HaveBuffs():
+    buffs = GetBuff()
+    return len(buffs) > 0
+
 
 # 最近怪物对象
 def NearestMonster():
@@ -597,6 +617,15 @@ def NearestGood():
     if len(goods) < 1:
         return None
     return min(goods, key=lambda good: distance(good.x, good.y, menInfo.x, menInfo.y))
+
+
+# 最近buf对象
+def NearestBuf():
+    menInfo = GetMenInfo()
+    buffs = GetBuff()
+    if len(buffs) < 1:
+        return None
+    return min(buffs, key=lambda buff: distance(buff.x, buff.y, menInfo.x, menInfo.y))
 
 
 # 没死亡
@@ -741,6 +770,9 @@ skillSettingMap = {
 
     # 女光剑
     "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+
+    # 气功
+    "光之兵刃": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 }
 
 

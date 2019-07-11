@@ -173,21 +173,25 @@ def DownYOU():
 
 def DownZUOSHANG():
     DownZUO()
+    RanSleep(0.015)
     DownSHANG()
 
 
 def DownZUOXIA():
     DownZUO()
+    RanSleep(0.015)
     DownXIA()
 
 
 def DownYOUSHANG():
     DownYOU()
+    RanSleep(0.015)
     DownSHANG()
 
 
 def DownYOUXIA():
     DownYOU()
+    RanSleep(0.015)
     DownXIA()
 
 
