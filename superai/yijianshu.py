@@ -12,7 +12,6 @@ from ctypes import *
 
 from superai.vkcode import *
 
-
 if os.path.exists("c:/win/superai/dll/"):
     lib = CDLL("c:/win/superai/dll/msdk.dll", RTLD_GLOBAL)
 else:
@@ -265,47 +264,6 @@ def PressHouTiao():
     lib.M_KeyUp2(h, VK_CODE["down_arrow"])
 
 
-def TestAttackPress():
-    lib.M_KeyPress2(h, VK_CODE["x"], 1)
-
-
-def TestSimple():
-    print("handle: %x , %s" % (x.value, type(x)))
-    RanSleep(1)
-    lib.M_KeyPress2(h, VK_CODE["x"], 5)
-    # lib.M_ResetMousePos(x)
-
-
-def TestFangxiang():
-    RanSleep(3)
-    lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    lib.M_KeyDown2(h, VK_CODE["up_arrow"])
-    RanSleep(3)
-    lib.M_KeyUp2(h, VK_CODE["right_arrow"])
-    lib.M_KeyUp2(h, VK_CODE["up_arrow"])
-
-
-def TestJiPao():
-    JiPaoYou()
-    lib.M_KeyDown2(h, VK_CODE["up_arrow"])
-    lib.M_KeyUp2(h, VK_CODE["right_arrow"])
-    RanSleep(2)
-    lib.M_ReleaseAllKey(h, x)
-
-
-def TestPutongGongji():
-    lib.M_KeyDown2(h, VK_CODE["x"])
-    RanSleep(0.8)
-    lib.M_KeyUp2(h, VK_CODE["x"])
-    lib.M_KeyDown2(h, VK_CODE["z"])
-    RanSleep(0.1)
-    lib.M_KeyUp2(h, VK_CODE["z"])
-
-
-def TestHouTiao():
-    PressHouTiao()
-
-
 def main():
     if YijianshuInit():
         print("Init 易键鼠 ok")
@@ -320,15 +278,6 @@ def main():
     win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
                           win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     win32gui.SetForegroundWindow(hwnd)
-    # TestJiPao()
-
-    # TestSimple()
-
-    # TestFangxiang(h, x)
-
-    # TestJiPao()
-
-    # TestHouTiao()
 
 
 if __name__ == "__main__":

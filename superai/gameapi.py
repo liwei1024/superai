@@ -287,8 +287,8 @@ BIG_RENT = 1
 SMALL_RENT = 2
 
 # 慢走矩形
-MANZOU_V_WIDTH = 250 / 2
-MANZOU_H_WIDTH = 200 / 2
+MANZOU_V_WIDTH = 200 / 2
+MANZOU_H_WIDTH = 280 / 2
 
 # 拾取矩形
 PICKUP_V_WIDTH = 40 / 2
@@ -306,7 +306,7 @@ ATTACK_V_WIDTH = 160 / 2
 ATTACK_H_WIDTH = 40 / 2
 
 # 攻击太靠近的垂直宽度
-ATTACK_TOO_CLOSE_V_WIDTH = 1 / 2
+ATTACK_TOO_CLOSE_V_WIDTH = 1.0 / 2
 
 
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
@@ -603,18 +603,6 @@ def MonsterIsToofar():
     return False
 
 
-# 地面有物品
-def HaveGoods():
-    goods = GetGoods()
-    return len(goods) > 0
-
-
-# 地面有buff
-def HaveBuffs():
-    buffs = GetBuff()
-    return len(buffs) > 0
-
-
 # 最近怪物对象
 def NearestMonster():
     menInfo = GetMenInfo()
@@ -622,6 +610,41 @@ def NearestMonster():
     if len(monsters) < 1:
         return None
     return min(monsters, key=lambda mon: distance(mon.x, mon.y, menInfo.x, menInfo.y))
+
+
+# 更新怪物对象信息
+def UpdateMonsterInfo(monster):
+    objs = GetMonsters()
+    for obj in objs:
+        if obj.object == monster.object and obj.hp > 0:
+            return obj
+    return None
+
+
+# 获取boss对象
+def GetBossObj():
+    monsters = GetMonsters()
+    if len(monsters) < 1:
+        return None
+    objs = filter(lambda mon: "领主" in mon.name, monsters)
+    objs = list(objs)
+
+    if len(objs) < 1:
+        return None
+    else:
+        doubleboss = filter(lambda obj: "黄金巨人" in obj.name, objs)
+        doubleboss = list(doubleboss)
+
+        if len(doubleboss) > 0:
+            return doubleboss[0]
+
+        return objs[0]
+
+
+# 地面有物品
+def HaveGoods():
+    goods = GetGoods()
+    return len(goods) > 0
 
 
 # 最近物品对象
@@ -633,10 +656,24 @@ def NearestGood():
     return min(goods, key=lambda good: distance(good.x, good.y, menInfo.x, menInfo.y))
 
 
+# 获取buf 二次包装
+def GetBuffWrap():
+    mapinfo = GetMapInfo()
+    if mapinfo.name == "格拉卡" and mapinfo.curx == 1 and mapinfo.cury == 0:
+        return []
+    return GetBuff()
+
+
+# 地面有buff
+def HaveBuffs():
+    buffs = GetBuffWrap()
+    return len(buffs) > 0
+
+
 # 最近buf对象
 def NearestBuf():
     menInfo = GetMenInfo()
-    buffs = GetBuff()
+    buffs = GetBuffWrap()
     if len(buffs) < 1:
         return None
     return min(buffs, key=lambda buff: distance(buff.x, buff.y, menInfo.x, menInfo.y))
@@ -660,15 +697,6 @@ def GetMenChaoxiang():
     return meninfo.fangxiang
 
 
-# 更新怪物对象信息
-def UpdateMonsterInfo(monster):
-    objs = GetMonsters()
-    for obj in objs:
-        if obj.object == monster.object and obj.hp > 0:
-            return obj
-    return None
-
-
 # 获取门是否开的信息
 def IsNextDoorOpen():
     door = GetNextDoor()
@@ -684,19 +712,6 @@ def IsCurrentInBossFangjian():
         return True
 
     return False
-
-
-# 获取boss对象
-def GetBossObj():
-    monsters = GetMonsters()
-    if len(monsters) < 1:
-        return None
-    objs = filter(lambda mon: "领主" in mon.name, monsters)
-    objs = list(objs)
-    if len(objs) < 1:
-        return None
-    else:
-        return objs[0]
 
 
 # 获取当前房间的x,y
@@ -787,6 +802,7 @@ skillSettingMap = {
 
     # 气功
     "光之兵刃": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "烈日气息": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 }
 
 
@@ -813,6 +829,9 @@ class Skill:
 
     # 是否垂直宽度太靠近致使攻击不能命中
     def IsV_WTOOClose(self, menx, objx):
+        if self.skilldata.too_close_v_w < 1.0:
+            return False
+
         newx = objx - menx
         return abs(newx) < self.skilldata.too_close_v_w
 
@@ -986,29 +1005,18 @@ def main():
 
     FlushPid()
 
-    # while True:
-    #     PrintMenInfo()
-    #     RanSleep(0.1)
-    # PrintMenInfo()
-    # PrintMapInfo()
+    PrintMenInfo()
+    PrintMapInfo()
     PrintMapObj()
-    # PrintBagObj()
-    # PrintEquipObj()
-    # PrintSkillObj()
-    # PrintTaskObj()
-    # PrintNextMen()
-
-    # PrintMonsterXY()
+    PrintBagObj()
+    PrintEquipObj()
+    PrintSkillObj()
+    PrintTaskObj()
+    PrintNextMen()
 
     # PrintCanBeUsedSkill()
-
-    # print(GetNextDoor())
-
     # print(IsCurrentInBossFangjian())
-    #
     # print(GetNextDoor())
-
-    # PrintXY()
 
 
 if __name__ == "__main__":
