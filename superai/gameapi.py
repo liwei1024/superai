@@ -287,12 +287,16 @@ BIG_RENT = 1
 SMALL_RENT = 2
 
 # 慢走矩形
-MANZOU_V_WIDTH = 200 / 2
+MANZOU_V_WIDTH = 250 / 2
 MANZOU_H_WIDTH = 200 / 2
 
 # 拾取矩形
 PICKUP_V_WIDTH = 40 / 2
 PICKUP_H_WIDTH = 40 / 2
+
+# BUFF拾取矩形
+BUFF_V_WIDTH = 20 / 2
+BUFF_H_WIDTH = 20 / 2
 
 # 怪物在太远的距离,先捡物品
 PICK_DISTANCE = 300
@@ -374,6 +378,15 @@ def CanbePickup(x1, y1, x2, y2):
     V_WIDTH = abs(x2 - x1)
     H_WIDTH = abs(y2 - y1)
     if V_WIDTH < PICKUP_V_WIDTH and H_WIDTH < PICKUP_H_WIDTH:
+        return True
+    return False
+
+
+# 是否在捡取buff范围内
+def CanbeGetBuff(x1, y1, x2, y2):
+    V_WIDTH = abs(x2 - x1)
+    H_WIDTH = abs(y2 - y1)
+    if V_WIDTH < BUFF_V_WIDTH and H_WIDTH < BUFF_H_WIDTH:
         return True
     return False
 
@@ -595,6 +608,7 @@ def HaveGoods():
     goods = GetGoods()
     return len(goods) > 0
 
+
 # 地面有buff
 def HaveBuffs():
     buffs = GetBuff()
@@ -723,10 +737,10 @@ class SkillData:
     level = 0
 
     # 按键延迟时间
-    delaytime = 0.02
+    delaytime = 0.008
 
     # 事后时间
-    afterdelay = 0.02
+    afterdelay = 0.002
 
     def __init__(self, **kw):
         for k, w in kw.items():
@@ -860,7 +874,7 @@ class Skill:
 # 普通攻击
 simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击")
 simpleAttackSkill.skilldata.delaytime = 0.8
-simpleAttackSkill.skilldata.afterdelay = 0.03
+simpleAttackSkill.skilldata.afterdelay = 0.002
 
 
 # 技能列表

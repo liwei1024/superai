@@ -233,13 +233,13 @@ def UpYOUXIA():
 
 def PressRight():
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    RanSleep(0.05)
+    RanSleep(0.02)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
 
 
 def PressLeft():
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    RanSleep(0.05)
+    RanSleep(0.02)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
 
 
@@ -249,7 +249,7 @@ def PressX():
     lib.M_KeyUp2(h, VK_CODE["x"])
 
 
-def PressSkill(key, delay=0.02, afterdelay=0.02):
+def PressSkill(key, delay=0.008, afterdelay=0.002):
     lib.M_KeyDown2(h, key)
     RanSleep(delay)
     lib.M_KeyUp2(h, key)

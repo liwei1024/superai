@@ -18,7 +18,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
     NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetMenInfo, \
     BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, MonsterIsToofar, simpleAttackSkill, GetBossObj, IsClosedTo, \
-    NearestBuf, HaveBuffs
+    NearestBuf, HaveBuffs, CanbeGetBuff
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -223,8 +223,9 @@ class StuckGlobalState(State):
     def Execute(self, player):
 
         if isinstance(player.stateMachine.currentState, SeekAndPickUp) or \
-                isinstance(player.stateMachine.currentState, DoorOpenGotoNext) or \
+                isinstance(player.stateMachine.currentState, PickBuf) or \
                 isinstance(player.stateMachine.currentState, SeekAndAttackMonster) or \
+                isinstance(player.stateMachine.currentState, DoorOpenGotoNext) or \
                 isinstance(player.stateMachine.currentState, DoorStuckGoToPrev):
             self.counter += 1
 
@@ -387,6 +388,31 @@ class SeekAndPickUp(State):
             player.Seek(obj.x, obj.y)
 
 
+# 靠近并捡起buff
+class PickBuf(State):
+    def Execute(self, player):
+        obj = NearestBuf()
+
+        # 如果没有buff了,那么切换图内状态
+        if obj is None:
+            player.ChangeState(StandState())
+            return
+
+        # 有怪物在范围内,紧急切换
+        if not MonsterIsToofar():
+            player.ChangeState(SeekAndAttackMonster())
+            return
+
+        menx, meny = GetMenXY()
+        if CanbeGetBuff(menx, meny, obj.x, obj.y):
+            # 上一次的跑动的按键恢复
+            player.UpLatestKey()
+            print("捡取buff (%d,%d)" % (obj.x, obj.y))
+            RanSleep(0.1)
+        else:
+            player.Seek(obj.x, obj.y)
+
+
 # 门已开,去过图
 class DoorOpenGotoNext(State):
     def Execute(self, player):
@@ -411,31 +437,6 @@ class DoorStuckGoToPrev(State):
             player.ChangeState(DoorOpenGotoNext())
         else:
             player.Seek(door.prevcx, door.prevcy)
-
-
-# 靠近并捡起buff
-class PickBuf(State):
-    def Execute(self, player):
-        obj = NearestBuf()
-
-        # 如果没有buff了,那么切换图内状态
-        if obj is None:
-            player.ChangeState(StandState())
-            return
-
-        # 有怪物在范围内,紧急切换
-        if not MonsterIsToofar():
-            player.ChangeState(SeekAndAttackMonster())
-            return
-
-        menx, meny = GetMenXY()
-        if CanbePickup(menx, meny, obj.x, obj.y):
-            # 上一次的跑动的按键恢复
-            player.UpLatestKey()
-            print("捡取buff (%d,%d)" % (obj.x, obj.y))
-            RanSleep(0.05)
-        else:
-            player.Seek(obj.x, obj.y)
 
 
 def main():
