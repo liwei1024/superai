@@ -273,8 +273,8 @@ class Quardant(Enum):
 
 
 # 大矩阵
-MOVE_BIG_V_WIDTH = 80 / 2
-MOVE_BIG_H_WIDTH = 80 / 2
+MOVE_BIG_V_WIDTH = 60 / 2
+MOVE_BIG_H_WIDTH = 60 / 2
 
 # 误差
 MOVE_SMALL_V_WIDTH = 20 / 2
@@ -333,6 +333,12 @@ def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
             return Quardant.ZUOSHANG
 
     raise NotImplementedError()
+
+
+# 判断两个位置是否靠近
+def IsClosedTo(x1, y1, x2, y2):
+    newx2, newy2 = x2 - x1, y2 - y1
+    return abs(newx2) < MOVE_SMALL_V_WIDTH and abs(newy2) < MOVE_SMALL_H_WIDTH
 
 
 # 象限 (x1,y1,x2,y2) 是左上角开始算的坐标系
@@ -637,6 +643,19 @@ def IsCurrentInBossFangjian():
     return False
 
 
+# 获取boss对象
+def GetBossObj():
+    monsters = GetMonsters()
+    if len(monsters) < 1:
+        return None
+    objs = filter(lambda mon: "领主" in mon.name, monsters)
+    objs = list(objs)
+    if len(objs) < 1:
+        return None
+    else:
+        return objs[0]
+
+
 # 获取当前房间的x,y
 def GetCurrentMapXy():
     mapinfo = GetMapInfo()
@@ -675,10 +694,10 @@ class SkillData:
     level = 0
 
     # 按键延迟时间
-    delaytime = 0.1
+    delaytime = 0.02
 
     # 事后时间
-    afterdelay = 0.05
+    afterdelay = 0.02
 
     def __init__(self, **kw):
         for k, w in kw.items():
@@ -717,9 +736,11 @@ skillSettingMap = {
     # 神龙天女
     "神谕之祈愿": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
-
     # 光枪
     "能量萃取": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+
+    # 女光剑
+    "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 }
 
 
@@ -807,7 +828,7 @@ class Skill:
 # 普通攻击
 simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击")
 simpleAttackSkill.skilldata.delaytime = 0.8
-simpleAttackSkill.skilldata.afterdelay = 0.05
+simpleAttackSkill.skilldata.afterdelay = 0.03
 
 
 # 技能列表
@@ -923,8 +944,8 @@ def main():
     #     PrintMenInfo()
     #     RanSleep(0.1)
     # PrintMenInfo()
-    PrintMapInfo()
-    # PrintMapObj()
+    # PrintMapInfo()
+    PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
     # PrintSkillObj()

@@ -135,7 +135,7 @@ def ReleaseAllKey():
 
 
 def JiPaoYou():
-    RanSleep(0.15)
+    RanSleep(0.03)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
     RanSleep(0.15)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
@@ -145,7 +145,7 @@ def JiPaoYou():
 
 
 def JiPaoZuo():
-    RanSleep(0.15)
+    RanSleep(0.03)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
     RanSleep(0.15)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
@@ -229,13 +229,13 @@ def UpYOUXIA():
 
 def PressRight():
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    RanSleep(0.10)
+    RanSleep(0.05)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
 
 
 def PressLeft():
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    RanSleep(0.10)
+    RanSleep(0.05)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
 
 
@@ -245,7 +245,7 @@ def PressX():
     lib.M_KeyUp2(h, VK_CODE["x"])
 
 
-def PressSkill(key, delay=0.1, afterdelay=0.35):
+def PressSkill(key, delay=0.02, afterdelay=0.02):
     lib.M_KeyDown2(h, key)
     RanSleep(delay)
     lib.M_KeyUp2(h, key)

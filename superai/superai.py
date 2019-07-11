@@ -1,8 +1,6 @@
 import sys
 import os
-import time
 
-import win32con
 import win32gui
 from win32api import Sleep
 
@@ -12,14 +10,14 @@ import math
 import random
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
-    DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressRight, \
+    DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, PressRight, \
     PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep
 
-from superai.gameapi import GameApiInit, FlushPid, PrintMenInfo, PrintMapInfo, PrintSkillObj, PrintNextMen, PrintMapObj, \
-    GetMonsters, IsLive, HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
-    GetMenChaoxiang, RIGHT, Skills, UpdateMonsterInfo, LEFT, HaveGoods, \
-    NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetCurrentMapXy, GetMenInfo, \
-    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, MonsterIsToofar, ATTACK_V_WIDTH, simpleAttackSkill
+from superai.gameapi import GameApiInit, FlushPid, \
+    HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
+    GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
+    NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetMenInfo, \
+    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, MonsterIsToofar, simpleAttackSkill, GetBossObj, IsClosedTo
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -33,7 +31,7 @@ QuadKeyDownMap = {
 }
 
 # 多少毫秒执行一次状态机
-StateMachineSleep = 20
+StateMachineSleep = 10
 
 
 class StateMachine:
@@ -282,9 +280,9 @@ class Player:
             self.UpLatestKey()
             print("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
                   (menx, meny, objname, destx, desty, quad.name))
-            QuadKeyDownMap[quad]()
-            RanSleep(0.15)
-            ReleaseAllKey()
+            self.DownKey(quad)
+            RanSleep(0.08)
+            self.UpLatestKey()
 
 
 class State:
@@ -307,7 +305,8 @@ class StuckGlobalState(State):
 
         if isinstance(player.stateMachine.currentState, SeekAndPickUp) or \
                 isinstance(player.stateMachine.currentState, DoorOpenGotoNext) or \
-                isinstance(player.stateMachine.currentState, SeekAndAttackMonster):
+                isinstance(player.stateMachine.currentState, SeekAndAttackMonster) or \
+                isinstance(player.stateMachine.currentState, DoorStuckGoToPrev):
             self.counter += 1
 
         if isinstance(player.stateMachine.currentState, StandState):
@@ -321,9 +320,14 @@ class StuckGlobalState(State):
         if self.counter >= 100 / StateMachineSleep:
             curx, cury = GetMenXY()
             if math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
-                self.Reset()
-                player.ChangeState(StandState())
-                print("卡死了, 重置状态")
+                if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
+                    self.Reset()
+                    player.ChangeState(DoorStuckGoToPrev())
+                    print("进门的时候卡死了, 回退一些再进门")
+                else:
+                    self.Reset()
+                    player.ChangeState(StandState())
+                    print("卡死了, 重置状态")
             else:
                 self.Reset()
 
@@ -370,7 +374,13 @@ class StandState(State):
 class SeekAndAttackMonster(State):
 
     def Execute(self, player):
-        obj = NearestMonster()
+
+        if IsCurrentInBossFangjian():
+            obj = GetBossObj()
+            if obj is None:
+                obj = NearestMonster()
+        else:
+            obj = NearestMonster()
 
         # 如果没有怪物了,那么切换状态
         if obj is None:
@@ -443,9 +453,9 @@ class SeekAndPickUp(State):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
             print("捡取 (%d,%d)" % (obj.x, obj.y))
-            RanSleep(0.1)
+            RanSleep(0.05)
             PressX()
-            RanSleep(0.2)
+            RanSleep(0.05)
         else:
             player.Seek(obj.x, obj.y)
 
@@ -461,6 +471,19 @@ class DoorOpenGotoNext(State):
             return
         else:
             player.Seek(door.secondcx, door.secondcy)
+
+
+# 走门时卡死,走到离门远一些的地方
+class DoorStuckGoToPrev(State):
+    def Execute(self, player):
+        menx, meny = GetMenXY()
+        door = GetNextDoor()
+        if not IsNextDoorOpen():
+            player.ChangeState(StandState())
+        elif IsClosedTo(menx, meny, door.prevcx, door.prevcy):
+            player.ChangeState(DoorOpenGotoNext())
+        else:
+            player.Seek(door.prevcx, door.prevcy)
 
 
 def main():
