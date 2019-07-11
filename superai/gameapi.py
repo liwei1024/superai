@@ -700,7 +700,10 @@ def GetMenChaoxiang():
 # 获取门是否开的信息
 def IsNextDoorOpen():
     door = GetNextDoor()
-    return door.cx != 0 and door.cy != 0
+    if door.cx == 0 and door.cy == 0:
+        return False
+    else:
+        return True
 
 
 # 是否当前处在boss房间
