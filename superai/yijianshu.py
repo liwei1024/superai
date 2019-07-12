@@ -277,7 +277,5 @@ def main():
     # win32gui.SetForegroundWindow(hwnd)
 
 
-
-
 if __name__ == "__main__":
     main()

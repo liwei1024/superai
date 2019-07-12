@@ -666,10 +666,12 @@ def NearestGood():
 
 # 获取buf 二次包装
 def GetBuffWrap():
-    mapinfo = GetMapInfo()
-    if mapinfo.name == "格拉卡" and mapinfo.curx == 1 and mapinfo.cury == 0:
-        return []
-    return GetBuff()
+    return []
+
+    # mapinfo = GetMapInfo()
+    # if mapinfo.name == "格拉卡" and mapinfo.curx == 1 and mapinfo.cury == 0:
+    #     return []
+    # return GetBuff()
 
 
 # 地面有buff
@@ -817,6 +819,13 @@ skillSettingMap = {
 
     # 男气功
     "念气流转": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+
+    # 女散打
+    "强拳": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "霸体护甲": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+
+    # 龙骑士
+    "龙语召唤 : 阿斯特拉": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 }
 
 

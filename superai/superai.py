@@ -146,10 +146,10 @@ class Player:
 
             # 调整朝向
             if menfangxiang == RIGHT and monlocation == LEFT:
-                Log("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
+                # Log("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
                 PressLeft()
             else:
-                Log("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
+                # Log("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
                 PressRight()
 
     # 疾跑
@@ -185,6 +185,7 @@ class Player:
             if self.KeyDowned():
                 if self.latestDown == quad:
                     self.DownKey(quad)
+                    RanSleep(0.04)
                     # Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
                     # (menx, meny, destx, desty, quad.name, jizoustr))
                 else:
@@ -220,7 +221,7 @@ class State:
 # 防卡死状态机
 class StuckGlobalState(State):
 
-    def __init(self):
+    def __init__(self):
         self.counter = 0
         self.beginx = None
         self.beginy = None
@@ -356,6 +357,7 @@ class SeekAndAttackMonster(State):
                 RanSleep(0.01)
             else:
                 player.Seek(seekx, seeky)
+                RanSleep(0.01)
             return
 
         # 在攻击的水平宽度和垂直宽度之内,攻击
