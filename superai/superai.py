@@ -1,13 +1,14 @@
 import sys
 import os
 
-import win32gui
-from win32api import Sleep
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+import win32gui
+from win32api import Sleep
 import math
 import random
+
+from superai.common import Log
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, PressRight, \
@@ -17,8 +18,9 @@ from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
     GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
     NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetMenInfo, \
-    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, MonsterIsToofar, simpleAttackSkill, GetBossObj, IsClosedTo, \
-    NearestBuf, HaveBuffs, CanbeGetBuff, GetMapInfo
+    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, GetBossObj, \
+    IsClosedTo, \
+    NearestBuf, HaveBuffs, CanbeGetBuff, GetMapInfo, SpecifyMonsterIsToofar
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -32,7 +34,7 @@ QuadKeyDownMap = {
 }
 
 # 多少毫秒执行一次状态机
-StateMachineSleep = 10
+StateMachineSleep = 5
 
 
 class StateMachine:
@@ -48,7 +50,7 @@ class StateMachine:
     def ChangeState(self, newState):
         tmp = self.currentState
         self.currentState = newState
-        print("状态切换 %s -> %s" % (type(tmp), type(self.currentState)))
+        Log("状态切换 %s -> %s" % (type(tmp), type(self.currentState)))
 
     def Update(self):
         if self.globalState is not None:
@@ -120,27 +122,35 @@ class Player:
 
     # 使用掉随机选择的技能
     def UseSkill(self):
+        Log("使用技能 %s" % self.curskill.name)
         self.curskill.Use()
         self.skills.Update()
-        print("使用技能 %s" % self.curskill.name)
         self.curskill = None
 
     # 是否已经选择了技能
     def HasSkillHasBeenSelect(self):
         return self.curskill is not None
 
-    def ChaoxiangFangxiang(self, menx, objx):
-        # 是否面向对方
+    # 是否面向对方
+    def IsChaoxiangDuifang(self, menx, objx):
         monlocation = GetFangxiang(menx, objx)
         menfangxiang = GetMenChaoxiang()
-
         if monlocation != menfangxiang:
+            return False
+        return True
+
+    # 朝向对方
+    def ChaoxiangFangxiang(self, menx, objx):
+        while not self.IsChaoxiangDuifang(menx, objx):
+            monlocation = GetFangxiang(menx, objx)
+            menfangxiang = GetMenChaoxiang()
+
             # 调整朝向
             if menfangxiang == RIGHT and monlocation == LEFT:
-                print("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
+                Log("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
                 PressLeft()
             else:
-                print("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
+                Log("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
                 PressRight()
 
     # 疾跑
@@ -165,7 +175,7 @@ class Player:
         if quad == Quardant.CHONGDIE:
             # 已经重叠了, 调用者(靠近怪物, 捡物, 过门 应该不会再次调用seek了). 频繁发生就说明写错了
             self.UpLatestKey()
-            print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 重叠" % (menx, meny, destx, desty, quad.name))
+            Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 重叠" % (menx, meny, destx, desty, quad.name))
             return
 
         objname = "name:%s obj:0x%X hp:%d " % (obj.name, obj.object, obj.hp) if obj is not None else ""
@@ -177,10 +187,10 @@ class Player:
                 if self.latestDown == quad:
                     pass
                     # self.DownKey(quad)
-                    # print("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
+                    # Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
                     # (menx, meny, destx, desty, quad.name, jizoustr))
                 else:
-                    print(
+                    Log(
                         "seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 更换方向 %s" % (
                             menx, meny, objname, destx, desty, quad.name, jizoustr))
                     self.UpLatestKey()
@@ -190,17 +200,17 @@ class Player:
 
             else:
                 self.UpLatestKey()
-                print("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
+                Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
                     menx, meny, objname, destx, desty, quad.name, jizoustr))
                 if jizou:
                     self.KeyJiPao(quad)
                 self.DownKey(quad)
         else:
             self.UpLatestKey()
-            print("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
-                  (menx, meny, objname, destx, desty, quad.name))
+            Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
+                (menx, meny, objname, destx, desty, quad.name))
             self.DownKey(quad)
-            RanSleep(0.08)
+            RanSleep(0.04)
             self.UpLatestKey()
 
 
@@ -243,11 +253,11 @@ class StuckGlobalState(State):
                 if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
                     self.Reset()
                     player.ChangeState(DoorStuckGoToPrev())
-                    print("进门的时候卡死了, 回退一些再进门")
+                    Log("进门的时候卡死了, 回退一些再进门")
                 else:
                     self.Reset()
                     player.ChangeState(StandState())
-                    print("卡死了, 重置状态")
+                    Log("卡死了, 重置状态")
             else:
                 self.Reset()
 
@@ -261,7 +271,7 @@ class FirstInMap(State):
                 # 没有用过才释放
                 # if not player.skills.DidSkillHavebeenUsed(skill.name):
 
-                print("使用buff: %s" % skill.name)
+                Log("使用buff: %s" % skill.name)
                 skill.Use()
                 player.skills.Update()
                 #
@@ -290,7 +300,7 @@ class StandState(State):
             return
 
         RanSleep(0.3)
-        print("state can not switch")
+        Log("state can not switch")
 
 
 # 靠近并攻击怪物
@@ -314,16 +324,16 @@ class SeekAndAttackMonster(State):
             return
 
         # 怪物在太远的距离, 有物品捡物
-        if MonsterIsToofar() and HaveGoods():
+        if SpecifyMonsterIsToofar(obj) and HaveGoods():
             player.ChangeState(SeekAndPickUp())
             return
 
         # 怪物在太远的距离, 有buff捡
-        if MonsterIsToofar() and HaveBuffs():
+        if SpecifyMonsterIsToofar(obj) and HaveBuffs():
             player.ChangeState(PickBuf())
             return
 
-        # print("选择了 %s (%.f, %.f)" % ( obj.name, obj.x, obj.y))
+        # Log("选择了 %s (%.f, %.f)" % ( obj.name, obj.x, obj.y))
 
         # 没有选择技能就选择一个
         if not player.HasSkillHasBeenSelect():
@@ -335,25 +345,24 @@ class SeekAndAttackMonster(State):
         if player.curskill.IsH_WInRange(men.y, obj.y) and \
                 player.curskill.IsV_WTOOClose(men.x, obj.x):
             seekx, seeky = player.curskill.GetSeekXY(men.x, men.y, obj.x, obj.y)
-            print("目标太接近,无法攻击,选择合适位置: men:(%d,%d) obj:(%d,%d) seek(%d,%d), 技能%s 太靠近垂直水平(%d,%d)" %
-                  (men.x, men.y, obj.x, obj.y, seekx, seeky, player.curskill.name,
-                   player.curskill.skilldata.too_close_v_w, player.curskill.skilldata.h_w))
+            Log("目标太接近,无法攻击,选择合适位置: men:(%d,%d) obj:(%d,%d) seek(%d,%d), 技能%s 太靠近垂直水平(%d,%d)" %
+                (men.x, men.y, obj.x, obj.y, seekx, seeky, player.curskill.name,
+                 player.curskill.skilldata.too_close_v_w, player.curskill.skilldata.h_w))
 
             # 后跳解决问题
             player.UpLatestKey()
             if random.uniform(0, 1) < 0.8:
                 PressHouTiao()
-                RanSleep(0.05)
+                RanSleep(0.01)
             else:
                 player.Seek(seekx, seeky)
-                RanSleep(0.05)
             return
 
         # 在攻击的水平宽度和垂直宽度之内,攻击
         if player.curskill.IsH_WInRange(men.y, obj.y) and \
                 player.curskill.isV_WInRange(men.x, obj.x):
-            print("目标在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
-                  (player.curskill.name, player.curskill.skilldata.v_w, player.curskill.skilldata.h_w))
+            Log("目标在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
+                (player.curskill.name, player.curskill.skilldata.v_w, player.curskill.skilldata.h_w))
             player.UpLatestKey()
             player.ChaoxiangFangxiang(men.x, obj.x)
             player.UseSkill()
@@ -375,7 +384,7 @@ class SeekAndPickUp(State):
             return
 
         # 有怪物在范围内,紧急切换
-        if not MonsterIsToofar():
+        if not ClosestMonsterIsToofar():
             player.ChangeState(SeekAndAttackMonster())
             return
 
@@ -383,10 +392,10 @@ class SeekAndPickUp(State):
         if CanbePickup(menx, meny, obj.x, obj.y):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
-            print("捡取 (%d,%d)" % (obj.x, obj.y))
-            RanSleep(0.05)
+            Log("捡取 (%d,%d)" % (obj.x, obj.y))
+            RanSleep(0.01)
             PressX()
-            RanSleep(0.05)
+            RanSleep(0.01)
         else:
             player.Seek(obj.x, obj.y)
 
@@ -402,7 +411,7 @@ class PickBuf(State):
             return
 
         # 有怪物在范围内,紧急切换
-        if not MonsterIsToofar():
+        if not ClosestMonsterIsToofar():
             player.ChangeState(SeekAndAttackMonster())
             return
 
@@ -410,7 +419,7 @@ class PickBuf(State):
         if CanbeGetBuff(menx, meny, obj.x, obj.y):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
-            print("捡取buff (%d,%d)" % (obj.x, obj.y))
+            Log("捡取buff (%d,%d)" % (obj.x, obj.y))
             RanSleep(0.1)
         else:
             player.Seek(obj.x, obj.y)
@@ -444,15 +453,15 @@ class DoorStuckGoToPrev(State):
 
 def main():
     if GameApiInit():
-        print("Init helpdll-xxiii.dll ok")
+        Log("Init helpdll-xxiii.dll ok")
     else:
-        print("Init helpdll-xxiii.dll err")
+        Log("Init helpdll-xxiii.dll err")
         exit(0)
 
     if YijianshuInit():
-        print("Init 易键鼠 ok")
+        Log("Init 易键鼠 ok")
     else:
-        print("Init 易键鼠 err")
+        Log("Init 易键鼠 err")
         exit(0)
 
     FlushPid()

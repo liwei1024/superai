@@ -1,15 +1,16 @@
-import random
 import sys
 import os
-import time
-
-import win32con
-import win32gui
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+import time
+import win32con
+import win32gui
+import random
+
 from ctypes import *
 
+from superai.common import Log
 from superai.vkcode import *
 
 if os.path.exists("c:/win/superai/dll/"):
@@ -104,7 +105,7 @@ lib.M_GetCurrMousePos2.restype = c_int
 
 # 随机时间sleep
 def RanSleep(t):
-    ran = random.uniform(0, 0.05)
+    ran = random.uniform(0, 0.005)
     if random.uniform(0, 1) < 0.5:
         if t - ran > 0.0:
             t = t - ran
@@ -134,7 +135,7 @@ def ReleaseAllKey():
 
 
 def JiPaoYou():
-    RanSleep(0.03)
+    RanSleep(0.15)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
     RanSleep(0.15)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
@@ -144,7 +145,7 @@ def JiPaoYou():
 
 
 def JiPaoZuo():
-    RanSleep(0.03)
+    RanSleep(0.15)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
     RanSleep(0.15)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
@@ -172,25 +173,21 @@ def DownYOU():
 
 def DownZUOSHANG():
     DownZUO()
-    RanSleep(0.015)
     DownSHANG()
 
 
 def DownZUOXIA():
     DownZUO()
-    RanSleep(0.015)
     DownXIA()
 
 
 def DownYOUSHANG():
     DownYOU()
-    RanSleep(0.015)
     DownSHANG()
 
 
 def DownYOUXIA():
     DownYOU()
-    RanSleep(0.015)
     DownXIA()
 
 
@@ -232,13 +229,13 @@ def UpYOUXIA():
 
 def PressRight():
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    RanSleep(0.05)
+    RanSleep(0.01)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
 
 
 def PressLeft():
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    RanSleep(0.05)
+    RanSleep(0.01)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
 
 
@@ -248,7 +245,7 @@ def PressX():
     lib.M_KeyUp2(h, VK_CODE["x"])
 
 
-def PressSkill(key, delay=0.008, afterdelay=0.002):
+def PressSkill(key, delay, afterdelay):
     lib.M_KeyDown2(h, key)
     RanSleep(delay)
     lib.M_KeyUp2(h, key)
@@ -266,9 +263,9 @@ def PressHouTiao():
 
 def main():
     if YijianshuInit():
-        print("Init 易键鼠 ok")
+        Log("Init 易键鼠 ok")
     else:
-        print("Init 易键鼠 err")
+        Log("Init 易键鼠 err")
         exit(0)
 
     global h

@@ -1,14 +1,14 @@
-import copy
 import sys
 import os
-import time
-from enum import Enum
-
-import math
-from win32api import Sleep
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+import copy
+import time
+from enum import Enum
+import math
+
+from superai.common import Log
 from superai.yijianshu import PressSkill, RanSleep
 from superai.vkcode import VK_CODE
 from superai.defer import defer
@@ -540,47 +540,47 @@ def GetNextDoor():
 # === 调试打印
 def PrintMenInfo():
     menInfo = GetMenInfo()
-    print(menInfo)
+    Log(menInfo)
 
 
 def PrintMapInfo():
     mapInfo = GetMapInfo()
-    print(mapInfo)
+    Log(mapInfo)
 
 
 def PrintMapObj():
     outlst = GetMapObj()
     for obj in outlst:
-        print(obj)
+        Log(obj)
 
 
 def PrintBagObj():
     outlst = GetBagObj()
     for obj in outlst:
-        print(obj)
+        Log(obj)
 
 
 def PrintEquipObj():
     outlst = GetEquipObj()
     for obj in outlst:
-        print(obj)
+        Log(obj)
 
 
 def PrintSkillObj():
     outlst = GetSkillObj()
     for obj in outlst:
-        print(obj)
+        Log(obj)
 
 
 def PrintTaskObj():
     outlst = GetTaskObj()
     for obj in outlst:
-        print(obj)
+        Log(obj)
 
 
 def PrintNextMen():
     menzuobiao = GetNextDoor()
-    print(menzuobiao)
+    Log(menzuobiao)
 
 
 # === 2次包装
@@ -593,10 +593,18 @@ def HaveMonsters():
 
 
 # 怪物太远了
-def MonsterIsToofar():
+def ClosestMonsterIsToofar():
     monster = NearestMonster()
     if monster is None:
         return True
+    men = GetMenInfo()
+    if distance(men.x, men.y, monster.x, monster.y) > PICK_DISTANCE:
+        return True
+    return False
+
+
+# 指定怪物太远了
+def SpecifyMonsterIsToofar(monster):
     men = GetMenInfo()
     if distance(men.x, men.y, monster.x, monster.y) > PICK_DISTANCE:
         return True
@@ -803,9 +811,12 @@ skillSettingMap = {
     # 女光剑
     "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
-    # 气功
+    # 女气功
     "光之兵刃": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
     "烈日气息": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+
+    # 男气功
+    "念气流转": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 }
 
 
@@ -985,26 +996,26 @@ def PrintCanBeUsedSkill():
 
     while True:
         RanSleep(1)
-        print("===可以使用的技能===")
+        Log("===可以使用的技能===")
         skills.Update()
         canbeused = skills.GetCanBeUsedAttackSkills()
         for skill in canbeused:
-            print(skill.name)
+            Log(skill.name)
 
 
 # 不断打印坐标
 def PrintXY():
     while True:
         x, y = GetMenXY()
-        print(x, y)
+        Log(x, y)
         RanSleep(1)
 
 
 def main():
     if GameApiInit():
-        print("Init helpdll-xxiii.dll ok")
+        Log("Init helpdll-xxiii.dll ok")
     else:
-        print("Init helpdll-xxiii.dll err")
+        Log("Init helpdll-xxiii.dll err")
 
     FlushPid()
 
@@ -1018,8 +1029,8 @@ def main():
     PrintNextMen()
 
     # PrintCanBeUsedSkill()
-    # print(IsCurrentInBossFangjian())
-    # print(GetNextDoor())
+    # Log(IsCurrentInBossFangjian())
+    # Log(GetNextDoor())
 
 
 if __name__ == "__main__":
