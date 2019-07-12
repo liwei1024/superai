@@ -733,8 +733,25 @@ def GetCurrentMapXy():
     return mapinfo.curx, mapinfo.cury
 
 
-# 技能包装.
+# 是否在图内
+def IsManInMap():
+    meninfo = GetMenInfo()
+    return meninfo.state == TUNEI
 
+
+# 是否在选图
+def IsManInSelectMap():
+    meninfo = GetMenInfo()
+    return meninfo.state == XUANTU
+
+
+# 是否在城镇
+def IsManInChengzhen():
+    meninfo = GetMenInfo()
+    return meninfo.state == CHENZHEN
+
+
+# 技能包装.
 idxkeymap = {
     0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
     6: VK_CODE['q'], 7: VK_CODE['w'], 8: VK_CODE['e'], 9: VK_CODE['r'], 10: VK_CODE['t'], 11: VK_CODE['y'],

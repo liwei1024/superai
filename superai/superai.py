@@ -20,7 +20,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetMenInfo, \
     BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, GetBossObj, \
     IsClosedTo, \
-    NearestBuf, HaveBuffs, CanbeGetBuff, GetMapInfo, SpecifyMonsterIsToofar
+    NearestBuf, HaveBuffs, CanbeGetBuff, GetMapInfo, SpecifyMonsterIsToofar, IsManInSelectMap, XUANTU, TUNEI
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -263,9 +263,27 @@ class StuckGlobalState(State):
                 self.Reset()
 
 
+# 城镇
+class InChengzhen(State):
+
+    def __init__(self):
+        self.latestState = None
+
+    def Execute(self, player):
+        state = GetMapInfo().state
+
+        if state == XUANTU:
+            self.latestState = state
+
+        if state == TUNEI:
+            if self.latestState == XUANTU:
+                pass
+
+
 # 初次进图,加buff
 class FirstInMap(State):
     def Execute(self, player):
+        RanSleep(0.5)
         if player.skills.HaveBuffCanBeUse():
             skills = player.skills.GetCanBeUseBuffSkills()
             for skill in skills:
@@ -299,7 +317,6 @@ class StandState(State):
         elif (not IsCurrentInBossFangjian()) and IsNextDoorOpen():
             player.ChangeState(DoorOpenGotoNext())
             return
-
         RanSleep(0.3)
         Log("state can not switch")
 
