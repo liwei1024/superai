@@ -12,16 +12,17 @@ def idxTohw(idx, weight: int):
 
 # 有向图
 class Graph:
-    V: int  # 顶点数量
-    E: int  # 边数量
-    # adj: None #: List[List]  # 邻接表
-
-    W: int  # 宽度  (虽然是一维的但是表示是二维的)
-
     def __init__(self, V: int, W: int):
+        # 顶点数量
         self.V = V
+
+        # 边数量
         self.E = 0
+
+        # 邻接表
         self.adj = []
+
+        # 宽度  (虽然是一维的但是表示是二维的)
         self.W = W
 
         for i in range(V):

@@ -38,13 +38,11 @@ StateMachineSleep = 5
 
 
 class StateMachine:
-    currentState = None
-
-    owner = None
-
-    globalState = None
 
     def __init__(self, owner):
+        self.currentState = None
+        self.owner = None
+        self.globalState = None
         self.owner = owner
 
     def ChangeState(self, newState):
@@ -61,22 +59,21 @@ class StateMachine:
 
 
 class Player:
-    # 状态机
-    stateMachine: StateMachine
-
-    # 上一次按下的键
-    latestDown = None
-
-    # 持有技能
-    skills = Skills()
-
-    # 是否在疾跑状态
-    injipao = False
-
-    # 当前选择的技能 (保存临时选择的状态,释放完毕才能选择下一个技能)
-    curskill = None
 
     def __init__(self):
+        # 上一次按下的键
+        self.latestDown = None
+
+        # 持有技能
+        self.skills = Skills()
+
+        # 是否在疾跑状态
+        self.injipao = False
+
+        # 当前选择的技能 (保存临时选择的状态,释放完毕才能选择下一个技能)
+        self.curskill = None
+
+        # 状态机
         self.stateMachine = StateMachine(self)
 
     def ChangeState(self, state):
@@ -125,6 +122,8 @@ class Player:
         Log("使用技能 %s" % self.curskill.name)
         self.curskill.Use()
         self.skills.Update()
+
+        Log("使用技能 %s end" % self.curskill.name)
         self.curskill = None
 
     # 是否已经选择了技能
@@ -185,8 +184,7 @@ class Player:
         if rent == BIG_RENT:
             if self.KeyDowned():
                 if self.latestDown == quad:
-                    pass
-                    # self.DownKey(quad)
+                    self.DownKey(quad)
                     # Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
                     # (menx, meny, destx, desty, quad.name, jizoustr))
                 else:
@@ -221,9 +219,11 @@ class State:
 
 # 防卡死状态机
 class StuckGlobalState(State):
-    counter = 0
-    beginx = None
-    beginy = None
+
+    def __init(self):
+        self.counter = 0
+        self.beginx = None
+        self.beginy = None
 
     def Reset(self):
         self.counter = 0

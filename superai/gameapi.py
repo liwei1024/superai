@@ -748,27 +748,27 @@ class SkillType(Enum):
 
 # 技能属性包装
 class SkillData:
-    # 技能种类
-    type = None
-
-    # 攻击垂直宽度
-    v_w = ATTACK_V_WIDTH
-    # 攻击水平宽度
-    h_w = ATTACK_H_WIDTH
-
-    # 攻击太靠近的垂直宽度
-    too_close_v_w = ATTACK_TOO_CLOSE_V_WIDTH
-
-    # 释放级别. 越高级的越先释放
-    level = 0
-
-    # 按键延迟时间
-    delaytime = 0.008
-
-    # 事后时间
-    afterdelay = 0.002
-
     def __init__(self, **kw):
+        # 技能种类
+        self.type = None
+
+        # 攻击垂直宽度
+        self.v_w = ATTACK_V_WIDTH
+        # 攻击水平宽度
+        self.h_w = ATTACK_H_WIDTH
+
+        # 攻击太靠近的垂直宽度
+        self.too_close_v_w = ATTACK_TOO_CLOSE_V_WIDTH
+
+        # 释放级别. 越高级的越先释放
+        self.level = 0
+
+        # 按键延迟时间
+        self.delaytime = 0.008
+
+        # 事后时间
+        self.afterdelay = 0.002
+
         for k, w in kw.items():
             setattr(self, k, w)
 
@@ -822,22 +822,23 @@ skillSettingMap = {
 
 # 技能包装
 class Skill:
-    # 是否存在
-    exist = False
-    # 内存读出来的冷却时间
-    cooding = 0
-    # 名称
-    name = ""
-    # 内存上次使用时间
-    gamelatestusedtime = 0
-    # 快捷键
-    key = None
-    # python内部记录 实际上次使用时间
-    lastusedtime = 0
-    # python对技能的配置
-    skilldata = SkillData(type=SkillType.Gongji)
 
     def __init__(self, **kw):
+        # 是否存在
+        self.exist = False
+        # 内存读出来的冷却时间
+        self.cooding = 0
+        # 名称
+        self.name = ""
+        # 内存上次使用时间
+        self.gamelatestusedtime = 0
+        # 快捷键
+        self.key = None
+        # python内部记录 实际上次使用时间
+        self.lastusedtime = 0
+        # python对技能的配置
+        self.skilldata = SkillData(type=SkillType.Gongji)
+
         for k, w in kw.items():
             setattr(self, k, w)
 
@@ -901,6 +902,7 @@ class Skill:
 
     # 使用
     def Use(self):
+        Log(" %s delay %f afterdelay %f" % (self.name, self.skilldata.delaytime, self.skilldata.afterdelay))
         PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay)
 
 
@@ -1011,6 +1013,29 @@ def PrintXY():
         RanSleep(1)
 
 
+# 读写速度测试
+def SpeedTest():
+    Log("HaveGoods")
+    HaveGoods()
+    Log("HaveGoods")
+
+    Log("HaveBuffs")
+    HaveBuffs()
+    Log("HaveBuffs")
+
+    Log("NearestMonster")
+    NearestMonster()
+    Log("NearestMonster")
+
+    Log("GetMapInfo")
+    GetMapInfo()
+    Log("GetMapInfo")
+
+    Log("GetMenInfo")
+    GetMenInfo()
+    Log("GetMenInfo")
+
+
 def main():
     if GameApiInit():
         Log("Init helpdll-xxiii.dll ok")
@@ -1028,6 +1053,7 @@ def main():
     PrintTaskObj()
     PrintNextMen()
 
+    # SpeedTest()
     # PrintCanBeUsedSkill()
     # Log(IsCurrentInBossFangjian())
     # Log(GetNextDoor())
