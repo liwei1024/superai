@@ -710,7 +710,7 @@ def GetMenChaoxiang():
 # 获取门是否开的信息
 def IsNextDoorOpen():
     mapinfo = GetMapInfo()
-    return mapinfo.kaimen == True
+    return mapinfo.kaimen
 
 
 # 是否当前处在boss房间

@@ -312,7 +312,7 @@ class FirstInMap(State):
 
 
 # 副本结束, 尝试退出
-class IsGameOver(State):
+class GameOver(State):
     def Execute(self, player):
         PressF12()
         if IsManInChengzhen():
@@ -338,8 +338,15 @@ class StandState(State):
             player.ChangeState(DoorOpenGotoNext())
             return
         elif IsCurrentInBossFangjian() and IsNextDoorOpen():
-            player.ChangeState(IsGameOver())
-            return
+
+            # 打死boss后判断下物品
+            RanSleep(2.0)
+            if HaveGoods():
+                player.ChangeState(SeekAndPickUp())
+                return
+            else:
+                player.ChangeState(GameOver())
+                return
         RanSleep(0.3)
         Log("state can not switch")
 

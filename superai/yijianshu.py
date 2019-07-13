@@ -24,6 +24,10 @@ else:
 lib.M_Open.argtypes = [c_int]
 lib.M_Open.restype = c_void_p
 
+# 以特殊vid pid 打开
+lib.M_Open_VidPid.argtypes = [c_int, c_int]
+lib.M_Open_VidPid.restype = c_void_p
+
 # 关闭
 lib.M_Close.argtypes = [c_void_p]
 lib.M_Close.restype = c_int
@@ -125,7 +129,7 @@ def YijianshuInit() -> bool:
     global h
     global x
 
-    h = lib.M_Open(1)
+    h = lib.M_Open_VidPid(0x612c, 0x1030)
     x = c_void_p(h)
     return h != 0
 
