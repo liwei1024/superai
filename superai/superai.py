@@ -209,7 +209,7 @@ class Player:
             Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
                 (menx, meny, objname, destx, desty, quad.name))
             self.DownKey(quad)
-            RanSleep(0.08)
+            RanSleep(0.1)
             self.UpLatestKey()
 
 
