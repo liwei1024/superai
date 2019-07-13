@@ -778,10 +778,10 @@ class SkillData:
         self.level = 0
 
         # 按键延迟时间
-        self.delaytime = 0.008
+        self.delaytime = 0.12
 
         # 事后时间
-        self.afterdelay = 0.002
+        self.afterdelay = 0.15
 
         for k, w in kw.items():
             setattr(self, k, w)
@@ -929,8 +929,7 @@ class Skill:
 
 # 普通攻击
 simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击")
-simpleAttackSkill.skilldata.delaytime = 0.8
-simpleAttackSkill.skilldata.afterdelay = 0.002
+simpleAttackSkill.skilldata.delaytime = 1.2
 
 
 # 技能列表

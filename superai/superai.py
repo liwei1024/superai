@@ -4,9 +4,9 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import win32gui
-from win32api import Sleep
 import math
 import random
+import time
 
 from superai.common import Log
 
@@ -35,11 +35,10 @@ QuadKeyDownMap = {
 }
 
 # 多少毫秒执行一次状态机
-StateMachineSleep = 5
+StateMachineSleep = 0.01
 
 
 class StateMachine:
-
     def __init__(self, owner):
         self.currentState = None
         self.owner = None
@@ -175,7 +174,7 @@ class Player:
         if quad == Quardant.CHONGDIE:
             # 已经重叠了, 调用者(靠近怪物, 捡物, 过门 应该不会再次调用seek了). 频繁发生就说明写错了
             self.UpLatestKey()
-            Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 重叠" % (menx, meny, destx, desty, quad.name))
+            # Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 重叠" % (menx, meny, destx, desty, quad.name))
             return
 
         objname = "name:%s obj:0x%X hp:%d " % (obj.name, obj.object, obj.hp) if obj is not None else ""
@@ -186,7 +185,7 @@ class Player:
             if self.KeyDowned():
                 if self.latestDown == quad:
                     self.DownKey(quad)
-                    RanSleep(0.04)
+                    RanSleep(0.05)
                     # Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
                     # (menx, meny, destx, desty, quad.name, jizoustr))
                 else:
@@ -210,7 +209,7 @@ class Player:
             Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
                 (menx, meny, objname, destx, desty, quad.name))
             self.DownKey(quad)
-            RanSleep(0.04)
+            RanSleep(0.08)
             self.UpLatestKey()
 
 
@@ -223,33 +222,35 @@ class State:
 class StuckGlobalState(State):
 
     def __init__(self):
-        self.counter = 0
         self.beginx = None
         self.beginy = None
+        self.latesttime = None
 
     def Reset(self):
-        self.counter = 0
         self.beginx = None
         self.beginy = None
+        self.latesttime = None
 
     def Execute(self, player):
 
+        # 目前只判断几种情况
         if isinstance(player.stateMachine.currentState, SeekAndPickUp) or \
                 isinstance(player.stateMachine.currentState, PickBuf) or \
                 isinstance(player.stateMachine.currentState, SeekAndAttackMonster) or \
                 isinstance(player.stateMachine.currentState, DoorOpenGotoNext) or \
                 isinstance(player.stateMachine.currentState, DoorStuckGoToPrev):
-            self.counter += 1
+            pass
         else:
             self.Reset()
             return
 
         # 重置坐标
-        if self.counter == 1:
+        if self.latesttime is None:
+            self.latesttime = time.time()
             self.beginx, self.beginy = GetMenXY()
 
-        # 多少时间过去了
-        if self.counter >= 100 / StateMachineSleep:
+        # 检查时间过去了
+        if time.time() - self.latesttime > 0.5:
             curx, cury = GetMenXY()
             if math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
                 if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
@@ -286,6 +287,19 @@ class InChengzhen(State):
         if IsManInMap():
             player.ChangeState(FirstInMap())
             RanSleep(0.5)
+            return
+
+        RanSleep(0.5)
+
+
+# 副本结束, 尝试退出
+class GameOver(State):
+    def Execute(self, player):
+        PressF12()
+        if IsManInChengzhen():
+            player.ChangeState(InChengzhen())
+            RanSleep(0.5)
+            return
 
         RanSleep(0.5)
 
@@ -309,17 +323,6 @@ class FirstInMap(State):
                 #         return
 
         player.ChangeState(StandState())
-
-
-# 副本结束, 尝试退出
-class GameOver(State):
-    def Execute(self, player):
-        PressF12()
-        if IsManInChengzhen():
-            player.ChangeState(InChengzhen())
-            RanSleep(0.5)
-            return
-        RanSleep(0.5)
 
 
 # 图内站立
@@ -347,6 +350,7 @@ class StandState(State):
             else:
                 player.ChangeState(GameOver())
                 return
+
         RanSleep(0.3)
         Log("state can not switch")
 
@@ -401,10 +405,10 @@ class SeekAndAttackMonster(State):
             player.UpLatestKey()
             if random.uniform(0, 1) < 0.8:
                 PressHouTiao()
-                RanSleep(0.01)
+                RanSleep(0.05)
             else:
                 player.Seek(seekx, seeky)
-                RanSleep(0.01)
+                RanSleep(0.05)
             return
 
         # 在攻击的水平宽度和垂直宽度之内,攻击
@@ -442,9 +446,9 @@ class SeekAndPickUp(State):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
             Log("捡取 (%d,%d)" % (obj.x, obj.y))
-            RanSleep(0.01)
+            RanSleep(0.05)
             PressX()
-            RanSleep(0.01)
+            RanSleep(0.05)
         else:
             player.Seek(obj.x, obj.y)
 
@@ -521,7 +525,7 @@ def main():
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     win32gui.SetForegroundWindow(hwnd)
 
-    RanSleep(1.2)
+    time.sleep(1.2)
 
     player = Player()
     player.ChangeState(Setup())
@@ -532,7 +536,7 @@ def main():
 
     try:
         while True:
-            Sleep(StateMachineSleep)
+            time.sleep(StateMachineSleep)
             player.Update()
     except KeyboardInterrupt:
         player.UpLatestKey()
