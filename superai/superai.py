@@ -12,7 +12,7 @@ from superai.common import Log
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, PressRight, \
-    PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep
+    PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, PressF12
 
 from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
@@ -20,7 +20,8 @@ from superai.gameapi import GameApiInit, FlushPid, \
     NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetMenInfo, \
     BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, GetBossObj, \
     IsClosedTo, \
-    NearestBuf, HaveBuffs, CanbeGetBuff, GetMapInfo, SpecifyMonsterIsToofar, IsManInSelectMap, XUANTU, TUNEI
+    NearestBuf, HaveBuffs, CanbeGetBuff, GetMapInfo, SpecifyMonsterIsToofar, IsManInSelectMap, XUANTU, TUNEI, \
+    IsManInMap, IsManInChengzhen
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -239,9 +240,9 @@ class StuckGlobalState(State):
                 isinstance(player.stateMachine.currentState, DoorOpenGotoNext) or \
                 isinstance(player.stateMachine.currentState, DoorStuckGoToPrev):
             self.counter += 1
-
-        if isinstance(player.stateMachine.currentState, StandState):
+        else:
             self.Reset()
+            return
 
         # 重置坐标
         if self.counter == 1:
@@ -263,27 +264,35 @@ class StuckGlobalState(State):
                 self.Reset()
 
 
+# 初始化
+class Setup(State):
+    def Execute(self, player):
+        if IsManInMap():
+            player.ChangeState(FirstInMap())
+            RanSleep(0.5)
+            return
+
+        if IsManInChengzhen():
+            player.ChangeState(InChengzhen())
+            RanSleep(0.5)
+            return
+
+        RanSleep(0.5)
+
+
 # 城镇
 class InChengzhen(State):
-
-    def __init__(self):
-        self.latestState = None
-
     def Execute(self, player):
-        state = GetMapInfo().state
+        if IsManInMap():
+            player.ChangeState(FirstInMap())
+            RanSleep(0.5)
 
-        if state == XUANTU:
-            self.latestState = state
-
-        if state == TUNEI:
-            if self.latestState == XUANTU:
-                pass
+        RanSleep(0.5)
 
 
 # 初次进图,加buff
 class FirstInMap(State):
     def Execute(self, player):
-        RanSleep(0.5)
         if player.skills.HaveBuffCanBeUse():
             skills = player.skills.GetCanBeUseBuffSkills()
             for skill in skills:
@@ -302,6 +311,17 @@ class FirstInMap(State):
         player.ChangeState(StandState())
 
 
+# 副本结束, 尝试退出
+class IsGameOver(State):
+    def Execute(self, player):
+        PressF12()
+        if IsManInChengzhen():
+            player.ChangeState(InChengzhen())
+            RanSleep(0.5)
+            return
+        RanSleep(0.5)
+
+
 # 图内站立
 class StandState(State):
     def Execute(self, player):
@@ -316,6 +336,9 @@ class StandState(State):
             return
         elif (not IsCurrentInBossFangjian()) and IsNextDoorOpen():
             player.ChangeState(DoorOpenGotoNext())
+            return
+        elif IsCurrentInBossFangjian() and IsNextDoorOpen():
+            player.ChangeState(IsGameOver())
             return
         RanSleep(0.3)
         Log("state can not switch")
@@ -494,7 +517,7 @@ def main():
     RanSleep(1.2)
 
     player = Player()
-    player.ChangeState(FirstInMap())
+    player.ChangeState(Setup())
     player.SetGlobalState(StuckGlobalState())
 
     player.skills.Update()

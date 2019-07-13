@@ -227,6 +227,12 @@ def UpYOUXIA():
     UpXIA()
 
 
+def PressF12():
+    lib.M_KeyDown2(h, VK_CODE["F12"])
+    RanSleep(0.01)
+    lib.M_KeyUp2(h, VK_CODE["F12"])
+
+
 def PressRight():
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
     RanSleep(0.01)

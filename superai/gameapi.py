@@ -709,21 +709,16 @@ def GetMenChaoxiang():
 
 # 获取门是否开的信息
 def IsNextDoorOpen():
-    door = GetNextDoor()
-    if door.cx == 0 and door.cy == 0:
-        return False
-    else:
-        return True
+    mapinfo = GetMapInfo()
+    return mapinfo.kaimen == True
 
 
 # 是否当前处在boss房间
 def IsCurrentInBossFangjian():
     mapinfo = GetMapInfo()
-
     if mapinfo.curx == mapinfo.bossx and \
             mapinfo.cury == mapinfo.bossy:
         return True
-
     return False
 
 
