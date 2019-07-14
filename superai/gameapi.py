@@ -288,7 +288,7 @@ SMALL_RENT = 2
 
 # 慢走矩形
 MANZOU_V_WIDTH = 200 / 2
-MANZOU_H_WIDTH = 280 / 2
+MANZOU_H_WIDTH = 300 / 2
 
 # 拾取矩形
 PICKUP_V_WIDTH = 40 / 2
@@ -357,20 +357,6 @@ def GetQuadrant(x1, y1, x2, y2):
             return Quardant.CHONGDIE, SMALL_RENT
         return QuardrantWithOutRent(newx2, newy2, MOVE_SMALL_V_WIDTH, MOVE_SMALL_H_WIDTH), SMALL_RENT
     return QuardrantWithOutRent(newx2, newy2, MOVE_BIG_V_WIDTH, MOVE_BIG_H_WIDTH), BIG_RENT
-
-
-# 获得水平方向反向
-def GetFleeQuadrant(x1, y1, x2, y2):
-    quad, rent = GetQuadrant(x1, y1, x2, y2)
-    if quad in [Quardant.YOU, Quardant.YOUXIA, Quardant.YOUSHANG]:
-        return Quardant.ZUO, rent
-    if quad in [Quardant.ZUO, Quardant.ZUOXIA, Quardant.ZUOSHANG]:
-        return Quardant.YOU, rent
-    if quad in [Quardant.SHANG, Quardant.XIA, Quardant.CHONGDIE]:
-        if GetFangxiang(x1, x2) == RIGHT:
-            return Quardant.ZUO
-        else:
-            return Quardant.YOU
 
 
 # 是否在捡取范围
@@ -838,6 +824,9 @@ skillSettingMap = {
 
     # 龙骑士
     "龙语召唤 : 阿斯特拉": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+
+    # 关羽
+    "不灭战戟": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 }
 
 

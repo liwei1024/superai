@@ -259,6 +259,7 @@ def PressSkill(key, delay, afterdelay):
     lib.M_KeyDown2(h, key)
     RanSleep(delay)
     lib.M_KeyUp2(h, key)
+
     RanSleep(afterdelay)
 
 

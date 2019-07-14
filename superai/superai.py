@@ -119,11 +119,8 @@ class Player:
 
     # 使用掉随机选择的技能
     def UseSkill(self):
-        Log("使用技能 %s" % self.curskill.name)
         self.curskill.Use()
         self.skills.Update()
-
-        Log("使用技能 %s end" % self.curskill.name)
         self.curskill = None
 
     # 是否已经选择了技能
@@ -486,7 +483,6 @@ class DoorOpenGotoNext(State):
         if not IsNextDoorOpen():
             # 进入到了新的门
             player.ChangeState(StandState())
-            return
         else:
             player.Seek(door.secondcx, door.secondcy)
 
