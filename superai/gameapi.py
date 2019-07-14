@@ -46,7 +46,8 @@ class MenInfo(Structure):
         return (
                 "obj: 0x%08X 名称: %s 等级: %d hp: %d mp: %d 疲劳: %d/%d 状态: %s 方向: %d 疾跑: %d 人物坐标 (%.f,%.f,%.f)  负重 (%d,%d)" % (
             self.object, self.name, self.level, self.hp, self.mp,
-            self.maxpilao - self.curpilao, self.maxpilao, self.statestr, self.fangxiang, self.jipao, self.x, self.y, self.z,
+            self.maxpilao - self.curpilao, self.maxpilao, self.statestr, self.fangxiang, self.jipao, self.x, self.y,
+            self.z,
             self.fuzhongcur, self.fuzhongmax))
 
 
@@ -759,6 +760,12 @@ def IsManInSelectMap():
 def IsManInChengzhen():
     meninfo = GetMenInfo()
     return meninfo.state == CHENZHEN
+
+
+# 是否在疾跑
+def IsManJipao():
+    meninfo = GetMenInfo()
+    return meninfo.jipao
 
 
 # 技能包装.

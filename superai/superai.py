@@ -22,7 +22,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, GetBossObj, \
     IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, GetMapInfo, SpecifyMonsterIsToofar, IsManInSelectMap, XUANTU, TUNEI, \
-    IsManInMap, IsManInChengzhen, QuardantMap, NearestMonsterWrap
+    IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, NearestMonsterWrap
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -190,13 +190,22 @@ class Player:
         jizou = not WithInManzou(menx, meny, destx, desty)
         jizoustr = "" if not jizou else "疾走"
 
+        # 大范围移动
         if rent == BIG_RENT:
+            # 之前按过键
             if self.KeyDowned():
+                # 方向相同
                 if self.latestDown == quad:
+                    if jizou and not IsManJipao():
+                        self.UpLatestKey()
+                        return
+
                     self.DownKey(quad)
                     RanSleep(0.05)
-                    # Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
-                    #     (menx, meny, destx, desty, quad.name, jizoustr))
+                    Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 方向完全相同 %s" %
+                        (menx, meny, destx, desty, quad.name, jizoustr))
+
+                # 和人物朝向不同
                 elif not self.IsChaoxiangDuifang(menx, destx):
                     Log(
                         "seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 朝向不同,重新移动 %s" % (
@@ -205,7 +214,13 @@ class Player:
                     if jizou:
                         self.KeyJiPao(quad)
                     self.DownKey(quad)
+
+                # 方向类似
                 else:
+                    if jizou and not IsManJipao():
+                        self.UpLatestKey()
+                        return
+
                     # 上次和本次按键的分解
                     latestDecompose = QuardantMap[self.latestDown]
                     currentDecompose = QuardantMap[quad]
@@ -218,7 +233,7 @@ class Player:
                     Log(
                         "seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 保持部分移动方向 %s" % (
                             menx, meny, objname, destx, desty, quad.name, jizoustr))
-
+            # 没有按过键
             else:
                 self.UpLatestKey()
                 Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
@@ -226,6 +241,7 @@ class Player:
                 if jizou:
                     self.KeyJiPao(quad)
                 self.DownKey(quad)
+        # 小范围移动
         else:
             self.UpLatestKey()
             Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
