@@ -867,6 +867,9 @@ skillSettingMap = {
     # 关羽
     "不灭战戟": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
+    # 赵云
+    "无双枪术": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+
     # 四姨
     "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4, thenpress=VK_CODE["down_arrow"]),
 }
