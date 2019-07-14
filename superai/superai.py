@@ -12,7 +12,8 @@ from superai.common import Log
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, PressRight, \
-    PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, PressF12
+    PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, PressF12, UpZUO, UpYOU, UpSHANG, \
+    UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA
 
 from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
@@ -21,7 +22,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, GetBossObj, \
     IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, GetMapInfo, SpecifyMonsterIsToofar, IsManInSelectMap, XUANTU, TUNEI, \
-    IsManInMap, IsManInChengzhen
+    IsManInMap, IsManInChengzhen, QuardantMap
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -32,6 +33,17 @@ QuadKeyDownMap = {
     Quardant.ZUOXIA: DownZUOXIA,
     Quardant.YOUSHANG: DownYOUSHANG,
     Quardant.YOUXIA: DownYOUXIA
+}
+
+QuadKeyUpMap = {
+    Quardant.ZUO: UpZUO,
+    Quardant.YOU: UpYOU,
+    Quardant.SHANG: UpSHANG,
+    Quardant.XIA: UpXIA,
+    Quardant.ZUOSHANG: UpZUOSHANG,
+    Quardant.ZUOXIA: UpZUOXIA,
+    Quardant.YOUSHANG: UpYOUSHANG,
+    Quardant.YOUXIA: UpYOUXIA
 }
 
 # 多少毫秒执行一次状态机
@@ -184,15 +196,28 @@ class Player:
                     self.DownKey(quad)
                     RanSleep(0.05)
                     # Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 维持 %s" %
-                    # (menx, meny, destx, desty, quad.name, jizoustr))
-                else:
+                    #     (menx, meny, destx, desty, quad.name, jizoustr))
+                elif not self.IsChaoxiangDuifang(menx, destx):
                     Log(
-                        "seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 更换方向 %s" % (
+                        "seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 朝向不同,重新移动 %s" % (
                             menx, meny, objname, destx, desty, quad.name, jizoustr))
                     self.UpLatestKey()
                     if jizou:
                         self.KeyJiPao(quad)
                     self.DownKey(quad)
+                else:
+                    # 上次和本次按键的分解
+                    latestDecompose = QuardantMap[self.latestDown]
+                    currentDecompose = QuardantMap[quad]
+
+                    # 上次的按键在本次方向中没找到就弹起
+                    for keydown in latestDecompose:
+                        if keydown not in currentDecompose:
+                            QuadKeyUpMap[keydown]()
+                    self.DownKey(quad)
+                    Log(
+                        "seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 保持部分移动方向 %s" % (
+                            menx, meny, objname, destx, desty, quad.name, jizoustr))
 
             else:
                 self.UpLatestKey()

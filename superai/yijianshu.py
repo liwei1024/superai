@@ -267,6 +267,7 @@ def PressHouTiao():
     lib.M_KeyDown2(h, VK_CODE["down_arrow"])
     RanSleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["c"])
+
     RanSleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["c"])
     lib.M_KeyUp2(h, VK_CODE["down_arrow"])

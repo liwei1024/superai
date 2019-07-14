@@ -273,6 +273,17 @@ class Quardant(Enum):
     YOUXIA = 7
     CHONGDIE = 8
 
+# 八方向力的分解
+QuardantMap = {
+    Quardant.ZUO: [Quardant.ZUO],
+    Quardant.YOU: [Quardant.YOU],
+    Quardant.SHANG: [Quardant.SHANG],
+    Quardant.XIA: [Quardant.XIA],
+    Quardant.ZUOSHANG: [Quardant.ZUO, Quardant.SHANG],
+    Quardant.YOUSHANG: [Quardant.YOU, Quardant.SHANG],
+    Quardant.ZUOXIA: [Quardant.ZUO, Quardant.XIA],
+    Quardant.YOUXIA: [Quardant.YOU, Quardant.XIA],
+}
 
 # 大矩阵
 MOVE_BIG_V_WIDTH = 60 / 2
