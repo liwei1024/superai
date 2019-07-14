@@ -39,16 +39,20 @@ class MenInfo(Structure):
         ("state", c_uint32),
         ("statestr", c_wchar * 10),
         ("fangxiang", c_uint32),
-        ("jipao", c_bool)
+        ("jipao", c_bool),
+        ("tanchu", c_bool),
     ]
 
     def __str__(self):
-        return (
-                "obj: 0x%08X 名称: %s 等级: %d hp: %d mp: %d 疲劳: %d/%d 状态: %s 方向: %d 疾跑: %d 人物坐标 (%.f,%.f,%.f)  负重 (%d,%d)" % (
+        retstr = ""
+
+        retstr += "obj: 0x%08X 名称: %s 等级: %d hp: %d mp: %d 疲劳: %d/%d 状态: %s 方向: %d 疾跑: %d \n" % (
             self.object, self.name, self.level, self.hp, self.mp,
-            self.maxpilao - self.curpilao, self.maxpilao, self.statestr, self.fangxiang, self.jipao, self.x, self.y,
-            self.z,
-            self.fuzhongcur, self.fuzhongmax))
+            self.maxpilao - self.curpilao, self.maxpilao, self.statestr, self.fangxiang, self.jipao)
+        retstr += "人物坐标 (%.f,%.f,%.f)\n" % (self.x, self.y, self.z)
+        retstr += "负重 (%d,%d)\n" % (self.fuzhongcur, self.fuzhongmax)
+        retstr += "弹出 %d\n" % self.tanchu
+        return retstr
 
 
 class Door(Structure):
@@ -229,14 +233,6 @@ lib.Free.argtypes = [c_void_p]
 MAN = 0x111  # 人
 MONSTER = 0x211  # 怪物
 GOOD = 0x121  # 物品
-
-# 阵营
-OWN = 0x0  # 己方
-ENEMY = 0x64  # 敌人
-ENEMY2 = 0x65  # 敌人 召唤
-MOGU = 0x32  # 蘑菇人???
-ZHAOHUAN = 0x6e  # 召唤物
-HUANGJINCHONG = 0x78  # 黄金虫子
 
 # 方向
 RIGHT = 1  # 右
@@ -768,6 +764,12 @@ def IsManJipao():
     return meninfo.jipao
 
 
+# 是否有空格键确认的窗口置顶
+def IsWindowTop():
+    meninfo = GetMenInfo()
+    return meninfo.tanchu
+
+
 # 技能包装.
 idxkeymap = {
     0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
@@ -1099,8 +1101,8 @@ def main():
     FlushPid()
 
     while True:
+        time.sleep(1.0)
         PrintMenInfo()
-        time.sleep(0.1)
     # PrintMapInfo()
     # PrintMapObj()
     # PrintBagObj()

@@ -1,6 +1,8 @@
 import sys
 import os
 
+
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import win32gui
@@ -8,12 +10,14 @@ import math
 import random
 import time
 
+from superai.vkcode import VK_CODE
+
 from superai.common import Log
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, PressRight, \
-    PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, PressF12, UpZUO, UpYOU, UpSHANG, \
-    UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA
+    PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, UpZUO, UpYOU, UpSHANG, \
+    UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressKey
 
 from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
@@ -22,7 +26,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, GetBossObj, \
     IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, GetMapInfo, SpecifyMonsterIsToofar, IsManInSelectMap, XUANTU, TUNEI, \
-    IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, NearestMonsterWrap
+    IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, NearestMonsterWrap, IsWindowTop
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -52,8 +56,8 @@ StateMachineSleep = 0.01
 
 class StateMachine:
     def __init__(self, owner):
+        self.latestState = None
         self.currentState = None
-        self.owner = None
         self.globalState = None
         self.owner = owner
 
@@ -88,13 +92,36 @@ class Player:
         # 状态机
         self.stateMachine = StateMachine(self)
 
+    # 更改当前状态机
     def ChangeState(self, state):
         self.UpLatestKey()
         self.stateMachine.ChangeState(state)
 
+    # 更改全局状态机
     def SetGlobalState(self, state):
         self.stateMachine.globalState = state
 
+    # 更改之前的状态机
+    def SetLatestState(self, state):
+        self.stateMachine.latestState = state
+
+    # 保存当前状态,并且切换到什么也不做的状态机
+    def SaveCurrentContext(self):
+        if isinstance(self.stateMachine.currentState, EmptyState):
+            return
+
+        Log("状态保存 currentState: %s" % type(self.stateMachine.currentState))
+        self.SetLatestState(self.stateMachine.currentState)
+        self.ChangeState(EmptyState())
+
+    # 恢复状态机
+    def RestoreContext(self):
+        if isinstance(self.stateMachine.currentState, EmptyState):
+            Log("状态恢复 latestState: %s" % type(self.stateMachine.latestState))
+            self.ChangeState(self.stateMachine.latestState)
+            self.SetLatestState(None)
+
+    # 更新状态机
     def Update(self):
         self.stateMachine.Update()
 
@@ -247,13 +274,18 @@ class Player:
             Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
                 (menx, meny, objname, destx, desty, quad.name))
             self.DownKey(quad)
-            RanSleep(0.1)
+            RanSleep(0.05)
             self.UpLatestKey()
 
 
 class State:
     def Execute(self, player):
         raise NotImplementedError()
+
+
+class EmptyState:
+    def Execute(self, player):
+        pass
 
 
 # 防卡死状态机
@@ -270,6 +302,16 @@ class StuckGlobalState(State):
         self.latesttime = None
 
     def Execute(self, player):
+        if IsWindowTop():
+            # 保留当前状态
+            player.SaveCurrentContext()
+            PressKey(VK_CODE["spacebar"])
+            RanSleep(0.2)
+            return
+        else:
+            # 恢复之前的状态
+            player.RestoreContext()
+            pass
 
         # 目前只判断几种情况
         if isinstance(player.stateMachine.currentState, SeekAndPickUp) or \
@@ -333,7 +375,9 @@ class InChengzhen(State):
 # 副本结束, 尝试退出
 class GameOver(State):
     def Execute(self, player):
-        PressF12()
+        PressKey(VK_CODE["esc"])
+        RanSleep(0.5)
+        PressKey(VK_CODE["F12"])
         if IsManInChengzhen():
             player.ChangeState(InChengzhen())
             RanSleep(0.5)
