@@ -323,6 +323,11 @@ class GameOver(State):
             RanSleep(0.5)
             return
 
+        # if IsManInMap() and not IsCurrentInBossFangjian():
+        #     player.ChangeState(FirstInMap())
+        #     RanSleep(0.5)
+        #     return
+
         RanSleep(0.5)
 
 
@@ -470,7 +475,6 @@ class SeekAndPickUp(State):
             Log("捡取 (%d,%d)" % (obj.x, obj.y))
             RanSleep(0.05)
             PressX()
-            RanSleep(0.05)
         else:
             player.Seek(obj.x, obj.y)
 

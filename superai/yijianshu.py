@@ -139,23 +139,23 @@ def ReleaseAllKey():
 
 
 def JiPaoYou():
-    RanSleep(0.15)
+    RanSleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    RanSleep(0.15)
+    RanSleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
-    RanSleep(0.15)
+    RanSleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    RanSleep(0.15)
+    RanSleep(0.1)
 
 
 def JiPaoZuo():
-    RanSleep(0.15)
+    RanSleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    RanSleep(0.15)
+    RanSleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
-    RanSleep(0.15)
+    RanSleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    RanSleep(0.15)
+    RanSleep(0.1)
 
 
 # 八方位移动
