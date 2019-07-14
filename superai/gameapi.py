@@ -39,13 +39,14 @@ class MenInfo(Structure):
         ("state", c_uint32),
         ("statestr", c_wchar * 10),
         ("fangxiang", c_uint32),
+        ("jipao", c_bool)
     ]
 
     def __str__(self):
         return (
-                "obj: 0x%08X 名称: %s 等级: %d hp: %d mp: %d 疲劳: %d/%d 状态: %s 方向: %d 人物坐标 (%.f,%.f,%.f)  负重 (%d,%d)" % (
+                "obj: 0x%08X 名称: %s 等级: %d hp: %d mp: %d 疲劳: %d/%d 状态: %s 方向: %d 疾跑: %d 人物坐标 (%.f,%.f,%.f)  负重 (%d,%d)" % (
             self.object, self.name, self.level, self.hp, self.mp,
-            self.maxpilao - self.curpilao, self.maxpilao, self.statestr, self.fangxiang, self.x, self.y, self.z,
+            self.maxpilao - self.curpilao, self.maxpilao, self.statestr, self.fangxiang, self.jipao, self.x, self.y, self.z,
             self.fuzhongcur, self.fuzhongmax))
 
 
@@ -272,6 +273,7 @@ class Quardant(Enum):
     ZUOXIA = 6
     YOUXIA = 7
     CHONGDIE = 8
+
 
 # 八方向力的分解
 QuardantMap = {
@@ -589,9 +591,9 @@ def HaveMonsters():
     return len(monsters) > 0
 
 
-# 怪物太远了
+# 怪物太远了(boss房间只考虑boss)
 def ClosestMonsterIsToofar():
-    monster = NearestMonster()
+    monster = NearestMonsterWrap()
     if monster is None:
         return True
     men = GetMenInfo()
@@ -644,6 +646,22 @@ def GetBossObj():
             return doubleboss[0]
 
         return objs[0]
+
+
+# 最近怪物对象wrap,boss房间boss,普通房间普通
+def NearestMonsterWrap():
+    if IsCurrentInBossFangjian():
+        mapinfo = GetMapInfo()
+        if "暴君的祭坛" in mapinfo.name:
+            obj = NearestMonster()
+        else:
+            obj = GetBossObj()
+            if obj is None:
+                obj = NearestMonster()
+    else:
+        obj = NearestMonster()
+
+    return obj
 
 
 # 地面有物品
@@ -780,6 +798,9 @@ class SkillData:
         # 事后时间
         self.afterdelay = 0.15
 
+        # 事后按键(某些buff,上下左右选择)
+        self.thenpress = None
+
         for k, w in kw.items():
             setattr(self, k, w)
 
@@ -814,30 +835,33 @@ skillSettingMap = {
     "爆炎 · 波动剑": SkillData(type=SkillType.Gongji, level=14, v_w=400 / 2, h_w=40 / 2),
 
     # 神龙天女
-    "神谕之祈愿": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "神谕之祈愿": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 光枪
-    "能量萃取": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "能量萃取": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 女光剑
-    "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 女气功
-    "光之兵刃": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
-    "烈日气息": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "光之兵刃": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "烈日气息": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 男气功
-    "念气流转": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "念气流转": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 女散打
-    "强拳": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
-    "霸体护甲": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "强拳": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "霸体护甲": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 龙骑士
-    "龙语召唤 : 阿斯特拉": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "龙语召唤 : 阿斯特拉": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 关羽
-    "不灭战戟": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "不灭战戟": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    # 四姨
+    "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4, thenpress=VK_CODE["down_arrow"]),
 }
 
 
@@ -924,7 +948,7 @@ class Skill:
     # 使用
     def Use(self):
         Log(" %s delay %f afterdelay %f" % (self.name, self.skilldata.delaytime, self.skilldata.afterdelay))
-        PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay)
+        PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.thenpress)
 
 
 # 普通攻击
@@ -1064,14 +1088,16 @@ def main():
 
     FlushPid()
 
-    PrintMenInfo()
-    PrintMapInfo()
-    PrintMapObj()
-    PrintBagObj()
-    PrintEquipObj()
-    PrintSkillObj()
-    PrintTaskObj()
-    PrintNextMen()
+    while True:
+        PrintMenInfo()
+        time.sleep(0.1)
+    # PrintMapInfo()
+    # PrintMapObj()
+    # PrintBagObj()
+    # PrintEquipObj()
+    # PrintSkillObj()
+    # PrintTaskObj()
+    # PrintNextMen()
 
     # SpeedTest()
     # PrintCanBeUsedSkill()

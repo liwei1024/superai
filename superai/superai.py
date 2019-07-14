@@ -22,7 +22,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, GetBossObj, \
     IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, GetMapInfo, SpecifyMonsterIsToofar, IsManInSelectMap, XUANTU, TUNEI, \
-    IsManInMap, IsManInChengzhen, QuardantMap
+    IsManInMap, IsManInChengzhen, QuardantMap, NearestMonsterWrap
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -386,16 +386,7 @@ class StandState(State):
 class SeekAndAttackMonster(State):
 
     def Execute(self, player):
-        if IsCurrentInBossFangjian():
-            mapinfo = GetMapInfo()
-            if "暴君的祭坛" in mapinfo.name:
-                obj = NearestMonster()
-            else:
-                obj = GetBossObj()
-                if obj is None:
-                    obj = NearestMonster()
-        else:
-            obj = NearestMonster()
+        obj = NearestMonsterWrap()
 
         # 如果没有怪物了,那么切换状态
         if obj is None:

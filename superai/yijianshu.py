@@ -255,12 +255,17 @@ def PressX():
     lib.M_KeyUp2(h, VK_CODE["x"])
 
 
-def PressSkill(key, delay, afterdelay):
+def PressSkill(key, delay, afterdelay, thenpress=None):
     lib.M_KeyDown2(h, key)
     RanSleep(delay)
     lib.M_KeyUp2(h, key)
 
     RanSleep(afterdelay)
+
+    if thenpress is not None:
+        lib.M_KeyDown2(h, thenpress)
+        RanSleep(0.05)
+        lib.M_KeyUp2(h, thenpress)
 
 
 def PressHouTiao():
