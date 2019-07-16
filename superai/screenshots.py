@@ -20,7 +20,7 @@ from superai.defer import defer
 
 # https://www.quora.com/How-can-we-take-screenshots-using-Python-in-Windows
 @defer
-def DesktopCaptureToFile(captureDir: str, defer):
+def DesktopCaptureToFile(captureDir, defer):
     hdesktop = win32gui.GetDesktopWindow()
     w = win32api.GetSystemMetrics(win32con.SM_CXVIRTUALSCREEN)
     h = win32api.GetSystemMetrics(win32con.SM_CYVIRTUALSCREEN)
@@ -51,12 +51,11 @@ def DesktopCaptureToFile(captureDir: str, defer):
 
 # https://stackoverflow.com/questions/3586046/fastest-way-to-take-a-screenshot-with-python-on-windows
 @defer
-def WindowCaptureToFile(windowClassName: str, windowName: str, captureDir: str, defer):
+def WindowCaptureToFile(windowClassName, windowName, captureDir, defer):
     hwnd = win32gui.FindWindow(windowClassName, windowName)
     left, top, right, bot = win32gui.GetWindowRect(hwnd)
     w, h = right - left, bot - top
     # print("窗口 左上角 x:{} y:{} 右下角 x:{} y:{}, 分辨率: {}x{}".format(left, top, right, bot, w, h))
-
 
     windowDC = win32gui.GetWindowDC(hwnd)
     defer(lambda: (win32gui.ReleaseDC(hwnd, windowDC)))
@@ -80,7 +79,7 @@ def WindowCaptureToFile(windowClassName: str, windowName: str, captureDir: str, 
 
 # https://stackoverflow.com/questions/49511753/python-byte-image-to-numpy-array-using-opencv
 @defer
-def WindowCaptureToMem(windowClassName: str, windowName: str, defer):
+def WindowCaptureToMem(windowClassName, windowName, defer):
     hwnd = win32gui.FindWindow(windowClassName, windowName)
     left, top, right, bot = win32gui.GetWindowRect(hwnd)
     w, h = right - left, bot - top
@@ -97,8 +96,14 @@ def WindowCaptureToMem(windowClassName: str, windowName: str, defer):
     bitmap = win32ui.CreateBitmap()
     defer(lambda: (win32gui.DeleteObject(bitmap.GetHandle())))
 
+    # if dw != 0 or dh != 0:
+    #     w = dw
+    #     h = dh
+
     bitmap.CreateCompatibleBitmap(imgDC, w, h)
     memDC.SelectObject(bitmap)
+
+    # 从dx, dy 处拷贝 w,h 的位图,到申请的w,h大小的空间的0,0处开始拷贝
     memDC.BitBlt((0, 0), (w, h), imgDC, (0, 0), win32con.SRCCOPY)
 
     npbytes = np.frombuffer(bitmap.GetBitmapBits(True), dtype='uint8')
