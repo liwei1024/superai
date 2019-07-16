@@ -1,6 +1,7 @@
-opencv-python==3.4.2.16
-opencv-contrib-python==3.4.2.16
+opencv-python == 3.4.2.16
+opencv-contrib-python == 3.4.2.16
 numpy==1.16
+matplotlib
 pywin32
 scikit-image
 scipy
