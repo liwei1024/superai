@@ -24,7 +24,7 @@ FLANN_INDEX_LSH = 6
 
 def init_feature(name):
     chunks = name.split('-')
-    if chunks[0] == 'sift':  # 100ms
+    if chunks[0] == 'sift':  # 大图像100ms 小图像5ms
         detector = cv2.xfeatures2d.SIFT_create()
         norm = cv2.NORM_L2
     elif chunks[0] == 'surf':  # 500ms
