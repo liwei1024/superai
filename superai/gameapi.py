@@ -41,6 +41,7 @@ class MenInfo(Structure):
         ("fangxiang", c_uint32),
         ("jipao", c_bool),
         ("tanchu", c_bool),
+        ("esc", c_bool)
     ]
 
     def __str__(self):
@@ -52,6 +53,7 @@ class MenInfo(Structure):
         retstr += "人物坐标 (%.f,%.f,%.f)\n" % (self.x, self.y, self.z)
         retstr += "负重 (%d,%d)\n" % (self.fuzhongcur, self.fuzhongmax)
         retstr += "弹出 %d\n" % self.tanchu
+        retstr += "esc %d\n" % self.esc
         return retstr
 
 
@@ -770,6 +772,12 @@ def IsWindowTop():
     return meninfo.tanchu
 
 
+# 是否esc窗口置顶
+def IsEscTop():
+    meninfo = GetMenInfo()
+    return meninfo.esc
+
+
 # 技能包装.
 idxkeymap = {
     0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
@@ -809,6 +817,9 @@ class SkillData:
 
         # 事后按键(某些buff,上下左右选择)
         self.thenpress = None
+
+        # 时候重复按下本次按键(4姨,阿修罗) 蓄力后,再次释放
+        self.doublepress = False
 
         for k, w in kw.items():
             setattr(self, k, w)
@@ -874,6 +885,9 @@ skillSettingMap = {
 
     # 四姨
     "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4, thenpress=VK_CODE["left_arrow"]),
+
+    # 吸怪,蓄力
+    "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=1.0, doublepress=True),
 }
 
 
@@ -960,7 +974,8 @@ class Skill:
     # 使用
     def Use(self):
         Log(" %s delay %f afterdelay %f" % (self.name, self.skilldata.delaytime, self.skilldata.afterdelay))
-        PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.thenpress)
+        PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.thenpress,
+                   self.skilldata.doublepress)
 
 
 # 普通攻击
@@ -1104,7 +1119,7 @@ def main():
     #     time.sleep(1.0)
     #     PrintMenInfo()
 
-    # PrintMenInfo()
+    PrintMenInfo()
     # PrintMapInfo()
     # PrintMapObj()
     # PrintBagObj()

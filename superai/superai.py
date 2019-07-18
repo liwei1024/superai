@@ -1,8 +1,6 @@
 import sys
 import os
 
-
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import win32gui
@@ -26,7 +24,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, GetBossObj, \
     IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, GetMapInfo, SpecifyMonsterIsToofar, IsManInSelectMap, XUANTU, TUNEI, \
-    IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, NearestMonsterWrap, IsWindowTop
+    IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, NearestMonsterWrap, IsWindowTop, IsEscTop
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -241,6 +239,7 @@ class Player:
                     if jizou:
                         self.KeyJiPao(quad)
                     self.DownKey(quad)
+                    RanSleep(0.025)
 
                 # 方向类似
                 else:
@@ -373,15 +372,19 @@ class InChengzhen(State):
 
 
 # 副本结束, 尝试退出
-class GameOver(State):
+class FubenOver(State):
     def Execute(self, player):
         PressKey(VK_CODE["esc"])
         RanSleep(0.5)
         PressKey(VK_CODE["F12"])
         if IsManInChengzhen():
+            RanSleep(1.0)
+
+            while IsEscTop():
+                PressKey(VK_CODE["esc"])
+                RanSleep(0.5)
+
             player.ChangeState(InChengzhen())
-            RanSleep(0.5)
-            return
 
         # if IsManInMap() and not IsCurrentInBossFangjian():
         #     player.ChangeState(FirstInMap())
@@ -435,7 +438,7 @@ class StandState(State):
                 player.ChangeState(SeekAndPickUp())
                 return
             else:
-                player.ChangeState(GameOver())
+                player.ChangeState(FubenOver())
                 return
 
         RanSleep(0.3)
