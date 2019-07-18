@@ -169,10 +169,13 @@ class Player:
 
     # 朝向对方
     def ChaoxiangFangxiang(self, menx, objx):
+        i = 0
         while not self.IsChaoxiangDuifang(menx, objx):
+            # 0.5s
+            if i > 5:
+                return
             monlocation = GetFangxiang(menx, objx)
             menfangxiang = GetMenChaoxiang()
-
             # 调整朝向
             if menfangxiang == RIGHT and monlocation == LEFT:
                 # Log("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
@@ -180,6 +183,7 @@ class Player:
             else:
                 # Log("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
                 PressRight()
+            i += 1
 
     # 疾跑
     def KeyJiPao(self, fangxiang):
@@ -471,7 +475,9 @@ class SeekAndAttackMonster(State):
                 (player.curskill.name, player.curskill.skilldata.v_w, player.curskill.skilldata.h_w))
             player.UpLatestKey()
             player.ChaoxiangFangxiang(men.x, obj.x)
-            player.UseSkill()
+
+            if player.IsChaoxiangDuifang(men.x, obj.x):
+                player.UseSkill()
             return
 
         # 靠近
