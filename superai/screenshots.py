@@ -79,7 +79,7 @@ def WindowCaptureToFile(windowClassName, windowName, captureDir, defer):
 
 # https://stackoverflow.com/questions/49511753/python-byte-image-to-numpy-array-using-opencv
 @defer
-def WindowCaptureToMem(windowClassName, windowName, dx = 0, dy = 0, dw = 0,dh = 0, defer = None):
+def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defer=None):
     hwnd = win32gui.FindWindow(windowClassName, windowName)
     left, top, right, bot = win32gui.GetWindowRect(hwnd)
     w, h = right - left, bot - top

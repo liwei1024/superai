@@ -58,18 +58,17 @@ def init_feature(name):
 def CompareTwoPictureDetail(img1, img2):
     detector, matcher = init_feature('sift')
 
-    # 寻找特征点
+    # 寻找特征点 / 描述
     kp1, des1 = detector.detectAndCompute(img1, None)
     kp2, des2 = detector.detectAndCompute(img2, None)
 
     # 特征点匹配
-
     try:
         matches = matcher.knnMatch(des1, des2, k=2)
     except:
         matches = []
 
-    # 筛选
+    # m:最近距离 / n:次近距离 < 0.7 阀值
     good = []
     if len(matches) > 0:
         try:
@@ -83,21 +82,18 @@ def CompareTwoPictureDetail(img1, img2):
     if len(good) >= MIN_MATCH_COUNT:
         src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
         dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
-
-        # 寻找连线. RANSAC排除干扰
         M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-
         matchesMask = mask.ravel().tolist()
-
+        # 画方框
         h, w, _ = img1.shape
         pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
         dst = cv2.perspectiveTransform(pts, M)
-
         img2 = cv2.polylines(img2, [np.int32(dst)], True, 255, 3, cv2.LINE_AA)
     else:
         print("Not enough matches are found - %d/%d" % (len(good), MIN_MATCH_COUNT))
         matchesMask = None
 
+    # 画线
     draw_params = dict(matchColor=(0, 255, 0), singlePointColor=None, matchesMask=matchesMask, flags=2)
     img3 = cv2.drawMatches(img1, kp1, img2, kp2, good, None, **draw_params)
 
@@ -127,14 +123,80 @@ def RealTimeCompare(pn1):
     cv2.destroyAllWindows()
 
 
-def main():
+# 全局 detector, matcher
+gDetector, gMatcher = init_feature('sift')
+
+
+class Picture:
+    def __init__(self, picturefile, dx, dy, dw, dh):
+        self.picturefile = picturefile
+        self.dx = dx
+        self.dy = dy
+        self.dw = dw
+        self.dh = dh
+
+        self.img1 = cv2.imread(self.picturefile, cv2.IMREAD_COLOR)
+        self.kp1, self.des1 = gDetector.detectAndCompute(self.img1, None)
+
+    def Match(self):
+        self.img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士", self.dx, self.dy, self.dw, self.dh)
+
+        # 寻找特征点 / 描述
+        kp2, des2 = gDetector.detectAndCompute(self.img2, None)
+
+        # 特征点匹配
+        try:
+            matches = gMatcher.knnMatch(self.des1, des2, k=2)
+        except:
+            matches = []
+
+        # m:最近距离 / n:次近距离 < 0.7 阀值
+        good = []
+        if len(matches) > 0:
+            try:
+                for m, n in matches:
+                    if m.distance < 0.7 * n.distance:
+                        good.append(m)
+            except:
+                pass
+
+        # 最少匹配10个点
+        if len(good) >= MIN_MATCH_COUNT:
+            src_pts = np.float32([self.kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
+            dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
+            M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+            matchesMask = mask.ravel().tolist()
+            if len(matchesMask) > MIN_MATCH_COUNT:
+                return True
+        return False
+
+
+def test():
     if len(sys.argv) < 2:
         print("usage: {} png".format(sys.argv[0]))
         exit(0)
-
     CompareTwoPicture(sys.argv[1], sys.argv[2])
-
     # RealTimeCompare(sys.argv[1])
+
+
+if os.path.exists("c:/win/superimg/"):
+    basedir = "c:/win/superimg/"
+else:
+    basedir = "D:/win/studio/dxf/picture/superimg/"
+
+cartoonScene = Picture(basedir + "/cartoon-scene.jpg", 12, 549, 66, 38)
+
+
+# 是否有动画置顶？
+def IsCartoonTop():
+    return cartoonScene.Match()
+
+
+def main():
+    while True:
+        if IsCartoonTop():
+            Log("1")
+        time.sleep(0.5)
 
 
 if __name__ == "__main__":
