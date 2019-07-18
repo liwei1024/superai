@@ -54,6 +54,7 @@ def init_feature(name):
     return detector, matcher
 
 
+# 对比并返回连线图片
 def CompareTwoPictureDetail(img1, img2):
     detector, matcher = init_feature('sift')
 
@@ -62,16 +63,24 @@ def CompareTwoPictureDetail(img1, img2):
     kp2, des2 = detector.detectAndCompute(img2, None)
 
     # 特征点匹配
-    matches = matcher.knnMatch(des1, des2, k=2)
+
+    try:
+        matches = matcher.knnMatch(des1, des2, k=2)
+    except:
+        matches = []
 
     # 筛选
     good = []
-    for m, n in matches:
-        if m.distance < 0.7 * n.distance:
-            good.append(m)
+    if len(matches) > 0:
+        try:
+            for m, n in matches:
+                if m.distance < 0.7 * n.distance:
+                    good.append(m)
+        except:
+            pass
 
     # 最少匹配10个点
-    if len(good) > MIN_MATCH_COUNT:
+    if len(good) >= MIN_MATCH_COUNT:
         src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
         dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
 
@@ -108,15 +117,14 @@ def CompareTwoPicture(pn1, pn2):
 # 实时对比
 def RealTimeCompare(pn1):
     while True:
-        # img1 = cv2.imread(pn1, cv2.IMREAD_COLOR)
-        img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
-        # img3 = CompareTwoPictureDetail(img1, img2)
-        cv2.imshow('my img', img2)
-        # if (cv2.waitKey(30) & 0xFF) in [ord('q'), 27]:
-        #     break
-        time.sleep(100)
-
-    # cv2.destroyAllWindows()
+        img1 = cv2.imread(pn1, cv2.IMREAD_COLOR)
+        img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士", 12, 549, 66, 38)
+        img3 = CompareTwoPictureDetail(img1, img2)
+        cv2.imshow('my img', img3)
+        if (cv2.waitKey(30) & 0xFF) in [ord('q'), 27]:
+            break
+        time.sleep(0.3)
+    cv2.destroyAllWindows()
 
 
 def main():

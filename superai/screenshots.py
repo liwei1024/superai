@@ -79,7 +79,7 @@ def WindowCaptureToFile(windowClassName, windowName, captureDir, defer):
 
 # https://stackoverflow.com/questions/49511753/python-byte-image-to-numpy-array-using-opencv
 @defer
-def WindowCaptureToMem(windowClassName, windowName, defer):
+def WindowCaptureToMem(windowClassName, windowName, dx = 0, dy = 0, dw = 0,dh = 0, defer = None):
     hwnd = win32gui.FindWindow(windowClassName, windowName)
     left, top, right, bot = win32gui.GetWindowRect(hwnd)
     w, h = right - left, bot - top
@@ -96,15 +96,15 @@ def WindowCaptureToMem(windowClassName, windowName, defer):
     bitmap = win32ui.CreateBitmap()
     defer(lambda: (win32gui.DeleteObject(bitmap.GetHandle())))
 
-    # if dw != 0 or dh != 0:
-    #     w = dw
-    #     h = dh
+    if dw != 0 or dh != 0:
+        w = dw
+        h = dh
 
     bitmap.CreateCompatibleBitmap(imgDC, w, h)
     memDC.SelectObject(bitmap)
 
     # 从dx, dy 处拷贝 w,h 的位图,到申请的w,h大小的空间的0,0处开始拷贝
-    memDC.BitBlt((0, 0), (w, h), imgDC, (0, 0), win32con.SRCCOPY)
+    memDC.BitBlt((0, 0), (w, h), imgDC, (dx, dy), win32con.SRCCOPY)
 
     npbytes = np.frombuffer(bitmap.GetBitmapBits(True), dtype='uint8')
     npbytes.shape = (h, w, 4)

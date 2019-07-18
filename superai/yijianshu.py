@@ -16,7 +16,7 @@ from superai.vkcode import *
 if os.path.exists("c:/win/superai/dll/"):
     lib = CDLL("c:/win/superai/dll/msdk.dll", RTLD_GLOBAL)
 else:
-    lib = CDLL("E:/win/reference/project/superai/dll/msdk.dll", RTLD_GLOBAL)
+    lib = CDLL("D:/win/reference/project/superai/dll/msdk.dll", RTLD_GLOBAL)
 
 # 键盘
 

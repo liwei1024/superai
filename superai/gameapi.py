@@ -18,7 +18,7 @@ from ctypes import *
 if os.path.exists("c:/win/x64/Release/"):
     lib = CDLL("c:/win/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
 else:
-    lib = CDLL("E:/win/reference/project/xxiii/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
+    lib = CDLL("D:/win/reference/project/xxiii/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
 
 
 class MenInfo(Structure):
@@ -873,7 +873,7 @@ skillSettingMap = {
     "无双枪术": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
     # 四姨
-    "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4, thenpress=VK_CODE["down_arrow"]),
+    "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4, thenpress=VK_CODE["left_arrow"]),
 }
 
 
@@ -1100,14 +1100,16 @@ def main():
 
     FlushPid()
 
-    while True:
-        time.sleep(1.0)
-        PrintMenInfo()
+    # while True:
+    #     time.sleep(1.0)
+    #     PrintMenInfo()
+
+    # PrintMenInfo()
     # PrintMapInfo()
     # PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
-    # PrintSkillObj()
+    PrintSkillObj()
     # PrintTaskObj()
     # PrintNextMen()
 
