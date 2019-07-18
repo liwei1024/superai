@@ -287,8 +287,8 @@ QuardantMap = {
 }
 
 # 大矩阵
-MOVE_BIG_V_WIDTH = 60 / 2
-MOVE_BIG_H_WIDTH = 60 / 2
+MOVE_BIG_V_WIDTH = 80 / 2
+MOVE_BIG_H_WIDTH = 80 / 2
 
 # 误差
 MOVE_SMALL_V_WIDTH = 20 / 2
@@ -299,19 +299,19 @@ BIG_RENT = 1
 SMALL_RENT = 2
 
 # 慢走矩形
-MANZOU_V_WIDTH = 200 / 2
-MANZOU_H_WIDTH = 300 / 2
+MANZOU_V_WIDTH = 150 / 2
+MANZOU_H_WIDTH = 150 / 2
 
 # 拾取矩形
-PICKUP_V_WIDTH = 40 / 2
-PICKUP_H_WIDTH = 40 / 2
+PICKUP_V_WIDTH = 45 / 2
+PICKUP_H_WIDTH = 45 / 2
 
 # BUFF拾取矩形
 BUFF_V_WIDTH = 20 / 2
 BUFF_H_WIDTH = 20 / 2
 
 # 怪物在太远的距离,先捡物品
-PICK_DISTANCE = 300
+PICK_DISTANCE = 200
 
 # 普通攻击矩形
 ATTACK_V_WIDTH = 160 / 2
@@ -887,7 +887,7 @@ skillSettingMap = {
     "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4, thenpress=VK_CODE["left_arrow"]),
 
     # 吸怪,蓄力
-    "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=1.0, doublepress=True),
+    "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=2.0, doublepress=True),
 }
 
 
@@ -973,7 +973,8 @@ class Skill:
 
     # 使用
     def Use(self):
-        Log(" %s delay %f afterdelay %f" % (self.name, self.skilldata.delaytime, self.skilldata.afterdelay))
+        Log(" %s delay %f afterdelay %f doublepress %d" % (
+        self.name, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.doublepress))
         PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.thenpress,
                    self.skilldata.doublepress)
 
@@ -1059,30 +1060,6 @@ class Skills:
                 if obj.sendtime != 0:
                     return True
         return False
-
-
-# 打印可以被使用的技能
-def PrintCanBeUsedSkill():
-    skills = Skills()
-    skills.Update()
-    skills.FlushAllTime()
-
-    while True:
-        RanSleep(1)
-        Log("===可以使用的技能===")
-        skills.Update()
-        canbeused = skills.GetCanBeUsedAttackSkills()
-        for skill in canbeused:
-            Log(skill.name)
-
-
-# 不断打印坐标
-def PrintXY():
-    while True:
-        x, y = GetMenXY()
-        Log(x, y)
-        RanSleep(1)
-
 
 # 读写速度测试
 def SpeedTest():

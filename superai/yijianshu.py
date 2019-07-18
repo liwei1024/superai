@@ -139,7 +139,6 @@ def ReleaseAllKey():
 
 
 def JiPaoYou():
-    RanSleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
     RanSleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
@@ -149,7 +148,6 @@ def JiPaoYou():
 
 
 def JiPaoZuo():
-    RanSleep(0.1)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
     RanSleep(0.1)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
@@ -264,12 +262,12 @@ def PressSkill(key, delay, afterdelay, thenpress=None, doublepress=False):
 
     if thenpress is not None:
         lib.M_KeyDown2(h, thenpress)
-        RanSleep(0.05)
+        RanSleep(0.3)
         lib.M_KeyUp2(h, thenpress)
 
     if doublepress:
         lib.M_KeyDown2(h, key)
-        RanSleep(0.05)
+        RanSleep(0.3)  # 4姨非得要按0.3s..
         lib.M_KeyUp2(h, key)
 
 
@@ -293,10 +291,10 @@ def main():
     global h
     global x
 
-    # hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
+    hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
     # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
-    # win32gui.SetForegroundWindow(hwnd)
+    win32gui.SetForegroundWindow(hwnd)
 
 
 if __name__ == "__main__":

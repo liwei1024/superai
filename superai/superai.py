@@ -81,9 +81,6 @@ class Player:
         # 持有技能
         self.skills = Skills()
 
-        # 是否在疾跑状态
-        self.injipao = False
-
         # 当前选择的技能 (保存临时选择的状态,释放完毕才能选择下一个技能)
         self.curskill = None
 
@@ -142,8 +139,6 @@ class Player:
             # QuadKeyUpMap[self.latestDown]()
             ReleaseAllKey()
             self.ResetKey()
-            # 疾跑 -> 八方位移动.  恢复站立状态 -> 疾跑状态关闭
-            self.injipao = False
 
     # 随机选择一种技能
     def SelectSkill(self):
@@ -166,9 +161,9 @@ class Player:
 
     # 是否面向对方
     def IsChaoxiangDuifang(self, menx, objx):
-        monlocation = GetFangxiang(menx, objx)
+        objlocation = GetFangxiang(menx, objx)
         menfangxiang = GetMenChaoxiang()
-        if monlocation != menfangxiang:
+        if objlocation != menfangxiang:
             return False
         return True
 
@@ -187,18 +182,11 @@ class Player:
                 PressRight()
 
     # 疾跑
-    def KeyJiPao(self, quad):
-        if self.injipao:
-            return
-        if quad in [Quardant.SHANG, Quardant.XIA]:
-            return
-        elif quad in [Quardant.ZUO, Quardant.ZUOSHANG, Quardant.ZUOXIA]:
-            JiPaoZuo()
-        elif quad in [Quardant.YOU, Quardant.YOUSHANG, Quardant.YOUXIA]:
+    def KeyJiPao(self, fangxiang):
+        if fangxiang == RIGHT:
             JiPaoYou()
         else:
-            raise NotImplementedError()
-        self.injipao = True
+            JiPaoZuo()
 
     # 靠近
     def Seek(self, destx, desty, obj=None):
@@ -224,24 +212,12 @@ class Player:
                     if jizou and not IsManJipao():
                         self.UpLatestKey()
                         return
-
                     self.DownKey(quad)
                     RanSleep(0.05)
                     Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 方向完全相同 %s" %
                         (menx, meny, destx, desty, quad.name, jizoustr))
 
-                # 和人物朝向不同
-                elif not self.IsChaoxiangDuifang(menx, destx):
-                    Log(
-                        "seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 朝向不同,重新移动 %s" % (
-                            menx, meny, objname, destx, desty, quad.name, jizoustr))
-                    self.UpLatestKey()
-                    if jizou:
-                        self.KeyJiPao(quad)
-                    self.DownKey(quad)
-                    RanSleep(0.025)
-
-                # 方向类似
+                # 方向有变化
                 else:
                     if jizou and not IsManJipao():
                         self.UpLatestKey()
@@ -265,7 +241,7 @@ class Player:
                 Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
                     menx, meny, objname, destx, desty, quad.name, jizoustr))
                 if jizou:
-                    self.KeyJiPao(quad)
+                    self.KeyJiPao(GetFangxiang(menx, destx))
                 self.DownKey(quad)
         # 小范围移动
         else:
@@ -273,7 +249,7 @@ class Player:
             Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
                 (menx, meny, objname, destx, desty, quad.name))
             self.DownKey(quad)
-            RanSleep(0.05)
+            RanSleep(0.1)
             self.UpLatestKey()
 
 
@@ -349,15 +325,15 @@ class Setup(State):
     def Execute(self, player):
         if IsManInMap():
             player.ChangeState(FirstInMap())
-            RanSleep(0.5)
+            RanSleep(0.2)
             return
 
         if IsManInChengzhen():
             player.ChangeState(InChengzhen())
-            RanSleep(0.5)
+            RanSleep(0.2)
             return
 
-        RanSleep(0.5)
+        RanSleep(0.2)
 
 
 # 城镇
@@ -365,33 +341,29 @@ class InChengzhen(State):
     def Execute(self, player):
         if IsManInMap():
             player.ChangeState(FirstInMap())
-            RanSleep(0.5)
+            RanSleep(0.2)
             return
 
-        RanSleep(0.5)
+        RanSleep(0.2)
 
 
 # 副本结束, 尝试退出
 class FubenOver(State):
     def Execute(self, player):
         PressKey(VK_CODE["esc"])
-        RanSleep(0.5)
+        RanSleep(0.2)
         PressKey(VK_CODE["F12"])
         if IsManInChengzhen():
-            RanSleep(1.0)
-
             while IsEscTop():
                 PressKey(VK_CODE["esc"])
-                RanSleep(0.5)
-
+                RanSleep(0.2)
             player.ChangeState(InChengzhen())
+            return
 
         # if IsManInMap() and not IsCurrentInBossFangjian():
         #     player.ChangeState(FirstInMap())
-        #     RanSleep(0.5)
+        #     RanSleep(0.2)
         #     return
-
-        RanSleep(0.5)
 
 
 # 初次进图,加buff
