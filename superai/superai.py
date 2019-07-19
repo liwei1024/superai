@@ -1,12 +1,16 @@
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+import threading
 import win32gui
 import math
 import random
 import time
+
+from superai.flannfind import FlushImg, GetVideoConfirmPos, IsCartoonTop, IsVideoTop, IsVideoConfirmTop, SetThreadExit, \
+    IsConfirmTop
 
 from superai.vkcode import VK_CODE
 
@@ -18,13 +22,12 @@ from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHAN
     UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressKey
 
 from superai.gameapi import GameApiInit, FlushPid, \
-    HaveMonsters, NearestMonster, GetMenXY, GetQuadrant, Quardant, \
+    HaveMonsters, GetMenXY, GetQuadrant, Quardant, \
     GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
     NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetMenInfo, \
-    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, GetBossObj, \
-    IsClosedTo, \
-    NearestBuf, HaveBuffs, CanbeGetBuff, GetMapInfo, SpecifyMonsterIsToofar, IsManInSelectMap, XUANTU, TUNEI, \
-    IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, NearestMonsterWrap, IsWindowTop, IsEscTop
+    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
+    NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
+    NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -101,20 +104,30 @@ class Player:
         self.stateMachine.latestState = state
 
     # 保存当前状态,并且切换到什么也不做的状态机
-    def SaveCurrentContext(self):
-        if isinstance(self.stateMachine.currentState, EmptyState):
-            return
-
+    def SaveAndChangeToEmpty(self, forwhat):
         Log("状态保存 currentState: %s" % type(self.stateMachine.currentState))
         self.SetLatestState(self.stateMachine.currentState)
-        self.ChangeState(EmptyState())
+        self.ChangeState(EmptyState(forwhat))
 
     # 恢复状态机
     def RestoreContext(self):
+        Log("状态恢复 latestState: %s" % type(self.stateMachine.latestState))
+        self.ChangeState(self.stateMachine.latestState)
+        self.SetLatestState(None)
+
+    # 状态机为空白
+    def InEmptyState(self):
         if isinstance(self.stateMachine.currentState, EmptyState):
-            Log("状态恢复 latestState: %s" % type(self.stateMachine.latestState))
-            self.ChangeState(self.stateMachine.latestState)
-            self.SetLatestState(None)
+            return True
+        else:
+            return False
+
+    # 当前空白状态机是否是因指定原因进入的
+    def IsEmptyFor(self, forwhat):
+        if isinstance(self.stateMachine.currentState, EmptyState) and \
+                self.stateMachine.currentState.IsForwhat(forwhat):
+            return True
+        return False
 
     # 更新状态机
     def Update(self):
@@ -135,7 +148,6 @@ class Player:
 
     # 恢复之前按的键
     def UpLatestKey(self):
-        # QuadKeyUpMap[self.latestDown]()
         ReleaseAllKey()
         self.ResetKey()
 
@@ -186,17 +198,18 @@ class Player:
             JiPaoZuo()
 
     # 靠近
-    def Seek(self, destx, desty, obj=None):
+    def Seek(self, destx, desty, obj=None, dummy=None):
         menx, meny = GetMenXY()
         quad, rent = GetQuadrant(menx, meny, destx, desty)
 
         if quad == Quardant.CHONGDIE:
             # 已经重叠了, 调用者(靠近怪物, 捡物, 过门 应该不会再次调用seek了). 频繁发生就说明写错了
             self.UpLatestKey()
-            # Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 重叠" % (menx, meny, destx, desty, quad.name))
             return
 
         objname = "name:%s obj:0x%X hp:%d " % (obj.name, obj.object, obj.hp) if obj is not None else ""
+        if dummy is not None:
+            objname = "dummy: %s" % dummy
         jizou = not WithInManzou(menx, meny, destx, desty)
         jizoustr = "" if not jizou else "疾走"
 
@@ -219,7 +232,6 @@ class Player:
                     if jizou and not IsManJipao():
                         self.UpLatestKey()
                         return
-
                     # 上次和本次按键的分解
                     latestDecompose = QuardantMap[self.latestDown]
                     currentDecompose = QuardantMap[quad]
@@ -257,14 +269,26 @@ class State:
         raise NotImplementedError()
 
 
+FOR_DUIHUA = 0
+FOR_CARTOON = 1
+FOR_VIDEO = 2
+FOR_CONFIRM = 3
+
+
+# 什么也不做的状态机. 一般是由于对话,动画或者视频才进入到这里,读取信息供外面恢复
 class EmptyState:
+    def __init__(self, forwhat):
+        self.forwhat = forwhat
+
     def Execute(self, player):
         pass
 
+    def IsForwhat(self, forwat):
+        return self.forwhat == forwat
 
-# 防卡死状态机
-class StuckGlobalState(State):
 
+# 全局状态机
+class GlobalState(State):
     def __init__(self):
         self.beginx = None
         self.beginy = None
@@ -276,23 +300,75 @@ class StuckGlobalState(State):
         self.latesttime = None
 
     def Execute(self, player):
-        if IsWindowTop():
-            # 保留当前状态
-            player.SaveCurrentContext()
+        # 对话处理
+        if player.IsEmptyFor(FOR_DUIHUA):
+            Log("对话状态")
             PressKey(VK_CODE["spacebar"])
             RanSleep(0.2)
+            if not IsWindowTop():
+                player.RestoreContext()
             return
-        else:
-            # 恢复之前的状态
-            player.RestoreContext()
-            pass
+        # 动画处理
+        elif player.IsEmptyFor(FOR_CARTOON):
+            Log("动画状态")
+            PressKey(VK_CODE["esc"])
+            RanSleep(0.5)
+            if not IsCartoonTop():
+                player.RestoreContext()
+            return
+        # 视频处理
+        elif player.IsEmptyFor(FOR_VIDEO):
+            Log("视频状态")
+            PressKey(VK_CODE["esc"])
+            RanSleep(0.5)
+            if IsVideoConfirmTop():
+                confirmBut = GetVideoConfirmPos()
+                if len(confirmBut) > 0:
+                    Log("视屏确认按钮: " + confirmBut)
+                else:
+                    Log("视频的确认按钮定位不到")
+            else:
+                Log("视频的确认按钮没有置顶")
+            RanSleep(0.5)
+            if not IsVideoTop():
+                player.RestoreContext()
+            return
+        # 确认处理
+        elif player.IsEmptyFor(FOR_CONFIRM):
+            Log("确认状态")
+            PressKey(VK_CODE["esc"])
+            RanSleep(0.5)
+            if not IsConfirmTop():
+                player.RestoreContext()
+            return
 
-        # 目前只判断几种情况
-        if isinstance(player.stateMachine.currentState, SeekAndPickUp) or \
-                isinstance(player.stateMachine.currentState, PickBuf) or \
-                isinstance(player.stateMachine.currentState, SeekAndAttackMonster) or \
-                isinstance(player.stateMachine.currentState, DoorOpenGotoNext) or \
-                isinstance(player.stateMachine.currentState, DoorStuckGoToPrev):
+        # 对话判断
+        if not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
+            player.SaveAndChangeToEmpty(FOR_DUIHUA)
+        # 动画判断
+        elif not player.IsEmptyFor(FOR_CARTOON) and IsCartoonTop():
+            player.SaveAndChangeToEmpty(FOR_CARTOON)
+            return
+        # 视频判断
+        elif not player.IsEmptyFor(FOR_VIDEO) and IsVideoTop():
+            player.SaveAndChangeToEmpty(FOR_VIDEO)
+            return
+        # 确认按钮
+        elif not player.IsEmptyFor(FOR_CONFIRM) and IsConfirmTop():
+            player.SaveAndChangeToEmpty(FOR_CONFIRM)
+            return
+
+        # 在图内需要判断卡死的状态
+        MapStateList = [SeekAndPickUp, PickBuf, SeekAndAttackMonster, DoorOpenGotoNext, DoorStuckGoToPrev]
+
+        # 防止卡死目前只判断几种情况
+        def MapStateCheck(curstate):
+            for state in MapStateList:
+                if isinstance(curstate, state):
+                    return True
+            return False
+
+        if MapStateCheck(player.stateMachine.currentState):
             pass
         else:
             self.Reset()
@@ -359,11 +435,6 @@ class FubenOver(State):
             player.ChangeState(InChengzhen())
             return
 
-        # if IsManInMap() and not IsCurrentInBossFangjian():
-        #     player.ChangeState(FirstInMap())
-        #     RanSleep(0.2)
-        #     return
-
 
 # 初次进图,加buff
 class FirstInMap(State):
@@ -371,18 +442,9 @@ class FirstInMap(State):
         if player.skills.HaveBuffCanBeUse():
             skills = player.skills.GetCanBeUseBuffSkills()
             for skill in skills:
-                # 没有用过才释放
-                # if not player.skills.DidSkillHavebeenUsed(skill.name):
-
                 Log("使用buff: %s" % skill.name)
                 skill.Use()
                 player.skills.Update()
-                #
-                #     # 按键了 没有释放出来. 再次释放..
-                #     RanSleep(0.3)
-                #     if not player.skills.DidSkillHavebeenUsed(skill.name):
-                #         return
-
         player.ChangeState(StandState())
 
 
@@ -401,8 +463,7 @@ class StandState(State):
         elif (not IsCurrentInBossFangjian()) and IsNextDoorOpen():
             player.ChangeState(DoorOpenGotoNext())
             return
-        elif IsCurrentInBossFangjian() and IsNextDoorOpen():
-
+        elif IsFuBenPass():
             # 打死boss后判断下物品
             RanSleep(2.0)
             if HaveGoods():
@@ -411,6 +472,14 @@ class StandState(State):
             else:
                 player.ChangeState(FubenOver())
                 return
+        else:
+            if IsCurrentInBossFangjian():
+                # 得不到怪物对象. 可能副本结束的瞬间 按esc吧!
+                PressKey(VK_CODE["esc"])
+                RanSleep(0.1)
+                # 把它再点掉,投机取巧
+                if IsEscTop():
+                    PressKey(VK_CODE["esc"])
 
         RanSleep(0.3)
         Log("state can not switch")
@@ -437,8 +506,6 @@ class SeekAndAttackMonster(State):
             player.ChangeState(PickBuf())
             return
 
-        # Log("选择了 %s (%.f, %.f)" % ( obj.name, obj.x, obj.y))
-
         # 没有选择技能就选择一个
         if not player.HasSkillHasBeenSelect():
             player.SelectSkill()
@@ -459,7 +526,7 @@ class SeekAndAttackMonster(State):
                 PressHouTiao()
                 RanSleep(0.05)
             else:
-                player.Seek(seekx, seeky)
+                player.Seek(seekx, seeky, dummy="合适攻击位置")
                 RanSleep(0.05)
             return
 
@@ -502,7 +569,7 @@ class SeekAndPickUp(State):
             RanSleep(0.05)
             PressX()
         else:
-            player.Seek(obj.x, obj.y)
+            player.Seek(obj.x, obj.y, dummy="捡取")
 
 
 # 靠近并捡起buff
@@ -527,7 +594,7 @@ class PickBuf(State):
             Log("捡取buff (%d,%d)" % (obj.x, obj.y))
             RanSleep(0.1)
         else:
-            player.Seek(obj.x, obj.y)
+            player.Seek(obj.x, obj.y, dummy="捡取")
 
 
 # 门已开,去过图
@@ -539,7 +606,7 @@ class DoorOpenGotoNext(State):
             # 进入到了新的门
             player.ChangeState(StandState())
         else:
-            player.Seek(door.secondcx, door.secondcy)
+            player.Seek(door.secondcx, door.secondcy, dummy="靠近门")
 
 
 # 走门时卡死,走到离门远一些的地方
@@ -552,7 +619,7 @@ class DoorStuckGoToPrev(State):
         elif IsClosedTo(menx, meny, door.prevcx, door.prevcy):
             player.ChangeState(DoorOpenGotoNext())
         else:
-            player.Seek(door.prevcx, door.prevcy)
+            player.Seek(door.prevcx, door.prevcy, dummy="靠近门前")
 
 
 def main():
@@ -578,9 +645,14 @@ def main():
 
     time.sleep(1.2)
 
+    # 截图线程
+    t = threading.Thread(target=FlushImg)
+    t.start()
+
+    # 状态机 主线程
     player = Player()
     player.ChangeState(Setup())
-    player.SetGlobalState(StuckGlobalState())
+    player.SetGlobalState(GlobalState())
 
     player.skills.Update()
     player.skills.FlushAllTime()
@@ -591,6 +663,8 @@ def main():
             player.Update()
     except KeyboardInterrupt:
         ReleaseAllKey()
+        SetThreadExit()
+        t.join()
         sys.exit()
 
 

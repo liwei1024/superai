@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -9,7 +9,7 @@ from enum import Enum
 import math
 
 from superai.common import Log
-from superai.yijianshu import PressSkill, RanSleep
+from superai.yijianshu import PressSkill, PressKey
 from superai.vkcode import VK_CODE
 from superai.defer import defer
 
@@ -216,6 +216,8 @@ lib.ExGetMapMonsters.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
 lib.ExGetMapGoods.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
 
 lib.ExGetMapBuff.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
+
+lib.ExGetMapYinghuo.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
 
 lib.ExGetBagObj.argtypes = [POINTER(POINTER(BagObj)), POINTER(c_int)]
 
@@ -479,6 +481,18 @@ def GetBuff():
     return outlst
 
 
+# 获取营火
+def GetYinghuo():
+    objs = POINTER(MapObj)()
+    count = c_int(0)
+    lib.ExGetMapYinghuo(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst = []
+    for i in range(count.value):
+        outlst.append(copy.deepcopy(objs[i]))
+    return outlst
+
+
 # 背包数组
 def GetBagObj():
     objs = POINTER(BagObj)()
@@ -632,7 +646,8 @@ def GetBossObj():
     monsters = GetMonsters()
     if len(monsters) < 1:
         return None
-    objs = filter(lambda mon: "领主" in mon.name and "dummy" not in mon.name, monsters)
+    objs = filter(lambda mon: "领主" in mon.name and "dummy" not in mon.name and
+                              "领主 - 领主" not in mon.name, monsters)
     objs = list(objs)
 
     if len(objs) < 1:
@@ -728,6 +743,23 @@ def IsNextDoorOpen():
     return mapinfo.kaimen
 
 
+# 是否已经通过
+def IsFuBenPass():
+    # 不在boss房间肯定没通关呀
+    if not IsCurrentInBossFangjian():
+        return False
+
+    # 出现营火算肯定通过
+    if len(GetYinghuo()) > 0:
+        return True
+
+    # 没有怪物就算通过(没有营火前提前判断)
+    # if NearestMonsterWrap() is None:
+    #     return True
+
+    return False
+
+
 # 是否当前处在boss房间
 def IsCurrentInBossFangjian():
     mapinfo = GetMapInfo()
@@ -767,9 +799,24 @@ def IsManJipao():
     return meninfo.jipao
 
 
+WindowTopFilter = [
+    ("格拉卡", 2, 0),
+    ("烈焰格拉卡", 0, 1),
+    ("烈焰格拉卡", 1, 1),
+    ("暗黑雷鸣废墟", 0, 0)
+]
+
+
 # 是否有空格键确认的窗口置顶
 def IsWindowTop():
     meninfo = GetMenInfo()
+    if meninfo.tanchu:
+        # 某些地图不管
+        mapinfo = GetMapInfo()
+        for ele in WindowTopFilter:
+            if ele[0] in mapinfo.name and mapinfo.curx == ele[1] and mapinfo.cury == ele[2]:
+                PressKey(VK_CODE["spacebar"])
+                return False
     return meninfo.tanchu
 
 
@@ -830,6 +877,7 @@ class SkillData:
 skillSettingMap = {
 
     # 通用
+    "远古记忆": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
     # 移动
     "后跳": SkillData(type=SkillType.Yidong),
@@ -856,36 +904,36 @@ skillSettingMap = {
     "爆炎 · 波动剑": SkillData(type=SkillType.Gongji, level=14, v_w=400 / 2, h_w=40 / 2),
 
     # 神龙天女
-    "神谕之祈愿": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "神谕之祈愿": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
     # 光枪
-    "能量萃取": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "能量萃取": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
     # 女光剑
-    "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
     # 女气功
-    "光之兵刃": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-    "烈日气息": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "光之兵刃": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "烈日气息": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
     # 男气功
-    "念气流转": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "念气流转": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
     # 女散打
-    "强拳": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-    "霸体护甲": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "强拳": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "霸体护甲": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
     # 龙骑士
-    "龙语召唤 : 阿斯特拉": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "龙语召唤 : 阿斯特拉": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
     # 关羽
-    "不灭战戟": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "不灭战戟": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
     # 赵云
     "无双枪术": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
     # 四姨
-    "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4, thenpress=VK_CODE["left_arrow"]),
+    "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8, thenpress=VK_CODE["left_arrow"]),
 
     # 吸怪,蓄力
     "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),
@@ -1098,12 +1146,12 @@ def main():
     #     time.sleep(1.0)
     #     PrintMenInfo()
 
-    PrintMenInfo()
-    # PrintMapInfo()
+    # PrintMenInfo()
+    PrintMapInfo()
     # PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
-    # PrintSkillObj()
+    PrintSkillObj()
     # PrintTaskObj()
     # PrintNextMen()
 

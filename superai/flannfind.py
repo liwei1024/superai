@@ -78,7 +78,6 @@ def CompareTwoPictureDetail(img1, img2):
         except:
             pass
 
-    # 最少匹配10个点
     if len(good) >= MIN_MATCH_COUNT:
         src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
         dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
@@ -128,7 +127,7 @@ gDetector, gMatcher = init_feature('sift')
 
 
 class Picture:
-    def __init__(self, picturefile, dx, dy, dw, dh):
+    def __init__(self, picturefile, dx=0, dy=0, dw=0, dh=0):
         self.picturefile = picturefile
         self.dx = dx
         self.dy = dy
@@ -159,19 +158,47 @@ class Picture:
                         good.append(m)
             except:
                 pass
+        if len(good) >= MIN_MATCH_COUNT:
+            return True
+        return False
 
-        # 最少匹配10个点
+    def Pos(self):
+        self.img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士", self.dx, self.dy, self.dw, self.dh)
+
+        # 寻找特征点 / 描述
+        kp2, des2 = gDetector.detectAndCompute(self.img2, None)
+
+        # 特征点匹配
+        try:
+            matches = gMatcher.knnMatch(self.des1, des2, k=2)
+        except:
+            matches = []
+
+        # m:最近距离 / n:次近距离 < 0.7 阀值
+        good = []
+        if len(matches) > 0:
+            try:
+                for m, n in matches:
+                    if m.distance < 0.7 * n.distance:
+                        good.append(m)
+            except:
+                pass
+
         if len(good) >= MIN_MATCH_COUNT:
             src_pts = np.float32([self.kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
             dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
             M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-            matchesMask = mask.ravel().tolist()
-            if len(matchesMask) > MIN_MATCH_COUNT:
-                return True
-        return False
+
+            h, w, _ = self.img1.shape
+            pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
+            dst = cv2.perspectiveTransform(pts, M)
+
+            return dst.array
+
+        return []
 
 
-def test():
+def sifttest():
     if len(sys.argv) < 2:
         print("usage: {} png".format(sys.argv[0]))
         exit(0)
@@ -179,24 +206,119 @@ def test():
     # RealTimeCompare(sys.argv[1])
 
 
+def templatefindtest():
+    if len(sys.argv) < 2:
+        print("usage: {} png".format(sys.argv[0]))
+        exit(0)
+
+    img1 = cv2.imread(sys.argv[1], cv2.IMREAD_COLOR)
+    img2 = cv2.imread(sys.argv[2], cv2.IMREAD_COLOR)
+    FindPictureTest(img1, img2)
+
+
+# 寻找图片
+def FindPictureTest(img1, img2):
+    t1 = time.time()
+    h, w = img1.shape[:2]
+    res = cv2.matchTemplate(img2, img1, cv2.TM_CCOEFF_NORMED)
+    threshold = 0.8
+    loc = np.where(res >= threshold)
+    for pt in zip(*loc[::-1]):
+        cv2.rectangle(img2, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+    t2 = time.time()
+    print(t2 - t1)
+    cv2.imshow('my img', img2)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+
+# img1是否在img2上出现过
+def FindPicture(img1, img2):
+    h, w = img1.shape[:2]
+    res = cv2.matchTemplate(img2, img1, cv2.TM_CCOEFF_NORMED)
+    threshold = 0.7
+    flag = False
+    for i in res:
+        if i.any() > threshold:
+            flag = True
+    return flag
+
+
 if os.path.exists("c:/win/superimg/"):
     basedir = "c:/win/superimg/"
 else:
     basedir = "D:/win/studio/dxf/picture/superimg/"
 
-cartoonScene = Picture(basedir + "/cartoon-scene.jpg", 12, 549, 66, 38)
+cartoonScene = Picture(basedir + "/cartoon-scene.png", 12, 549, 66, 38)
+videoScene = Picture(basedir + "/video-scene.png", 663, 554, 121, 18)
+confirm = Picture(basedir + "/confirm.png", 245, 126, 324, 378)
+
+gCartoonTop = False
+gVideoTop = False
+gConfirmTop = False
+
+gFlushExit = False
 
 
-# 是否有动画置顶？
+# 是否有动画置顶 (背景线程刷新)
 def IsCartoonTop():
-    return cartoonScene.Match()
+    return gCartoonTop
+
+
+# 是否有视频置顶 (背景线程刷新)
+def IsVideoTop():
+    return gVideoTop
+
+
+# 是否有确认键置顶 (背景线程刷新)
+def IsConfirmTop():
+    return gConfirmTop
+
+
+# 设置截屏线程退出
+def SetThreadExit():
+    global gFlushExit
+    gFlushExit = True
+
+
+# 不断截图把图片状态置到内存中
+def FlushImg():
+    global gCartoonTop
+    global gVideoTop
+    global gConfirmTop
+    global gFlushExit
+
+    while not gFlushExit:
+        # 是否有动画
+        if cartoonScene.Match():
+            gCartoonTop = True
+        else:
+            gCartoonTop = False
+
+        # 是否有视频
+        if videoScene.Match():
+            gVideoTop = True
+        else:
+            gVideoTop = False
+
+        # 是否有确认按钮
+        if confirm.Match():
+            gConfirmTop = True
+        else:
+            gConfirmTop = False
+
+        time.sleep(0.3)
 
 
 def main():
-    while True:
-        if IsCartoonTop():
-            Log("1")
-        time.sleep(0.5)
+    # while True:
+    #     if IsCartoonTop():
+    #         Log("1")
+    #     time.sleep(0.5)
+
+    # sifttest()
+
+    templatefindtest()
+    pass
 
 
 if __name__ == "__main__":

@@ -73,8 +73,8 @@ def WindowCaptureToFile(windowClassName, windowName, captureDir, defer):
     memDC.SelectObject(bitmap)
     memDC.BitBlt((0, 0), (w, h), imgDC, (0, 0), win32con.SRCCOPY)
 
-    bitmap.SaveBitmapFile(memDC, '{}/screenshot{}.bmp'.format(captureDir,
-                                                              datetime.datetime.now().strftime("%Y%m%d%H%M%S")))
+    bitmap.SaveBitmapFile(memDC,
+                          '{}/screenshot{}.bmp'.format(captureDir, datetime.datetime.now().strftime("%Y%m%d%H%M%S")))
 
 
 # https://stackoverflow.com/questions/49511753/python-byte-image-to-numpy-array-using-opencv
