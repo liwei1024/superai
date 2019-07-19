@@ -1098,7 +1098,7 @@ def main():
     #     time.sleep(1.0)
     #     PrintMenInfo()
 
-    # PrintMenInfo()
+    PrintMenInfo()
     # PrintMapInfo()
     # PrintMapObj()
     # PrintBagObj()

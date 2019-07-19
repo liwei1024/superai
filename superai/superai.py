@@ -172,10 +172,10 @@ class Player:
         menfangxiang = GetMenChaoxiang()
         # 调整朝向
         if menfangxiang == RIGHT and monlocation == LEFT:
-            # Log("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
+            Log("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
             PressLeft()
-        else:
-            # Log("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
+        elif menfangxiang == LEFT and monlocation == RIGHT:
+            Log("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
             PressRight()
 
     # 疾跑
