@@ -262,13 +262,14 @@ def PressSkill(key, delay, afterdelay, thenpress=None, doublepress=False):
 
     if thenpress is not None:
         lib.M_KeyDown2(h, thenpress)
-        RanSleep(0.3)
+        RanSleep(0.1)
         lib.M_KeyUp2(h, thenpress)
 
     if doublepress:
         lib.M_KeyDown2(h, key)
-        RanSleep(0.3)  # 4姨非得要按0.3s..
+        RanSleep(0.1)
         lib.M_KeyUp2(h, key)
+        RanSleep(0.1)
 
 
 def PressHouTiao():
@@ -295,6 +296,17 @@ def main():
     # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     win32gui.SetForegroundWindow(hwnd)
+
+    lib.M_KeyDown2(h, VK_CODE["d"])
+    RanSleep(0.1)
+    lib.M_KeyUp2(h, VK_CODE["d"])
+
+    RanSleep(0.5)
+
+    lib.M_KeyDown2(h, VK_CODE["d"])
+    RanSleep(0.1)
+    lib.M_KeyUp2(h, VK_CODE["d"])
+    RanSleep(0.1)
 
 
 if __name__ == "__main__":

@@ -632,12 +632,13 @@ def GetBossObj():
     monsters = GetMonsters()
     if len(monsters) < 1:
         return None
-    objs = filter(lambda mon: "领主" in mon.name, monsters)
+    objs = filter(lambda mon: "领主" in mon.name and "dummy" not in mon.name, monsters)
     objs = list(objs)
 
     if len(objs) < 1:
         return None
     else:
+        # 如果有黄金巨人直接返回黄金巨人
         doubleboss = filter(lambda obj: "黄金巨人" in obj.name, objs)
         doubleboss = list(doubleboss)
 
@@ -887,7 +888,7 @@ skillSettingMap = {
     "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4, thenpress=VK_CODE["left_arrow"]),
 
     # 吸怪,蓄力
-    "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=2.0, doublepress=True),
+    "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),
 }
 
 
@@ -974,7 +975,7 @@ class Skill:
     # 使用
     def Use(self):
         Log(" %s delay %f afterdelay %f doublepress %d" % (
-        self.name, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.doublepress))
+            self.name, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.doublepress))
         PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.thenpress,
                    self.skilldata.doublepress)
 
@@ -1061,6 +1062,7 @@ class Skills:
                     return True
         return False
 
+
 # 读写速度测试
 def SpeedTest():
     Log("HaveGoods")
@@ -1098,7 +1100,7 @@ def main():
 
     # PrintMenInfo()
     # PrintMapInfo()
-    PrintMapObj()
+    # PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
     # PrintSkillObj()

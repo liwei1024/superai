@@ -135,10 +135,9 @@ class Player:
 
     # 恢复之前按的键
     def UpLatestKey(self):
-        if self.KeyDowned():
-            # QuadKeyUpMap[self.latestDown]()
-            ReleaseAllKey()
-            self.ResetKey()
+        # QuadKeyUpMap[self.latestDown]()
+        ReleaseAllKey()
+        self.ResetKey()
 
     # 随机选择一种技能
     def SelectSkill(self):
@@ -169,21 +168,15 @@ class Player:
 
     # 朝向对方
     def ChaoxiangFangxiang(self, menx, objx):
-        i = 0
-        while not self.IsChaoxiangDuifang(menx, objx):
-            # 0.5s
-            if i > 5:
-                return
-            monlocation = GetFangxiang(menx, objx)
-            menfangxiang = GetMenChaoxiang()
-            # 调整朝向
-            if menfangxiang == RIGHT and monlocation == LEFT:
-                # Log("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
-                PressLeft()
-            else:
-                # Log("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
-                PressRight()
-            i += 1
+        monlocation = GetFangxiang(menx, objx)
+        menfangxiang = GetMenChaoxiang()
+        # 调整朝向
+        if menfangxiang == RIGHT and monlocation == LEFT:
+            # Log("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
+            PressLeft()
+        else:
+            # Log("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
+            PressRight()
 
     # 疾跑
     def KeyJiPao(self, fangxiang):
@@ -236,25 +229,27 @@ class Player:
                         if keydown not in currentDecompose:
                             QuadKeyUpMap[keydown]()
                     self.DownKey(quad)
-                    Log(
-                        "seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 保持部分移动方向 %s" % (
-                            menx, meny, objname, destx, desty, quad.name, jizoustr))
+                    RanSleep(0.05)
+                    Log("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 保持部分移动方向 %s" % (
+                        menx, meny, objname, destx, desty, quad.name, jizoustr))
+
             # 没有按过键
             else:
                 self.UpLatestKey()
-                Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
-                    menx, meny, objname, destx, desty, quad.name, jizoustr))
                 if jizou:
                     self.KeyJiPao(GetFangxiang(menx, destx))
                 self.DownKey(quad)
+                RanSleep(0.05)
+                Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
+                    menx, meny, objname, destx, desty, quad.name, jizoustr))
         # 小范围移动
         else:
             self.UpLatestKey()
-            Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
-                (menx, meny, objname, destx, desty, quad.name))
             self.DownKey(quad)
             RanSleep(0.1)
             self.UpLatestKey()
+            Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
+                (menx, meny, objname, destx, desty, quad.name))
 
 
 class State:
@@ -475,7 +470,6 @@ class SeekAndAttackMonster(State):
                 (player.curskill.name, player.curskill.skilldata.v_w, player.curskill.skilldata.h_w))
             player.UpLatestKey()
             player.ChaoxiangFangxiang(men.x, obj.x)
-
             if player.IsChaoxiangDuifang(men.x, obj.x):
                 player.UseSkill()
             return
@@ -596,7 +590,7 @@ def main():
             time.sleep(StateMachineSleep)
             player.Update()
     except KeyboardInterrupt:
-        player.UpLatestKey()
+        ReleaseAllKey()
         sys.exit()
 
 
