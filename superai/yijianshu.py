@@ -101,6 +101,10 @@ lib.M_MoveR2.restype = c_int
 lib.M_MoveTo2.argtypes = [c_void_p, c_int, c_int]
 lib.M_MoveTo2.restype = c_int
 
+# 移动鼠标到指定位置 (没有轨迹)
+lib.M_MoveTo3.argtypes = [c_void_p, c_int, c_int]
+lib.M_MoveTo3.restype = c_int
+
 # 获取鼠标位置, GetCurosPos
 lib.M_GetCurrMousePos2.argtypes = [POINTER(c_int)]
 lib.M_GetCurrMousePos2.restype = c_int
@@ -294,18 +298,15 @@ def main():
     hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
     # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
-    win32gui.SetForegroundWindow(hwnd)
+    # win32gui.SetForegroundWindow(hwnd)
 
-    lib.M_KeyDown2(h, VK_CODE["d"])
-    RanSleep(0.1)
-    lib.M_KeyUp2(h, VK_CODE["d"])
+    centre_x, centre_y = win32gui.ClientToScreen(hwnd, (400, 347))
 
-    RanSleep(0.5)
+    print(centre_x, centre_y)
 
-    lib.M_KeyDown2(h, VK_CODE["d"])
-    RanSleep(0.1)
-    lib.M_KeyUp2(h, VK_CODE["d"])
-    RanSleep(0.1)
+    lib.M_MoveR2(h, 100, 0)
+
+    time.sleep(2)
 
 
 if __name__ == "__main__":

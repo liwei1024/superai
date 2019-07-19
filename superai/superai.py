@@ -9,8 +9,8 @@ import math
 import random
 import time
 
-from superai.flannfind import FlushImg, GetVideoConfirmPos, IsCartoonTop, IsVideoTop, IsVideoConfirmTop, SetThreadExit, \
-    IsConfirmTop
+from superai.flannfind import FlushImg, IsCartoonTop, IsVideoTop, SetThreadExit, \
+    IsConfirmTop, GetConfirmPos
 
 from superai.vkcode import VK_CODE
 
@@ -321,10 +321,11 @@ class GlobalState(State):
             Log("视频状态")
             PressKey(VK_CODE["esc"])
             RanSleep(0.5)
-            if IsVideoConfirmTop():
-                confirmBut = GetVideoConfirmPos()
+            if IsConfirmTop():
+                confirmBut = GetConfirmPos()
                 if len(confirmBut) > 0:
-                    Log("视屏确认按钮: " + confirmBut)
+                    # TODO
+                    pass
                 else:
                     Log("视频的确认按钮定位不到")
             else:
@@ -336,8 +337,9 @@ class GlobalState(State):
         # 确认处理
         elif player.IsEmptyFor(FOR_CONFIRM):
             Log("确认状态")
-            PressKey(VK_CODE["esc"])
-            RanSleep(0.5)
+            # TODO
+            # PressKey(VK_CODE["esc"])
+            # RanSleep(0.5)
             if not IsConfirmTop():
                 player.RestoreContext()
             return

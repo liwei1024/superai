@@ -123,8 +123,7 @@ def RealTimeCompare(pn1):
 
 
 # 全局 detector, matcher
-gDetector, gMatcher = init_feature('sift')
-
+# gDetector, gMatcher = init_feature('sift')
 
 class Picture:
     def __init__(self, picturefile, dx=0, dy=0, dw=0, dh=0):
@@ -135,67 +134,14 @@ class Picture:
         self.dh = dh
 
         self.img1 = cv2.imread(self.picturefile, cv2.IMREAD_COLOR)
-        self.kp1, self.des1 = gDetector.detectAndCompute(self.img1, None)
 
     def Match(self):
         self.img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士", self.dx, self.dy, self.dw, self.dh)
-
-        # 寻找特征点 / 描述
-        kp2, des2 = gDetector.detectAndCompute(self.img2, None)
-
-        # 特征点匹配
-        try:
-            matches = gMatcher.knnMatch(self.des1, des2, k=2)
-        except:
-            matches = []
-
-        # m:最近距离 / n:次近距离 < 0.7 阀值
-        good = []
-        if len(matches) > 0:
-            try:
-                for m, n in matches:
-                    if m.distance < 0.7 * n.distance:
-                        good.append(m)
-            except:
-                pass
-        if len(good) >= MIN_MATCH_COUNT:
-            return True
-        return False
+        return FindPicture(self.img1, self.img2)
 
     def Pos(self):
         self.img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士", self.dx, self.dy, self.dw, self.dh)
-
-        # 寻找特征点 / 描述
-        kp2, des2 = gDetector.detectAndCompute(self.img2, None)
-
-        # 特征点匹配
-        try:
-            matches = gMatcher.knnMatch(self.des1, des2, k=2)
-        except:
-            matches = []
-
-        # m:最近距离 / n:次近距离 < 0.7 阀值
-        good = []
-        if len(matches) > 0:
-            try:
-                for m, n in matches:
-                    if m.distance < 0.7 * n.distance:
-                        good.append(m)
-            except:
-                pass
-
-        if len(good) >= MIN_MATCH_COUNT:
-            src_pts = np.float32([self.kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
-            dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
-            M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-
-            h, w, _ = self.img1.shape
-            pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
-            dst = cv2.perspectiveTransform(pts, M)
-
-            return dst.array
-
-        return []
+        return FindPicturePos(self.img1, self.img2)
 
 
 def sifttest():
@@ -225,22 +171,35 @@ def FindPictureTest(img1, img2):
     loc = np.where(res >= threshold)
     for pt in zip(*loc[::-1]):
         cv2.rectangle(img2, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+        print(pt[0] + w / 2.0, pt[1] + h / 2.0)
+
     t2 = time.time()
     print(t2 - t1)
     cv2.imshow('my img', img2)
     cv2.waitKey()
     cv2.destroyAllWindows()
 
+
 # img1是否在img2上出现过
 def FindPicture(img1, img2):
+    res = cv2.matchTemplate(img2, img1, cv2.TM_CCOEFF_NORMED)
+    threshold = 0.8
+    loc = np.where(res >= threshold)
+    flag = False
+    for _ in zip(*loc[::-1]):
+        flag = True
+    return flag
+
+
+# img1在img2上的相对pos
+def FindPicturePos(img1, img2):
     h, w = img1.shape[:2]
     res = cv2.matchTemplate(img2, img1, cv2.TM_CCOEFF_NORMED)
-    threshold = 0.7
-    flag = False
-    for i in res:
-        if i.any() > threshold:
-            flag = True
-    return flag
+    threshold = 0.8
+    loc = np.where(res >= threshold)
+    for pt in zip(*loc[::-1]):
+        return pt[0] + w / 2.0, pt[1] + h / 2.0
+    return 0, 0
 
 
 if os.path.exists("c:/win/superimg/"):
@@ -272,6 +231,11 @@ def IsVideoTop():
 # 是否有确认键置顶 (背景线程刷新)
 def IsConfirmTop():
     return gConfirmTop
+
+
+# 获取确认键位置
+def GetConfirmPos():
+    return confirm.Pos()
 
 
 # 设置截屏线程退出

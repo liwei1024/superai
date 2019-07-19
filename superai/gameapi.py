@@ -1147,11 +1147,11 @@ def main():
     #     PrintMenInfo()
 
     # PrintMenInfo()
-    PrintMapInfo()
-    # PrintMapObj()
+    # PrintMapInfo()
+    PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
-    PrintSkillObj()
+    # PrintSkillObj()
     # PrintTaskObj()
     # PrintNextMen()
 
