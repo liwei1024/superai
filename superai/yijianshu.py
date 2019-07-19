@@ -269,7 +269,7 @@ def PressSkill(key, delay, afterdelay, thenpress=None, doublepress=False):
         lib.M_KeyDown2(h, key)
         RanSleep(0.1)
         lib.M_KeyUp2(h, key)
-        RanSleep(0.1)
+        RanSleep(0.2)
 
 
 def PressHouTiao():
