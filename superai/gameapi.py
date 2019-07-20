@@ -237,6 +237,7 @@ lib.Free.argtypes = [c_void_p]
 MAN = 0x111  # 人
 MONSTER = 0x211  # 怪物
 GOOD = 0x121  # 物品
+BUILD = 0x21  # 建筑
 
 # 方向
 RIGHT = 1  # 右
@@ -623,12 +624,20 @@ def SpecifyMonsterIsToofar(monster):
     return False
 
 
-# 最近怪物对象
+# 最近怪物对象 (极昼先攻击除开多尼尔的怪物)
 def NearestMonster():
     menInfo = GetMenInfo()
     monsters = GetMonsters()
     if len(monsters) < 1:
         return None
+
+    mapinfo = GetMapInfo()
+    if "极昼" in mapinfo.name:
+        if any(mon.name == "多尼尔" for mon in monsters):
+            if any(mon.name != "多尼尔" for mon in monsters):
+                monsters = filter(lambda mon: mon.name != "多尼尔", monsters)
+                monsters = list(monsters)
+
     return min(monsters, key=lambda mon: distance(mon.x, mon.y, menInfo.x, menInfo.y))
 
 
@@ -780,6 +789,44 @@ def IsCurrentInBossFangjian():
             mapinfo.cury == mapinfo.bossy:
         return True
     return False
+
+
+# 多尼尔难以攻击
+def FuckDuonier():
+    mons = GetMonsters()
+    excludeDuonier = filter(lambda mon: "多尼尔" not in mon.name, mons)
+    excludeDuonier = list(excludeDuonier)
+    if len(excludeDuonier) > 0:
+        return False
+
+    includeDuonier = filter(lambda mon: "多尼尔" in mon.name, mons)
+    includeDuonier = list(includeDuonier)
+    if len(includeDuonier) < 1:
+        return False
+
+    for duonier in includeDuonier:
+        if duonier.z < 80:
+            return False
+
+    return True
+
+
+# 1. 是否在极昼 2. 有多尼尔并且没有其他怪物了 3. 任何一个多尼尔的z轴坐标 > 120
+def IsJiZhouSpecifyState():
+    mapinfo = GetMapInfo()
+    return "极昼" in mapinfo.name and FuckDuonier()
+
+
+# 获取极昼的肉瘤
+def GetouliuObj():
+    mapinfo = GetMapInfo()
+    if not "极昼" in mapinfo.name:
+        return False
+    mapobj = GetMapObj()
+    for obj in mapobj:
+        if obj.type == BUILD and obj.name == "天帷巨兽的肉瘤":
+            return obj
+    return None
 
 
 # 获取当前房间的x,y
@@ -1160,7 +1207,7 @@ def main():
     #     PrintMenInfo()
 
     # PrintMenInfo()
-    # PrintMapInfo()
+    PrintMapInfo()
     PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()

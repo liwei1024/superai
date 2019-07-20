@@ -27,7 +27,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetMenInfo, \
     BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
-    NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass
+    NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -366,7 +366,8 @@ class GlobalState(State):
             return
 
         # 在图内需要判断卡死的状态
-        MapStateList = [SeekAndPickUp, PickBuf, SeekAndAttackMonster, DoorOpenGotoNext, DoorStuckGoToPrev]
+        MapStateList = [SeekAndPickUp, PickBuf, SeekAndAttackMonster, DoorOpenGotoNext, DoorStuckGoToPrev,
+                        FuckDuonierState]
 
         # 防止卡死目前只判断几种情况
         def MapStateCheck(curstate):
@@ -467,6 +468,9 @@ class FirstInMap(State):
 # 图内站立
 class StandState(State):
     def Execute(self, player):
+        if IsJiZhouSpecifyState():
+            player.ChangeState(FuckDuonierState())
+            return
         if HaveMonsters():
             player.ChangeState(SeekAndAttackMonster())
             return
@@ -560,6 +564,35 @@ class SeekAndAttackMonster(State):
         # 靠近
         seekx, seeky = player.curskill.GetSeekXY(men.x, men.y, obj.x, obj.y)
         player.Seek(seekx, seeky, obj)
+
+
+# 极昼多尼尔难以攻击,攻击肉瘤状态
+class FuckDuonierState(State):
+    def Execute(self, player):
+        if not IsJiZhouSpecifyState():
+            player.ChangeState(StandState())
+            return
+
+        Log("fuck 多尼尔")
+        obj = GetouliuObj()
+        if obj is None:
+            player.ChangeState(StandState())
+            return
+
+        men = GetMenInfo()
+        if simpleAttackSkill.IsH_WInRange(men.y, obj.y) and \
+                simpleAttackSkill.isV_WInRange(men.x, obj.x):
+            Log("肉瘤在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
+                (simpleAttackSkill.name, simpleAttackSkill.skilldata.v_w, simpleAttackSkill.skilldata.h_w))
+            player.UpLatestKey()
+            player.ChaoxiangFangxiang(men.x, obj.x)
+            if player.IsChaoxiangDuifang(men.x, obj.x):
+                simpleAttackSkill.Use()
+            return
+
+        # 靠近
+        seekx, seeky = simpleAttackSkill.GetSeekXY(men.x, men.y, obj.x, obj.y)
+        player.Seek(seekx, seeky, obj, dummy="肉瘤")
 
 
 # 靠近并捡取物品
