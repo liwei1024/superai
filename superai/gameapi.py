@@ -679,16 +679,29 @@ def NearestMonsterWrap():
     return obj
 
 
+UnuseFilterStr = "无尽的永恒|风化的碎骨|破旧的皮革|最下级砥石|最下级硬化剂|生锈的铁片|碎布片|回旋镖|天界珍珠|朗姆酒|飞盘|魔力之花|卡勒特指令书|入门HP药剂|入门MP药剂|普通HP药剂|普通MP药剂|飞盘2|邪恶药剂|圣杯|肉干"
+
+UnuseFilter = UnuseFilterStr.split("|")
+
+
+# 获取地面物品的wrap,过滤垃圾
+def GetGoodsWrap():
+    goods = GetGoods()
+    goods = filter(lambda good: good.name not in UnuseFilter, goods)
+    goods = list(goods)
+    return goods
+
+
 # 地面有物品
 def HaveGoods():
-    goods = GetGoods()
+    goods = GetGoodsWrap()
     return len(goods) > 0
 
 
 # 最近物品对象
 def NearestGood():
     menInfo = GetMenInfo()
-    goods = GetGoods()
+    goods = GetGoodsWrap()
     if len(goods) < 1:
         return None
     return min(goods, key=lambda good: distance(good.x, good.y, menInfo.x, menInfo.y))

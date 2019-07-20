@@ -19,7 +19,7 @@ from superai.common import Log
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, PressRight, \
     PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, UpZUO, UpYOU, UpSHANG, \
-    UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressKey
+    UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressKey, MouseMoveTo, MouseLeftClick, PressUp
 
 from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, GetMenXY, GetQuadrant, Quardant, \
@@ -322,14 +322,13 @@ class GlobalState(State):
             PressKey(VK_CODE["esc"])
             RanSleep(0.5)
             if IsConfirmTop():
-                confirmBut = GetConfirmPos()
-                if len(confirmBut) > 0:
-                    # TODO
-                    pass
-                else:
-                    Log("视频的确认按钮定位不到")
+                confirmPos = GetConfirmPos()
+                if confirmPos != (0, 0):
+                    MouseMoveTo(confirmPos[0], confirmPos[1])
+                    MouseLeftClick()
+                    RanSleep(0.2)
             else:
-                Log("视频的确认按钮没有置顶")
+                Log("确认按钮没有置顶")
             RanSleep(0.5)
             if not IsVideoTop():
                 player.RestoreContext()
@@ -337,9 +336,15 @@ class GlobalState(State):
         # 确认处理
         elif player.IsEmptyFor(FOR_CONFIRM):
             Log("确认状态")
-            # TODO
-            # PressKey(VK_CODE["esc"])
-            # RanSleep(0.5)
+            if IsConfirmTop():
+                confirmPos = GetConfirmPos()
+                if confirmPos != (0, 0):
+                    MouseMoveTo(confirmPos[0], confirmPos[1])
+                    MouseLeftClick()
+                    RanSleep(0.2)
+            else:
+                Log("确认按钮没有置顶")
+            RanSleep(0.5)
             if not IsConfirmTop():
                 player.RestoreContext()
             return
@@ -442,6 +447,15 @@ class FubenOver(State):
 class FirstInMap(State):
     def Execute(self, player):
         if player.skills.HaveBuffCanBeUse():
+            x1, y1 = GetMenXY()
+            PressLeft()
+            PressUp()
+            x2, y2 = GetMenXY()
+            if x1 == x2 and y1 == y2:
+                Log("没法移动位置 可能被什么遮挡了, 临时退出状态机")
+                time.sleep(0.2)
+                return
+
             skills = player.skills.GetCanBeUseBuffSkills()
             for skill in skills:
                 Log("使用buff: %s" % skill.name)

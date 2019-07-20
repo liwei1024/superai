@@ -94,6 +94,14 @@ lib.M_ResetMousePos.argtypes = [c_void_p]
 lib.M_ResetMousePos.restype = c_int
 
 # 当前相对位置移动鼠标
+lib.M_MoveR.argtypes = [c_void_p, c_int, c_int]
+lib.M_MoveR.restype = c_int
+
+# 移动鼠标到指定位置
+lib.M_MoveTo.argtypes = [c_void_p, c_int, c_int]
+lib.M_MoveTo.restype = c_int
+
+# 当前相对位置移动鼠标
 lib.M_MoveR2.argtypes = [c_void_p, c_int, c_int]
 lib.M_MoveR2.restype = c_int
 
@@ -101,13 +109,17 @@ lib.M_MoveR2.restype = c_int
 lib.M_MoveTo2.argtypes = [c_void_p, c_int, c_int]
 lib.M_MoveTo2.restype = c_int
 
-# 移动鼠标到指定位置 (没有轨迹)
-lib.M_MoveTo3.argtypes = [c_void_p, c_int, c_int]
-lib.M_MoveTo3.restype = c_int
-
 # 获取鼠标位置, GetCurosPos
 lib.M_GetCurrMousePos2.argtypes = [POINTER(c_int)]
 lib.M_GetCurrMousePos2.restype = c_int
+
+# 设置分辨率
+lib.M_ResolutionUsed.argtypes = [c_void_p, c_int, c_int]
+lib.M_ResolutionUsed.restype = c_int
+
+# 移动鼠标到指定位置 (没有轨迹)
+lib.M_MoveTo3.argtypes = [c_void_p, c_int, c_int]
+lib.M_MoveTo3.restype = c_int
 
 
 # 随机时间sleep
@@ -250,6 +262,18 @@ def PressLeft():
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
 
 
+def PressUp():
+    lib.M_KeyDown2(h, VK_CODE["up_arrow"])
+    RanSleep(0.1)
+    lib.M_KeyUp2(h, VK_CODE["up_arrow"])
+
+
+def PressDown():
+    lib.M_KeyDown2(h, VK_CODE["down_arrow"])
+    RanSleep(0.1)
+    lib.M_KeyUp2(h, VK_CODE["down_arrow"])
+
+
 def PressX():
     lib.M_KeyDown2(h, VK_CODE["x"])
     RanSleep(0.1)
@@ -285,6 +309,24 @@ def PressHouTiao():
     lib.M_KeyUp2(h, VK_CODE["down_arrow"])
 
 
+# 相对移动鼠标
+def MouseMoveTo(x, y):
+    hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
+    _, _, (curx, cury) = win32gui.GetCursorInfo()
+    centrex, centrey = win32gui.ClientToScreen(hwnd, (int(x), int(y)))
+    relativex = centrex - curx
+    relativey = centrey - cury
+    lib.M_MoveR(h, int(relativex), int(relativey))
+    RanSleep(0.2)
+
+
+# 左键单击
+def MouseLeftClick():
+    lib.M_LeftDown(h)
+    RanSleep(0.1)
+    lib.M_LeftUp(h)
+
+
 def main():
     if YijianshuInit():
         Log("Init 易键鼠 ok")
@@ -298,15 +340,7 @@ def main():
     hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
     # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
-    # win32gui.SetForegroundWindow(hwnd)
-
-    centre_x, centre_y = win32gui.ClientToScreen(hwnd, (400, 347))
-
-    print(centre_x, centre_y)
-
-    lib.M_MoveR2(h, 100, 0)
-
-    time.sleep(2)
+    win32gui.SetForegroundWindow(hwnd)
 
 
 if __name__ == "__main__":
