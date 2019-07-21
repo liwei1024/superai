@@ -19,7 +19,7 @@ from superai.common import Log
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, PressRight, \
     PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, UpZUO, UpYOU, UpSHANG, \
-    UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressKey, MouseMoveTo, MouseLeftClick, PressUp
+    UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressKey, MouseMoveTo, MouseLeftClick, PressUp, PressDown
 
 from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, GetMenXY, GetQuadrant, Quardant, \
@@ -27,7 +27,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     NearestGood, IsNextDoorOpen, GetNextDoor, IsCurrentInBossFangjian, GetMenInfo, \
     BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
-    NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj
+    NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -207,9 +207,12 @@ class Player:
             self.UpLatestKey()
             return
 
-        objname = "name:%s obj:0x%X hp:%d " % (obj.name, obj.object, obj.hp) if obj is not None else ""
+        objname = ""
+        if obj is not None:
+            objname = "name:%s obj:0x%X hp:%d " % (obj.name, obj.object, obj.hp) if obj is not None else ""
         if dummy is not None:
             objname = "dummy: %s" % dummy
+
         jizou = not WithInManzou(menx, meny, destx, desty)
         jizoustr = "" if not jizou else "疾走"
 
@@ -224,8 +227,8 @@ class Player:
                         return
                     self.DownKey(quad)
                     RanSleep(0.05)
-                    Log("seek: 本人(%.f, %.f) 目标(%.f, %.f)在%s, 方向完全相同 %s" %
-                        (menx, meny, destx, desty, quad.name, jizoustr))
+                    Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 方向完全相同 %s" %
+                        (menx, meny, objname, destx, desty, quad.name, jizoustr))
 
                 # 方向有变化
                 else:
@@ -324,6 +327,7 @@ class GlobalState(State):
             if IsConfirmTop():
                 confirmPos = GetConfirmPos()
                 if confirmPos != (0, 0):
+                    Log("移动到: %d %d" % (confirmPos[0], confirmPos[1]))
                     MouseMoveTo(confirmPos[0], confirmPos[1])
                     MouseLeftClick()
                     RanSleep(0.2)
@@ -339,6 +343,7 @@ class GlobalState(State):
             if IsConfirmTop():
                 confirmPos = GetConfirmPos()
                 if confirmPos != (0, 0):
+                    Log("移动到: %d %d" % (confirmPos[0], confirmPos[1]))
                     MouseMoveTo(confirmPos[0], confirmPos[1])
                     MouseLeftClick()
                     RanSleep(0.2)
@@ -367,7 +372,7 @@ class GlobalState(State):
 
         # 在图内需要判断卡死的状态
         MapStateList = [SeekAndPickUp, PickBuf, SeekAndAttackMonster, DoorOpenGotoNext, DoorStuckGoToPrev,
-                        FuckDuonierState]
+                        FuckDuonierState, DoorDidnotOpen]
 
         # 防止卡死目前只判断几种情况
         def MapStateCheck(curstate):
@@ -444,17 +449,45 @@ class FubenOver(State):
             return
 
 
+# 测试计数器
+testi = 0
+
+
+# 随机移动判断是否坐标能够改变
+def CanbeMovTest():
+    global testi
+
+    x1, y1 = GetMenXY()
+    if testi % 4 == 0:
+        PressLeft()
+    elif testi % 4 == 1:
+        PressRight()
+    elif testi % 4 == 2:
+        PressUp()
+    elif testi % 4 == 3:
+        PressDown()
+
+    x2, y2 = GetMenXY()
+    if x1 == x2 and y1 == y2:
+        testi += 1
+        return False
+    testi = 0
+    return True
+
+
 # 初次进图,加buff
 class FirstInMap(State):
     def Execute(self, player):
         if player.skills.HaveBuffCanBeUse():
-            x1, y1 = GetMenXY()
-            PressLeft()
-            PressUp()
-            x2, y2 = GetMenXY()
-            if x1 == x2 and y1 == y2:
+
+            if not CanbeMovTest():
                 Log("没法移动位置 可能被什么遮挡了, 临时退出状态机")
-                time.sleep(0.2)
+                time.sleep(0.5)
+                return
+            RanSleep(0.5)
+            if not CanbeMovTest():
+                Log("没法移动位置 可能被什么遮挡了, 临时退出状态机")
+                time.sleep(0.5)
                 return
 
             skills = player.skills.GetCanBeUseBuffSkills()
@@ -480,18 +513,21 @@ class StandState(State):
         elif HaveBuffs():
             player.ChangeState(PickBuf())
             return
-        elif (not IsCurrentInBossFangjian()) and IsNextDoorOpen():
+        elif not IsCurrentInBossFangjian() and IsNextDoorOpen():
             player.ChangeState(DoorOpenGotoNext())
             return
         elif IsFuBenPass():
             # 打死boss后判断下物品
-            RanSleep(2.0)
+            RanSleep(0.5)
             if HaveGoods():
                 player.ChangeState(SeekAndPickUp())
                 return
             else:
                 player.ChangeState(FubenOver())
                 return
+        elif not IsCurrentInBossFangjian() and not IsNextDoorOpen():
+            # 打死怪物后, 门可能不是马上就开, 直接靠近门
+            player.ChangeState(DoorDidnotOpen())
         else:
             if IsCurrentInBossFangjian():
                 # 得不到怪物对象. 可能副本结束的瞬间 按esc吧!
@@ -592,7 +628,7 @@ class FuckDuonierState(State):
 
         # 靠近
         seekx, seeky = simpleAttackSkill.GetSeekXY(men.x, men.y, obj.x, obj.y)
-        player.Seek(seekx, seeky, obj, dummy="肉瘤")
+        player.Seek(seekx, seeky, dummy=obj.name)
 
 
 # 靠近并捡取物品
@@ -618,7 +654,7 @@ class SeekAndPickUp(State):
             RanSleep(0.05)
             PressX()
         else:
-            player.Seek(obj.x, obj.y, dummy="捡取")
+            player.Seek(obj.x, obj.y, dummy=obj.name)
 
 
 # 靠近并捡起buff
@@ -643,18 +679,20 @@ class PickBuf(State):
             Log("捡取buff (%d,%d)" % (obj.x, obj.y))
             RanSleep(0.1)
         else:
-            player.Seek(obj.x, obj.y, dummy="捡取")
+            player.Seek(obj.x, obj.y, dummy="捡取buff")
 
 
 # 门已开,去过图
 class DoorOpenGotoNext(State):
     def Execute(self, player):
         # 进到新的地图
-        door = GetNextDoor()
         if not IsNextDoorOpen():
+            if IsCurrentInBossFangjian():
+                Log("进到了boss房间")
             # 进入到了新的门
             player.ChangeState(StandState())
         else:
+            door = GetNextDoorWrap()
             player.Seek(door.secondcx, door.secondcy, dummy="靠近门")
 
 
@@ -662,13 +700,28 @@ class DoorOpenGotoNext(State):
 class DoorStuckGoToPrev(State):
     def Execute(self, player):
         menx, meny = GetMenXY()
-        door = GetNextDoor()
+        door = GetNextDoorWrap()
         if not IsNextDoorOpen():
+            if IsCurrentInBossFangjian():
+                Log("进到了boss房间")
             player.ChangeState(StandState())
         elif IsClosedTo(menx, meny, door.prevcx, door.prevcy):
             player.ChangeState(DoorOpenGotoNext())
         else:
             player.Seek(door.prevcx, door.prevcy, dummy="靠近门前")
+
+
+# 怪物打死瞬间, 门没有开, 直接靠近门
+class DoorDidnotOpen(State):
+    def Execute(self, player):
+        menx, meny = GetMenXY()
+        door = GetNextDoorWrap()
+        if IsNextDoorOpen():
+            player.ChangeState(StandState())
+        elif IsClosedTo(menx, meny, door.secondcx, door.secondcy):
+            player.ChangeState(StandState())
+        else:
+            player.Seek(door.secondcx, door.secondcy, dummy="靠近门")
 
 
 def main():

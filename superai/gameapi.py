@@ -123,13 +123,14 @@ class MapObj(Structure):
         ("code", c_uint32),
         ("width", c_uint32),
         ("height", c_uint32),
+        ("obstacletype", c_uint32),
     ]
 
     def __str__(self):
         return (
-                "对象: 0x%08X 类型: 0x%X 阵营: 0x%X 名称: %s 坐标:(%.f,%.f,%.f)  生命: %d 代码: %d w: %d h: %d" % (
+                "对象: 0x%08X 类型: 0x%X 阵营: 0x%X 名称: %s 坐标:(%.f,%.f,%.f)  生命: %d 代码: %d w: %d h: %d obstype: %d" % (
             self.object, self.type, self.zhenying, self.name, self.x, self.y, self.z, self.hp,
-            self.code, self.width, self.height))
+            self.code, self.width, self.height, self.obstacletype))
 
 
 class BagObj(Structure):
@@ -656,7 +657,8 @@ def GetBossObj():
     if len(monsters) < 1:
         return None
     objs = filter(lambda mon: "领主" in mon.name and "dummy" not in mon.name and
-                              "领主 - 领主" not in mon.name, monsters)
+                              "领主 - 领主" not in mon.name, monsters and
+                  "通关用 not in mon.name")
     objs = list(objs)
 
     if len(objs) < 1:
@@ -811,7 +813,7 @@ def FuckDuonier():
     return True
 
 
-# 1. 是否在极昼 2. 有多尼尔并且没有其他怪物了 3. 任何一个多尼尔的z轴坐标 > 120
+# 1. 是否在极昼 2. 有多尼尔并且没有其他怪物了 3. 任何一个多尼尔的太高打不到
 def IsJiZhouSpecifyState():
     mapinfo = GetMapInfo()
     return "极昼" in mapinfo.name and FuckDuonier()
@@ -859,11 +861,27 @@ def IsManJipao():
     return meninfo.jipao
 
 
+# 冰霜幽暗密林第一个门有冰柱挡住
+def GetNextDoorWrap():
+    mapinfo = GetMapInfo()
+    if "冰霜幽暗密林" in mapinfo.name and mapinfo.curx == 0 and mapinfo.cury == 1:
+        return mapinfo.top
+    if "冰霜幽暗密林" in mapinfo.name and mapinfo.curx == 0 and mapinfo.cury == 0:
+        return mapinfo.right
+    return GetNextDoor()
+
+
 WindowTopFilter = [
     ("格拉卡", 2, 0),
     ("烈焰格拉卡", 0, 1),
     ("烈焰格拉卡", 1, 1),
-    ("暗黑雷鸣废墟", 0, 0)
+    ("暗黑雷鸣废墟", 0, 0),
+    ("暗黑雷鸣废墟", 1, 0),
+    ("第二脊椎", 1, 2),
+    ("第二脊椎", 2, 2),
+    ("黑暗玄廊", 3, 2),
+    ("悬空城", 1, 3),
+    ("根特北门", 0, 1),
 ]
 
 
@@ -937,7 +955,7 @@ class SkillData:
 skillSettingMap = {
 
     # 通用
-    "远古记忆": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "远古记忆": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 移动
     "后跳": SkillData(type=SkillType.Yidong),
@@ -945,8 +963,8 @@ skillSettingMap = {
     # 阿修罗
 
     # buff
-    "波动刻印": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
-    "杀意波动": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "波动刻印": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "杀意波动": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 近
     "上挑": SkillData(type=SkillType.Gongji, level=3),
@@ -964,36 +982,38 @@ skillSettingMap = {
     "爆炎 · 波动剑": SkillData(type=SkillType.Gongji, level=14, v_w=400 / 2, h_w=40 / 2),
 
     # 神龙天女
-    "神谕之祈愿": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "神谕之祈愿": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 光枪
-    "能量萃取": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "能量萃取": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 女光剑
-    "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 女气功
-    "光之兵刃": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
-    "烈日气息": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "光之兵刃": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "烈日气息": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "念兽 : 龙虎啸": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 男气功
-    "念气流转": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "念气流转": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 女散打
-    "强拳": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
-    "霸体护甲": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "强拳": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "霸体护甲": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 龙骑士
-    "龙语召唤 : 阿斯特拉": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "龙语召唤 : 阿斯特拉": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=1.2),
+    "肉食主义": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
 
     # 关羽
-    "不灭战戟": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "不灭战戟": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 赵云
-    "无双枪术": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "无双枪术": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 四姨
-    "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8, thenpress=VK_CODE["left_arrow"]),
+    "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4, thenpress=VK_CODE["left_arrow"]),
 
     # 吸怪,蓄力
     "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),
@@ -1207,7 +1227,7 @@ def main():
     #     PrintMenInfo()
 
     # PrintMenInfo()
-    PrintMapInfo()
+    # PrintMapInfo()
     PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
@@ -1217,8 +1237,8 @@ def main():
 
     # SpeedTest()
     # PrintCanBeUsedSkill()
-    # Log(IsCurrentInBossFangjian())
-    # Log(GetNextDoor())
+    # print(IsCurrentInBossFangjian())
+    # print(GetNextDoor())
 
 
 if __name__ == "__main__":
