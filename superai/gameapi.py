@@ -657,8 +657,8 @@ def GetBossObj():
     if len(monsters) < 1:
         return None
     objs = filter(lambda mon: "领主" in mon.name and "dummy" not in mon.name and
-                              "领主 - 领主" not in mon.name, monsters and
-                  "通关用 not in mon.name")
+                              "领主 - 领主" not in mon.name and
+                              "通关用" not in mon.name, monsters)
     objs = list(objs)
 
     if len(objs) < 1:
@@ -1095,6 +1095,10 @@ class Skill:
     def UpdateUsedTime(self):
         self.lastusedtime = int(time.time())
 
+    # python内部使用时间清零
+    def ResetUsedTime(self):
+        self.lastusedtime = 0
+
     # 初始化技能在内存中的设置
     def Init(self):
         if self.name in skillSettingMap:
@@ -1128,7 +1132,9 @@ class Skills:
             self.skilllst[obj.idx].cooding = obj.cooling
             self.skilllst[obj.idx].name = obj.name
 
-            if self.skilllst[obj.idx].gamelatestusedtime != obj.sendtime:
+            if obj.sendtime == 0:
+                self.skilllst[obj.idx].ResetUsedTime()
+            elif self.skilllst[obj.idx].gamelatestusedtime != obj.sendtime:
                 self.skilllst[obj.idx].UpdateUsedTime()
 
             self.skilllst[obj.idx].gamelatestusedtime = obj.sendtime

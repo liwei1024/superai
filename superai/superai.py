@@ -495,6 +495,9 @@ class FirstInMap(State):
                 Log("使用buff: %s" % skill.name)
                 skill.Use()
                 player.skills.Update()
+
+        player.skills.Update()
+
         player.ChangeState(StandState())
 
 
