@@ -1367,7 +1367,7 @@ def main():
     PrintTaskObj()
     PrintNextMen()
 
-    # PrintSceneInfo()
+    PrintSceneInfo()
     # SpeedTest()
     # PrintCanBeUsedSkill()
     # print(IsCurrentInBossFangjian())
