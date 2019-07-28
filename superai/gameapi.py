@@ -32,7 +32,7 @@ class MenInfo(Structure):
         ("object", c_uint32),
         ("name", c_wchar * 100),
         ("level", c_uint32),
-        ("hp", c_uint32),
+        ("hp", c_uint64),
         ("mp", c_uint32),
         ("curpilao", c_uint32),
         ("maxpilao", c_uint32),
@@ -1358,14 +1358,14 @@ def main():
     #     time.sleep(1.0)
     #     PrintMenInfo()
 
-    # PrintMenInfo()
-    # PrintMapInfo()
-    # PrintMapObj()
-    # PrintBagObj()
-    # PrintEquipObj()
-    # PrintSkillObj()
-    # PrintTaskObj()
-    # PrintNextMen()
+    PrintMenInfo()
+    PrintMapInfo()
+    PrintMapObj()
+    PrintBagObj()
+    PrintEquipObj()
+    PrintSkillObj()
+    PrintTaskObj()
+    PrintNextMen()
 
     # PrintSceneInfo()
     # SpeedTest()
@@ -1378,7 +1378,7 @@ def main():
     # Xiguai()
     # XiWu()
     # Zuobiaoyidong(0, 0, 0)
-    Autoshuntu()
+    # Autoshuntu()
 
 
 if __name__ == "__main__":
