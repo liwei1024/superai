@@ -276,7 +276,15 @@ lib.ExGetDixingObjVector.argtypes = [POINTER(POINTER(DixingObj)), POINTER(c_int)
 
 lib.ExGetObstacleVector.argtypes = [POINTER(POINTER(ObstacleObj)), POINTER(c_int)]
 
-lib.GetSceneInfo.argtypes = [POINTER(SceneInfo)]
+lib.ExGetSceneInfo.argtypes = [POINTER(SceneInfo)]
+
+lib.ExXiGuai.argtypes = []
+
+lib.ExXiWu.argtypes = []
+
+lib.ExZuobiaoyidong.argtypes = [c_float, c_float, c_float]
+
+lib.ExAutoshuntu.argtypes = []
 
 lib.Free.argtypes = [c_void_p]
 
@@ -626,8 +634,28 @@ def GetSeceneInfo():
         outlst3.append(copy.deepcopy(objs[i]))
 
     sceneinfo = SceneInfo()
-    lib.GetSceneInfo(pointer(sceneinfo))
+    lib.ExGetSceneInfo(pointer(sceneinfo))
     return outlst1, outlst2, outlst3, sceneinfo
+
+
+# 吸怪
+def Xiguai():
+    lib.ExXiGuai()
+
+
+# 吸物
+def XiWu():
+    lib.ExXiWu()
+
+
+# 坐标移动
+def Zuobiaoyidong(x, y, z):
+    lib.ExZuobiaoyidong(c_float(x), c_float(y), c_float(z))
+
+
+# 自动顺图
+def Autoshuntu():
+    lib.ExAutoshuntu()
 
 
 # === 调试打印
@@ -678,7 +706,6 @@ def PrintNextMen():
 
 def PrintSceneInfo():
     dixinglst, dixingvec, obstacles, wh = GetSeceneInfo()
-
 
     print("地形链表")
     for v in dixinglst:
@@ -1340,11 +1367,18 @@ def main():
     # PrintTaskObj()
     # PrintNextMen()
 
-    PrintSceneInfo()
+    # PrintSceneInfo()
     # SpeedTest()
     # PrintCanBeUsedSkill()
     # print(IsCurrentInBossFangjian())
     # print(GetNextDoor())
+
+    # 变态功能
+
+    # Xiguai()
+    # XiWu()
+    # Zuobiaoyidong(0, 0, 0)
+    Autoshuntu()
 
 
 if __name__ == "__main__":
