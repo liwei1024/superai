@@ -198,6 +198,46 @@ class ExGuoToMenZuoBiao(Structure):
             self.cx, self.cy))
 
 
+class DixingObj(Structure):
+    _fields_ = [
+        ("x", c_uint32),
+        ("y", c_uint32),
+        ("flag", c_uint32),
+    ]
+
+    def __str__(self):
+        return (
+                "(%d, %d) %d" % (
+            self.x, self.y, self.flag))
+
+
+class ObstacleObj(Structure):
+    _fields_ = [
+        ("x", c_uint32),
+        ("y", c_uint32),
+        ("w", c_uint32),
+        ("h", c_uint32),
+        ("flag", c_uint32),
+    ]
+
+    def __str__(self):
+        return (
+                "(%d, %d) %d %d %d" % (
+            self.x, self.y, self.w, self.h, self.flag))
+
+
+class SceneInfo(Structure):
+    _fields_ = [
+        ("w", c_uint32),
+        ("h", c_uint32)
+    ]
+
+    def __str__(self):
+        return (
+                "%d, %d " % (
+            self.w, self.h))
+
+
 lib.Init.argtypes = []
 lib.Init.restype = c_bool
 
@@ -229,6 +269,14 @@ lib.ExGetSkillObj.argtypes = [POINTER(POINTER(SkillObj)), POINTER(c_int)]
 lib.ExGetTaskObj.argtypes = [POINTER(POINTER(TaskObj)), POINTER(c_int)]
 
 lib.ExNextDoor.argtypes = [POINTER(ExGuoToMenZuoBiao)]
+
+lib.ExGetDixingObjList.argtypes = [POINTER(POINTER(DixingObj)), POINTER(c_int)]
+
+lib.ExGetDixingObjVector.argtypes = [POINTER(POINTER(DixingObj)), POINTER(c_int)]
+
+lib.ExGetObstacleVector.argtypes = [POINTER(POINTER(ObstacleObj)), POINTER(c_int)]
+
+lib.GetSceneInfo.argtypes = [POINTER(SceneInfo)]
 
 lib.Free.argtypes = [c_void_p]
 
@@ -551,6 +599,37 @@ def GetNextDoor():
     return menzuobiao
 
 
+# 地形链表 + 地形数组 + 障碍数组 + 宽高
+def GetSeceneInfo():
+    objs = POINTER(DixingObj)()
+    count = c_int(0)
+    lib.ExGetDixingObjList(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst1 = []
+    for i in range(count.value):
+        outlst1.append(copy.deepcopy(objs[i]))
+
+    objs = POINTER(DixingObj)()
+    count = c_int(0)
+    lib.ExGetDixingObjVector(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst2 = []
+    for i in range(count.value):
+        outlst2.append(copy.deepcopy(objs[i]))
+
+    objs = POINTER(ObstacleObj)()
+    count = c_int(0)
+    lib.ExGetObstacleVector(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst3 = []
+    for i in range(count.value):
+        outlst3.append(copy.deepcopy(objs[i]))
+
+    sceneinfo = SceneInfo()
+    lib.GetSceneInfo(pointer(sceneinfo))
+    return outlst1, outlst2, outlst3, sceneinfo
+
+
 # === 调试打印
 def PrintMenInfo():
     menInfo = GetMenInfo()
@@ -595,6 +674,26 @@ def PrintTaskObj():
 def PrintNextMen():
     menzuobiao = GetNextDoor()
     Log(menzuobiao)
+
+
+def PrintSceneInfo():
+    dixinglst, dixingvec, obstacles, wh = GetSeceneInfo()
+
+
+    print("地形链表")
+    for v in dixinglst:
+        print(v)
+
+    print("地形数组")
+    for v in dixingvec:
+        print(v)
+
+    print("障碍")
+    for v in obstacles:
+        print(v)
+
+    print("场景宽高")
+    print(wh)
 
 
 # === 2次包装
@@ -1234,13 +1333,14 @@ def main():
 
     # PrintMenInfo()
     # PrintMapInfo()
-    PrintMapObj()
+    # PrintMapObj()
     # PrintBagObj()
     # PrintEquipObj()
     # PrintSkillObj()
     # PrintTaskObj()
     # PrintNextMen()
 
+    PrintSceneInfo()
     # SpeedTest()
     # PrintCanBeUsedSkill()
     # print(IsCurrentInBossFangjian())
