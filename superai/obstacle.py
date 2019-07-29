@@ -28,20 +28,19 @@ def main():
 
         if IsManInMap():
 
-            # 地形链表. x,y 右下角?
+            # 地形链表. x,y左上角
             for v in dixinglst:
-                cv2.rectangle(img, (v.x, v.y), (v.x + 0x10, v.y + 0xc), (144, 128, 112), 1)
-                # cv2.rectangle(img, (v.x - 0x10, v.y - 0xc),  (v.x, v.y), (144, 128, 112), 1)
+                cv2.rectangle(img, (v.x, v.y), (v.x + 0x10, v.y + 0xc), (144, 128, 112), 2)
 
             # 地形数组. x,y左上角
             for v in dixingvec:
-                cv2.rectangle(img, (v.x, v.y), (v.x + 0x10, v.y + 0xc), (64, 64, 64), 1)
+                cv2.rectangle(img, (v.x, v.y), (v.x + 0x10, v.y + 0xc), (64, 64, 64), 2)
 
             # 障碍物. x,y中点
             for v in obstacles:
                 halfw = int(v.w / 2)
                 halfh = int(v.h / 2)
-                cv2.rectangle(img, (v.x - halfw, v.y - halfh), (v.x + halfw, v.y + halfh), (64, 64, 64), 1)
+                cv2.rectangle(img, (v.x - halfw, v.y - halfh), (v.x + halfw, v.y + halfh), (64, 64, 64), 2)
 
             # 人,怪物,物品. x,y中点
             meninfo = GetMenInfo()
@@ -49,7 +48,7 @@ def main():
             halfh = int(meninfo.h / 2)
             cv2.rectangle(img, (int(meninfo.x) - halfw, int(meninfo.y) - halfh),
                           (int(meninfo.x) + halfw, int(meninfo.y) + halfh),
-                          (0, 0, 255), 1)
+                          (0, 0, 255), 2)
 
             monsters = GetMonsters()
             for mon in monsters:
@@ -57,19 +56,19 @@ def main():
                 halfh = int(mon.h / 2)
                 cv2.rectangle(img, (int(mon.x) - halfw, int(mon.y) - halfh),
                               (int(mon.x) + halfw, int(mon.y) + halfh),
-                              (51, 255, 255), 1)
+                              (0, 140, 255), 2)
 
             goods = GetGoods()
             for good in goods:
-                halfw = int(good.w / 2)
-                halfh = int(good.h / 2)
+                halfw = int(20 / 2)
+                halfh = int(20 / 2)
                 cv2.rectangle(img, (int(good.x) - halfw, int(good.y) - halfh),
                               (int(good.x) + halfw, int(good.y) + halfh),
-                              (51, 255, 255), 1)
+                              (0, 140, 255), 2)
 
             # 门. x,y 左上角
             nextdoor = GetNextDoor()
-            cv2.rectangle(img, (nextdoor.x, nextdoor.y), (nextdoor.x + nextdoor.w, nextdoor.y + nextdoor.h), (255, 144, 30), 1)
+            cv2.rectangle(img, (nextdoor.x, nextdoor.y), (nextdoor.x + nextdoor.w, nextdoor.y + nextdoor.h), (255, 144, 30), 2)
 
             cv2.imshow('img', img)
             if (cv2.waitKey(30) & 0xFF) in [ord('q'), 27]:
