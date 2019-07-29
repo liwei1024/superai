@@ -279,7 +279,7 @@ lib.ExGetTaskObj.argtypes = [POINTER(POINTER(TaskObj)), POINTER(c_int)]
 
 lib.ExNextDoor.argtypes = [POINTER(ExGuoToMenZuoBiao)]
 
-lib.ExGetDixingObjList.argtypes = [POINTER(POINTER(DixingObj)), POINTER(c_int)]
+lib.ExGetDixingObjTree.argtypes = [POINTER(POINTER(DixingObj)), POINTER(c_int)]
 
 lib.ExGetDixingObjVector.argtypes = [POINTER(POINTER(DixingObj)), POINTER(c_int)]
 
@@ -620,7 +620,7 @@ def GetNextDoor():
 def GetSeceneInfo():
     objs = POINTER(DixingObj)()
     count = c_int(0)
-    lib.ExGetDixingObjList(pointer(objs), pointer(count))
+    lib.ExGetDixingObjTree(pointer(objs), pointer(count))
     defer(lambda: (lib.Free(objs)))
     outlst1 = []
     for i in range(count.value):
