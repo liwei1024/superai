@@ -20,12 +20,18 @@ def main():
     FlushPid()
 
     while True:
+
         if IsManInMap():
 
             dixinglst, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
-            # print("宽高: %s" % wh)
-            img = np.zeros((wh.h, wh.w, 3), dtype=np.uint8)
+
+            if wh.h != 0 and wh.w != 0:
+                img = np.zeros((wh.h, wh.w, 3), dtype=np.uint8)
+            else:
+                img = np.zeros((1, 1, 3), dtype=np.uint8)
+            
             img[np.where(img == [0])] = [255]
+            # print("宽高: %s" % wh)
 
             cv2.rectangle(img, (1, 1), (wh.w - 1, wh.len_c * 0xc - 1),
                           (147, 20, 255), 2)
