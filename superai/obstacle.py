@@ -20,15 +20,14 @@ def main():
     FlushPid()
 
     while True:
-
-        dixinglst, dixingvec, obstacles, wh = GetSeceneInfo()
-        # print("宽高: %s" % wh)
-        img = np.zeros((wh.h, wh.w, 3), dtype=np.uint8)
-        img[np.where(img == [0])] = [255]
-
         if IsManInMap():
 
-            # 地形链表. x,y左上角
+            dixinglst, dixingvec, obstacles, wh = GetSeceneInfo()
+            # print("宽高: %s" % wh)
+            img = np.zeros((wh.h, wh.w, 3), dtype=np.uint8)
+            img[np.where(img == [0])] = [255]
+
+            # 地形二叉树. x,y左上角
             for v in dixinglst:
                 cv2.rectangle(img, (v.x, v.y), (v.x + 0x10, v.y + 0xc), (144, 128, 112), 2)
 
