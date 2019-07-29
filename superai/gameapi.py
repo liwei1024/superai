@@ -238,13 +238,15 @@ class ObstacleObj(Structure):
 class SceneInfo(Structure):
     _fields_ = [
         ("w", c_int32),
-        ("h", c_int32)
+        ("h", c_int32),
+        ("len_c", c_int32),
+        ("len_extra_78", c_int32),
     ]
 
     def __str__(self):
         return (
-                "%d, %d " % (
-            self.w, self.h))
+                "%d, %d , len_c: %d len_extra_78: %d" % (
+            self.w, self.h, self.len_c, self.len_extra_78))
 
 
 lib.Init.argtypes = []
@@ -282,6 +284,8 @@ lib.ExNextDoor.argtypes = [POINTER(ExGuoToMenZuoBiao)]
 lib.ExGetDixingObjTree.argtypes = [POINTER(POINTER(DixingObj)), POINTER(c_int)]
 
 lib.ExGetDixingObjVector.argtypes = [POINTER(POINTER(DixingObj)), POINTER(c_int)]
+
+lib.ExGetDixingObjExtra.argtypes = [POINTER(POINTER(DixingObj)), POINTER(c_int)]
 
 lib.ExGetObstacleVector.argtypes = [POINTER(POINTER(ObstacleObj)), POINTER(c_int)]
 
@@ -616,7 +620,7 @@ def GetNextDoor():
     return menzuobiao
 
 
-# 地形链表 + 地形数组 + 障碍数组 + 宽高
+# 地形二叉树 + 地形数组 + 扩展数组 + 障碍数组 + 宽高
 def GetSeceneInfo():
     objs = POINTER(DixingObj)()
     count = c_int(0)
@@ -634,17 +638,25 @@ def GetSeceneInfo():
     for i in range(count.value):
         outlst2.append(copy.deepcopy(objs[i]))
 
-    objs = POINTER(ObstacleObj)()
+    objs = POINTER(DixingObj)()
     count = c_int(0)
-    lib.ExGetObstacleVector(pointer(objs), pointer(count))
+    lib.ExGetDixingObjExtra(pointer(objs), pointer(count))
     defer(lambda: (lib.Free(objs)))
     outlst3 = []
     for i in range(count.value):
         outlst3.append(copy.deepcopy(objs[i]))
 
+    objs = POINTER(ObstacleObj)()
+    count = c_int(0)
+    lib.ExGetObstacleVector(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst4 = []
+    for i in range(count.value):
+        outlst4.append(copy.deepcopy(objs[i]))
+
     sceneinfo = SceneInfo()
     lib.ExGetSceneInfo(pointer(sceneinfo))
-    return outlst1, outlst2, outlst3, sceneinfo
+    return outlst1, outlst2, outlst3, outlst4, sceneinfo
 
 
 # 吸怪

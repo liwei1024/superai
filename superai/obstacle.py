@@ -22,10 +22,16 @@ def main():
     while True:
         if IsManInMap():
 
-            dixinglst, dixingvec, obstacles, wh = GetSeceneInfo()
+            dixinglst, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
             # print("宽高: %s" % wh)
             img = np.zeros((wh.h, wh.w, 3), dtype=np.uint8)
             img[np.where(img == [0])] = [255]
+
+            cv2.rectangle(img, (1, 1), (wh.w - 1, wh.len_c * 0xc - 1),
+                          (147, 20, 255), 2)
+
+            cv2.rectangle(img, (1, wh.len_c * 0xc + 1), (wh.w - 1, wh.len_c * 0xc + wh.len_extra_78 * 0x78 - 1),
+                          (147, 20, 255), 2)
 
             # 地形二叉树. x,y左上角
             for v in dixinglst:
@@ -33,6 +39,10 @@ def main():
 
             # 地形数组. x,y左上角
             for v in dixingvec:
+                cv2.rectangle(img, (v.x, v.y), (v.x + 0x10, v.y + 0xc), (64, 64, 64), 2)
+
+            # 地形额外. x,y左上角
+            for v in dixingextra:
                 cv2.rectangle(img, (v.x, v.y), (v.x + 0x10, v.y + 0xc), (64, 64, 64), 2)
 
             # 障碍物. x,y中点
@@ -67,7 +77,8 @@ def main():
 
             # 门. x,y 左上角
             nextdoor = GetNextDoor()
-            cv2.rectangle(img, (nextdoor.x, nextdoor.y), (nextdoor.x + nextdoor.w, nextdoor.y + nextdoor.h), (255, 144, 30), 2)
+            cv2.rectangle(img, (nextdoor.x, nextdoor.y), (nextdoor.x + nextdoor.w, nextdoor.y + nextdoor.h),
+                          (255, 144, 30), 2)
 
             cv2.imshow('img', img)
             if (cv2.waitKey(30) & 0xFF) in [ord('q'), 27]:
