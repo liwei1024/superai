@@ -631,7 +631,7 @@ class FuckDuonierState(State):
 
         # 靠近
         seekx, seeky = simpleAttackSkill.GetSeekXY(men.x, men.y, obj.x, obj.y)
-        player.Seek(seekx, seeky, dummy=obj.name)
+        player.Seek(seekx, seeky, dummy="多尼尔:" + obj.name)
 
 
 # 靠近并捡取物品
@@ -657,7 +657,7 @@ class SeekAndPickUp(State):
             RanSleep(0.05)
             PressX()
         else:
-            player.Seek(obj.x, obj.y, dummy=obj.name)
+            player.Seek(obj.x, obj.y, dummy="物品:" + obj.name)
 
 
 # 靠近并捡起buff
@@ -770,6 +770,7 @@ def main():
         ReleaseAllKey()
         SetThreadExit()
         t.join()
+        Log("main thread exit")
         sys.exit()
 
 

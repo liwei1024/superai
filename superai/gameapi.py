@@ -41,7 +41,9 @@ class MenInfo(Structure):
         ("fangxiang", c_uint32),
         ("jipao", c_bool),
         ("tanchu", c_bool),
-        ("esc", c_bool)
+        ("esc", c_bool),
+        ("w", c_uint32),
+        ("h", c_uint32),
     ]
 
     def __str__(self):
@@ -54,6 +56,7 @@ class MenInfo(Structure):
         retstr += "负重 (%d,%d)\n" % (self.fuzhongcur, self.fuzhongmax)
         retstr += "弹出 %d\n" % self.tanchu
         retstr += "esc %d\n" % self.esc
+        retstr += "w h %d %d\n" % (self.w, self.h)
         return retstr
 
 
@@ -121,8 +124,8 @@ class MapObj(Structure):
         ("z", c_float),
         ("hp", c_uint32),
         ("code", c_uint32),
-        ("width", c_uint32),
-        ("height", c_uint32),
+        ("w", c_int32),
+        ("h", c_int32),
         ("obstacletype", c_uint32),
     ]
 
@@ -130,7 +133,7 @@ class MapObj(Structure):
         return (
                 "对象: 0x%08X 类型: 0x%X 阵营: 0x%X 名称: %s 坐标:(%.f,%.f,%.f)  生命: %d 代码: %d w: %d h: %d obstype: %d" % (
             self.object, self.type, self.zhenying, self.name, self.x, self.y, self.z, self.hp,
-            self.code, self.width, self.height, self.obstacletype))
+            self.code, self.w, self.h, self.obstacletype))
 
 
 class BagObj(Structure):
@@ -180,6 +183,12 @@ class TaskObj(Structure):
 
 class ExGuoToMenZuoBiao(Structure):
     _fields_ = [
+        ("x", c_int32),
+        ("y", c_int32),
+
+        ("w", c_int32),
+        ("h", c_int32),
+
         ("cx", c_int32),
         ("cy", c_int32),
         ("prevcx", c_int32),
@@ -200,8 +209,8 @@ class ExGuoToMenZuoBiao(Structure):
 
 class DixingObj(Structure):
     _fields_ = [
-        ("x", c_uint32),
-        ("y", c_uint32),
+        ("x", c_int32),
+        ("y", c_int32),
         ("flag", c_uint32),
     ]
 
@@ -213,10 +222,10 @@ class DixingObj(Structure):
 
 class ObstacleObj(Structure):
     _fields_ = [
-        ("x", c_uint32),
-        ("y", c_uint32),
-        ("w", c_uint32),
-        ("h", c_uint32),
+        ("x", c_int32),
+        ("y", c_int32),
+        ("w", c_int32),
+        ("h", c_int32),
         ("flag", c_uint32),
     ]
 
@@ -228,8 +237,8 @@ class ObstacleObj(Structure):
 
 class SceneInfo(Structure):
     _fields_ = [
-        ("w", c_uint32),
-        ("h", c_uint32)
+        ("w", c_int32),
+        ("h", c_int32)
     ]
 
     def __str__(self):
@@ -1367,7 +1376,7 @@ def main():
     PrintTaskObj()
     PrintNextMen()
 
-    PrintSceneInfo()
+    # PrintSceneInfo()
     # SpeedTest()
     # PrintCanBeUsedSkill()
     # print(IsCurrentInBossFangjian())
@@ -1377,7 +1386,7 @@ def main():
 
     # Xiguai()
     # XiWu()
-    # Zuobiaoyidong(0, 0, 0)
+    # Zuobiaoyidong(300, 200, 0)
     # Autoshuntu()
 
 
