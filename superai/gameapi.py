@@ -101,15 +101,12 @@ class MapInfo(Structure):
         ("name", c_wchar * 100),
         ("doorslen", c_uint32),
         ("doors", c_uint32 * 100),
-        ("roomw", c_uint32),
-        ("roomh", c_uint32),
     ]
 
     def __str__(self):
         str_ = "地图对象: 0x%08X 地图名称: %s 地图编号: %d 起始位置: (%d,%d) BOSS位置: (%d,%d) 当前位置: (%d, %d) 宽高: (%d,%d) 开门: %d\n" % (
             self.mapobj, self.name, self.mapid, self.beginx, self.beginy, self.bossx, self.bossy, self.curx, self.cury,
             self.w, self.h, self.kaimen)
-        str_ = str_ + "房间宽: %d 房间高: %d" % (self.roomw, self.roomh)
         return str_
 
 
@@ -726,7 +723,7 @@ def PrintNextMen():
 
 
 def PrintSceneInfo():
-    dixinglst, dixingvec, obstacles, wh = GetSeceneInfo()
+    dixinglst, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
 
     print("地形链表")
     for v in dixinglst:
@@ -734,6 +731,10 @@ def PrintSceneInfo():
 
     print("地形数组")
     for v in dixingvec:
+        print(v)
+
+    print("地形数组额外")
+    for v in dixingextra:
         print(v)
 
     print("障碍")
@@ -1388,7 +1389,7 @@ def main():
     PrintTaskObj()
     PrintNextMen()
 
-    PrintSceneInfo()
+    # PrintSceneInfo()
     # SpeedTest()
     # PrintCanBeUsedSkill()
     # print(IsCurrentInBossFangjian())

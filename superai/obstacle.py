@@ -29,15 +29,15 @@ def main():
                 img = np.zeros((wh.h, wh.w, 3), dtype=np.uint8)
             else:
                 img = np.zeros((1, 1, 3), dtype=np.uint8)
-            
+
             img[np.where(img == [0])] = [255]
             # print("宽高: %s" % wh)
 
-            cv2.rectangle(img, (1, 1), (wh.w - 1, wh.len_c * 0xc - 1),
-                          (147, 20, 255), 2)
+            # cv2.rectangle(img, (1, 1), (wh.w - 1, wh.len_c * 0xc - 1),
+            #               (147, 20, 255), 2)
 
-            cv2.rectangle(img, (1, wh.len_c * 0xc + 1), (wh.w - 1, wh.len_c * 0xc + wh.len_extra_78 * 0x78 - 1),
-                          (147, 20, 255), 2)
+            # cv2.rectangle(img, (1, wh.len_c * 0xc + 1), (wh.w - 1, wh.len_c * 0xc + wh.len_extra_78 * 0x78 - 1),
+            #               (147, 20, 255), 2)
 
             # 地形二叉树. x,y左上角
             for v in dixinglst:
