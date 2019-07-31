@@ -5,22 +5,16 @@ import time
 import cv2
 import numpy as np
 
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.gameapi import GameApiInit, GetSeceneInfo, FlushPid, GetMenInfo, GetMonsters, GetGoods, IsManInMap, \
     GetNextDoor
+from superai.common import Log
 
 
-def main():
-    if GameApiInit():
-        print("Init helpdll-xxiii.dll ok")
-    else:
-        print("Init helpdll-xxiii.dll err")
-        exit(0)
-    FlushPid()
-
+def loop():
     while True:
-
         if IsManInMap():
 
             dixinglst, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
@@ -89,9 +83,25 @@ def main():
             cv2.imshow('img', img)
             if (cv2.waitKey(30) & 0xFF) in [ord('q'), 27]:
                 break
-            time.sleep(0.3)
+
+        time.sleep(0.3)
 
     cv2.destroyAllWindows()
+
+
+def main():
+    if GameApiInit():
+        print("Init helpdll-xxiii.dll ok")
+    else:
+        print("Init helpdll-xxiii.dll err")
+        exit(0)
+    FlushPid()
+
+    try:
+        loop()
+    except KeyboardInterrupt:
+        Log("main thread exit")
+        sys.exit()
 
 
 if __name__ == "__main__":

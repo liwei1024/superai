@@ -1135,6 +1135,9 @@ skillSettingMap = {
     # 光枪
     "能量萃取": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
+    # 暗枪
+    "黑暗化身": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
     # 女光剑
     "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
@@ -1142,6 +1145,7 @@ skillSettingMap = {
     "光之兵刃": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
     "烈日气息": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
     "念兽 : 龙虎啸": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "千莲怒放": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),
 
     # 男气功
     "念气流转": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
