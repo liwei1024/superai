@@ -5,7 +5,6 @@ import time
 import cv2
 import numpy as np
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.gameapi import GameApiInit, GetSeceneInfo, FlushPid, GetMenInfo, GetMonsters, GetGoods, IsManInMap, \
@@ -49,7 +48,12 @@ def loop():
             for v in obstacles:
                 halfw = int(v.w / 2)
                 halfh = int(v.h / 2)
-                cv2.rectangle(img, (v.x - halfw, v.y - halfh), (v.x + halfw, v.y + halfh), (64, 64, 64), 2)
+
+                # 障碍物可以被攻击
+                if v.hp > 0:
+                    cv2.rectangle(img, (v.x - halfw, v.y - halfh), (v.x + halfw, v.y + halfh), (0, 255, 0), 2)
+                else:
+                    cv2.rectangle(img, (v.x - halfw, v.y - halfh), (v.x + halfw, v.y + halfh), (64, 64, 64), 2)
 
             # 人,怪物,物品. x,y中点
             meninfo = GetMenInfo()

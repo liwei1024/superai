@@ -224,6 +224,7 @@ class ObstacleObj(Structure):
         ("w", c_int32),
         ("h", c_int32),
         ("flag", c_uint32),
+        ("hp", c_uint32)
     ]
 
     def __str__(self):
