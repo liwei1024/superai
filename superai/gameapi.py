@@ -119,7 +119,7 @@ class MapObj(Structure):
         ("x", c_float),
         ("y", c_float),
         ("z", c_float),
-        ("hp", c_uint32),
+        ("hp", c_int32),
         ("code", c_uint32),
         ("w", c_int32),
         ("h", c_int32),
@@ -224,13 +224,23 @@ class ObstacleObj(Structure):
         ("w", c_int32),
         ("h", c_int32),
         ("flag", c_uint32),
-        ("hp", c_uint32)
+        ("hp", c_int32),
+        ("code", c_uint32)
     ]
 
     def __str__(self):
         return (
                 "(%d, %d) %d %d %d" % (
             self.x, self.y, self.w, self.h, self.flag))
+
+    def CanBeAttack(self):
+        if self.code in [109006910, 109006911, 226, 228]:
+            return False
+
+        if self.hp > 0 and self.flag == 2:
+            return True
+
+        return False
 
 
 class SceneInfo(Structure):

@@ -50,7 +50,7 @@ def loop():
                 halfh = int(v.h / 2)
 
                 # 障碍物可以被攻击
-                if v.hp > 0:
+                if v.CanBeAttack() > 0:
                     cv2.rectangle(img, (v.x - halfw, v.y - halfh), (v.x + halfw, v.y + halfh), (0, 255, 0), 2)
                 else:
                     cv2.rectangle(img, (v.x - halfw, v.y - halfh), (v.x + halfw, v.y + halfh), (64, 64, 64), 2)
