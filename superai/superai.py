@@ -218,45 +218,25 @@ class Player:
 
         # 大范围移动
         if rent == BIG_RENT:
-            # 之前按过键
-            if self.KeyDowned():
-                # 方向相同
-                if self.latestDown == quad:
-                    if jizou and not IsManJipao():
-                        self.UpLatestKey()
-                        return
-                    self.DownKey(quad)
-                    RanSleep(0.05)
-                    Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 方向完全相同 %s" %
-                        (menx, meny, objname, destx, desty, quad.name, jizoustr))
-
-                # 方向有变化
-                else:
-                    if jizou and not IsManJipao():
-                        self.UpLatestKey()
-                        return
-                    # 上次和本次按键的分解
-                    latestDecompose = QuardantMap[self.latestDown]
-                    currentDecompose = QuardantMap[quad]
-
-                    # 上次的按键在本次方向中没找到就弹起
-                    for keydown in latestDecompose:
-                        if keydown not in currentDecompose:
-                            QuadKeyUpMap[keydown]()
-                    self.DownKey(quad)
-                    RanSleep(0.05)
-                    Log("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 保持部分移动方向 %s" % (
-                        menx, meny, objname, destx, desty, quad.name, jizoustr))
-
-            # 没有按过键
-            else:
+            if jizou and not IsManJipao():
                 self.UpLatestKey()
-                if jizou:
-                    self.KeyJiPao(GetFangxiang(menx, destx))
-                self.DownKey(quad)
-                RanSleep(0.05)
-                Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
-                    menx, meny, objname, destx, desty, quad.name, jizoustr))
+                self.KeyJiPao(GetFangxiang(menx, destx))
+
+            # 上次和本次按键的分解
+            if self.latestDown is not None:
+                latestDecompose = QuardantMap[self.latestDown]
+                currentDecompose = QuardantMap[quad]
+
+                # 上次的按键在本次方向中没找到就弹起
+                for keydown in latestDecompose:
+                    if keydown not in currentDecompose:
+                        QuadKeyUpMap[keydown]()
+
+            self.DownKey(quad)
+            RanSleep(0.05)
+            Log("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 前行 %s" % (
+                menx, meny, objname, destx, desty, quad.name, jizoustr))
+
         # 小范围移动
         else:
             self.UpLatestKey()
@@ -568,7 +548,6 @@ class SeekAndAttackMonster(State):
         # 没有选择技能就选择一个
         if not player.HasSkillHasBeenSelect():
             player.SelectSkill()
-
         men = GetMenInfo()
 
         # 在水平宽度内并且垂直宽度太近了, 远离
