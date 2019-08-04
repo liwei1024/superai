@@ -202,11 +202,6 @@ class Player:
         menx, meny = GetMenXY()
         quad, rent = GetQuadrant(menx, meny, destx, desty)
 
-        if quad == Quardant.CHONGDIE:
-            # 已经重叠了, 调用者(靠近怪物, 捡物, 过门 应该不会再次调用seek了). 频繁发生就说明写错了
-            self.UpLatestKey()
-            return
-
         objname = ""
         if obj is not None:
             objname = "name:%s obj:0x%X hp:%d " % (obj.name, obj.object, obj.hp) if obj is not None else ""
@@ -215,6 +210,13 @@ class Player:
 
         jizou = not WithInManzou(menx, meny, destx, desty)
         jizoustr = "" if not jizou else "疾走"
+
+        if quad == Quardant.CHONGDIE:
+            # 已经重叠了, 调用者(靠近怪物, 捡物, 过门 应该不会再次调用seek了). 频繁发生就说明写错了
+            self.UpLatestKey()
+            Log("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 重叠 %s" % (
+                menx, meny, objname, destx, desty, quad.name, jizoustr))
+            return
 
         # 大范围移动
         if rent == BIG_RENT:
