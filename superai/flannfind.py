@@ -204,6 +204,8 @@ def FindPicturePos(img1, img2):
 
 if os.path.exists("c:/win/superimg/"):
     basedir = "c:/win/superimg/"
+elif os.path.exists("D:/win/superimg/"):
+    basedir = "D:/win/superimg/"
 else:
     basedir = "D:/win/studio/dxf/picture/superimg/"
 

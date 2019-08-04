@@ -2,10 +2,12 @@ import queue
 from typing import List
 
 
+# 2维到1维
 def hwToidx(i: int, j: int, weight: int):
     return i * weight + j
 
 
+# 1维到2维
 def idxTohw(idx, weight: int):
     return [idx // weight, idx % weight]
 
@@ -79,11 +81,12 @@ class BreadthFirstPaths:
         return result
 
 
+# 曼哈顿距离
 def manhattanDistance(x, y):
     return sum(map(lambda i, j: abs(i - j), x, y))
 
 
-# a*
+# a*  4方位
 class AStarPaths:
     def __init__(self, g: Graph, start: int, end: int):
         self.closedSet = []

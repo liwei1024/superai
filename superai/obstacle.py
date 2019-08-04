@@ -12,6 +12,13 @@ from superai.gameapi import GameApiInit, GetSeceneInfo, FlushPid, GetMenInfo, Ge
 from superai.common import Log
 
 
+# 获取默认
+def GetDefaultCell():
+    dixinglst, dixingvec, dixingextra, _, wh = GetSeceneInfo()
+
+    pass
+
+
 def loop():
     while True:
         if IsManInMap():

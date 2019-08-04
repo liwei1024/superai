@@ -14,6 +14,8 @@ from superai.vkcode import *
 
 if os.path.exists("c:/win/superai/dll/"):
     lib = CDLL("c:/win/superai/dll/msdk.dll", RTLD_GLOBAL)
+elif os.path.exists("D:/win/superai/dll/"):
+    lib = CDLL("D:/win/superai/dll/msdk.dll", RTLD_GLOBAL)
 else:
     lib = CDLL("D:/win/reference/project/superai/dll/msdk.dll", RTLD_GLOBAL)
 

@@ -17,6 +17,8 @@ from ctypes import *
 
 if os.path.exists("c:/win/x64/Release/"):
     lib = CDLL("c:/win/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
+elif os.path.exists("D:/win/x64/Release/"):
+    lib = CDLL("D:/win/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
 else:
     lib = CDLL("D:/win/reference/project/xxiii/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
 
@@ -381,7 +383,7 @@ SMALL_RENT = 2
 
 # 慢走矩形
 MANZOU_V_WIDTH = 150 / 2
-MANZOU_H_WIDTH = 150 / 2
+MANZOU_H_WIDTH = 1500 / 2
 
 # 拾取矩形
 PICKUP_V_WIDTH = 45 / 2
@@ -497,6 +499,7 @@ def FlushPid():
 
 
 # === help dll 接口包装
+
 
 # 人物信息
 def GetMenInfo():
@@ -1030,6 +1033,7 @@ def GetNextDoorWrap():
     return GetNextDoor()
 
 
+# 以下地图 弹出窗口也可以移动
 WindowTopFilter = [
     ("格拉卡", 2, 0),
     ("烈焰格拉卡", 0, 1),
