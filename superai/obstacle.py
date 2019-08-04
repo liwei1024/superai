@@ -12,18 +12,26 @@ from superai.gameapi import GameApiInit, GetSeceneInfo, FlushPid, GetMenInfo, Ge
 from superai.common import Log
 
 
-# 获取默认
-def GetDefaultCell():
-    dixinglst, dixingvec, dixingextra, _, wh = GetSeceneInfo()
+class GameObstacleData():
+    def __init__(self, mapw, maph, dixingtree, dixingvec, dixingextra, obstacles):
+        self.mapw = mapw
+        self.maph = maph
+        self.dixingtree = dixingtree
+        self.dixingvec = dixingvec
+        self.dixingextra = dixingextra
+        self.obstacles = obstacles
 
-    pass
+
+def GetGameObstacleData():
+    dixingtree, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
+    return GameObstacleData(dixingtree, dixingvec, dixingextra, obstacles, wh.w, wh.h)
 
 
 def loop():
     while True:
         if IsManInMap():
 
-            dixinglst, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
+            dixingtree, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
 
             if wh.h != 0 and wh.w != 0:
                 img = np.zeros((wh.h, wh.w, 3), dtype=np.uint8)
@@ -40,7 +48,7 @@ def loop():
             #               (147, 20, 255), 2)
 
             # 地形二叉树. x,y左上角
-            for v in dixinglst:
+            for v in dixingtree:
                 cv2.rectangle(img, (v.x, v.y), (v.x + 0x10, v.y + 0xc), (144, 128, 112), 2)
 
             # 地形数组. x,y左上角
