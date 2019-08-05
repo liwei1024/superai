@@ -76,16 +76,37 @@ class AStartPaths:
 
         self.astar()
 
-    def ObstacleTouched(self, x, y):
-        for v in self.obstacles:
-            # 坐标在障碍物的范围之内
-            halfw = int(v.w / 2)
-            halfh = int(v.h / 2)
-            if (v.x - halfw < x < v.x + halfw) and \
-                    (v.y - halfh < y < v.y + halfh):
-                return True
+    def DixingTouched(self, x, y):
+        # 获取4个角点的0xc 0x10是否和 地形相交
+        # checks = [
+        #     (x * 10, y * 10),
+        #     (x * 10, y * 10 + 10),
+        #     (x * 10 + 10, y * 10),
+        #     (x * 10 + 10, y * 10 + 10)
+        # ]
+        # for (x, y) in checks:
+        #     cellx = x // 0x10
+        #     celly = y // 0xC
+        #     dixingidx = hwToidx(cellx, celly, self.mapCellWLen)
+        #     if dixingidx >= len(self.dixing):
+        #         return True
+        #     if self.dixing[celly * self.mapCellWLen + cellx]:
+        #         return True
+        # return False
+        pass
 
-        return False
+    def ObstacleTouched(self, x, y):
+
+        # for v in self.obstacles:
+        #     # 坐标在障碍物的范围之内
+        #     halfw = int(v.w / 2)
+        #     halfh = int(v.h / 2)
+        #     if (v.x - halfw < x < v.x + halfw) and \
+        #             (v.y - halfh < y < v.y + halfh):
+        #         return True
+        #
+        # return False
+        pass
 
     def GetAdjs(self, pos):
         # 获取八方位邻居格子. 根据地形和障碍数据过滤掉不必要的
@@ -106,25 +127,14 @@ class AStartPaths:
         ]
 
         for (adjx, adjy) in checks:
-            # 1. 地形. 矩形的中点不在格子内
-            # 把10 x 10 格子的中点 转换成 0xc 0x10 的格子. 判断是否可移动
-            # adjx2 = (adjx * 10 + 5) // 0x10
-            # adjy2 = (adjy * 10 + 5) // 0xc
-            #
-            # dixingidx = hwToidx(adjx2, adjy2, self.mapCellWLen)
-            #
-            # if dixingidx >= len(self.dixing):
-            #     continue
-            #
-            # if not self.dixing[dixingidx]:
-            #     # 2. 障碍物.  矩形不能和障碍物有相交
-            #     # 把10 x 10 格子的中点 转换成坐标中点.
-            #     adjx3 = adjx * 10 + 5
-            #     adjy3 = adjy * 10 + 5
-            #     if not self.ObstacleTouched(adjx3, adjy3):
-            #         adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
+            if self.DixingTouched(adjx, adjy):
+                continue
+
+            if self.ObstacleTouched(adjx, adjy):
+                continue
 
             adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
+
         return adjs
 
     def astar(self):
