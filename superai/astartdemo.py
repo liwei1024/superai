@@ -3,13 +3,13 @@ from typing import List
 
 
 # 2维到1维
-def hwToidx(i: int, j: int, weight: int):
-    return i * weight + j
+def hwToidx(x: int, y: int, weight: int):
+    return y * weight + x
 
 
 # 1维到2维
 def idxTohw(idx, weight: int):
-    return [idx // weight, idx % weight]
+    return [idx % weight, idx // weight]
 
 
 # 有向图
@@ -96,7 +96,6 @@ class AStarPaths:
         self.end = end
 
         self.edgeTo = [0] * g.V
-
         self.marked = [False] * g.V
 
         # 实际距离
@@ -120,8 +119,8 @@ class AStarPaths:
                 if w in self.closedSet:
                     continue
                 # 实际距离
-                tentativegScore = self.gScore[current] + manhattanDistance(idxTohw(current, g.W), idxTohw(w, g.W))
-
+                tentativegScore = self.gScore[current] + manhattanDistance(idxTohw(current, g.W),
+                                                                           idxTohw(w, g.W))
                 if w not in self.openSet:
                     self.openSet.append(w)
                 elif tentativegScore >= self.gScore[w]:  # 如果此次遍历距离大于其他点遍历过去的距离则抛弃
@@ -130,7 +129,7 @@ class AStarPaths:
                 self.edgeTo[w] = current
                 self.marked[w] = True
 
-                print("edgeTo ({},{}) -> ({},{})".format(current // g.W, current % g.W, w // g.W, w % g.W))
+                print("edgeTo ({},{}) -> ({},{})".format(current % g.W, current // g.W,  w % g.W, w // g.W))
                 self.gScore[w] = tentativegScore
                 self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, g.W), idxTohw(self.end, g.W))
 
@@ -156,55 +155,47 @@ def main():
     # 0,1,2,3,4 ... 一共12个顶点. width=6,height=4
     graph = Graph(24, 6)
 
-    graph.AddEdge(hwToidx(0, 2, 6), hwToidx(1, 2, 6))
-
-    graph.AddEdge(hwToidx(1, 1, 6), hwToidx(2, 1, 6))
-
-    graph.AddEdge(hwToidx(1, 2, 6), hwToidx(0, 2, 6))
-    graph.AddEdge(hwToidx(1, 2, 6), hwToidx(1, 3, 6))
-
-    graph.AddEdge(hwToidx(1, 3, 6), hwToidx(1, 2, 6))
-    graph.AddEdge(hwToidx(1, 3, 6), hwToidx(1, 4, 6))
-
-    graph.AddEdge(hwToidx(1, 4, 6), hwToidx(2, 4, 6))
-    graph.AddEdge(hwToidx(1, 4, 6), hwToidx(1, 3, 6))
-
     graph.AddEdge(hwToidx(2, 0, 6), hwToidx(2, 1, 6))
 
-    graph.AddEdge(hwToidx(2, 1, 6), hwToidx(3, 1, 6))
+    graph.AddEdge(hwToidx(1, 1, 6), hwToidx(1, 2, 6))
+
     graph.AddEdge(hwToidx(2, 1, 6), hwToidx(2, 0, 6))
-    graph.AddEdge(hwToidx(2, 1, 6), hwToidx(1, 1, 6))
-    graph.AddEdge(hwToidx(2, 1, 6), hwToidx(2, 2, 6))
-
-    graph.AddEdge(hwToidx(2, 2, 6), hwToidx(3, 2, 6))
-    graph.AddEdge(hwToidx(2, 2, 6), hwToidx(2, 1, 6))
-    graph.AddEdge(hwToidx(2, 2, 6), hwToidx(2, 3, 6))
-
-    graph.AddEdge(hwToidx(2, 3, 6), hwToidx(3, 3, 6))
-    graph.AddEdge(hwToidx(2, 3, 6), hwToidx(2, 2, 6))
-    graph.AddEdge(hwToidx(2, 3, 6), hwToidx(2, 4, 6))
-
-    graph.AddEdge(hwToidx(2, 4, 6), hwToidx(3, 4, 6))
-    graph.AddEdge(hwToidx(2, 4, 6), hwToidx(2, 3, 6))
-    graph.AddEdge(hwToidx(2, 4, 6), hwToidx(1, 4, 6))
-    graph.AddEdge(hwToidx(2, 4, 6), hwToidx(2, 5, 6))
-
-    graph.AddEdge(hwToidx(2, 5, 6), hwToidx(3, 5, 6))
-    graph.AddEdge(hwToidx(2, 5, 6), hwToidx(2, 4, 6))
+    graph.AddEdge(hwToidx(2, 1, 6), hwToidx(3, 1, 6))
 
     graph.AddEdge(hwToidx(3, 1, 6), hwToidx(2, 1, 6))
+    graph.AddEdge(hwToidx(3, 1, 6), hwToidx(4, 1, 6))
 
-    graph.AddEdge(hwToidx(3, 2, 6), hwToidx(2, 2, 6))
+    graph.AddEdge(hwToidx(4, 1, 6), hwToidx(4, 2, 6))
+    graph.AddEdge(hwToidx(4, 1, 6), hwToidx(3, 1, 6))
+
+    graph.AddEdge(hwToidx(0, 2, 6), hwToidx(1, 2, 6))
+
+    graph.AddEdge(hwToidx(1, 2, 6), hwToidx(1, 3, 6))
+    graph.AddEdge(hwToidx(1, 2, 6), hwToidx(0, 2, 6))
+    graph.AddEdge(hwToidx(1, 2, 6), hwToidx(1, 1, 6))
+    graph.AddEdge(hwToidx(1, 2, 6), hwToidx(2, 2, 6))
+
+    graph.AddEdge(hwToidx(2, 2, 6), hwToidx(2, 3, 6))
+    graph.AddEdge(hwToidx(2, 2, 6), hwToidx(1, 2, 6))
+    graph.AddEdge(hwToidx(2, 2, 6), hwToidx(3, 2, 6))
     graph.AddEdge(hwToidx(3, 2, 6), hwToidx(3, 3, 6))
-
-    graph.AddEdge(hwToidx(3, 3, 6), hwToidx(3, 2, 6))
+    graph.AddEdge(hwToidx(3, 2, 6), hwToidx(2, 2, 6))
+    graph.AddEdge(hwToidx(3, 2, 6), hwToidx(4, 2, 6))
+    graph.AddEdge(hwToidx(4, 2, 6), hwToidx(4, 3, 6))
+    graph.AddEdge(hwToidx(4, 2, 6), hwToidx(3, 2, 6))
+    graph.AddEdge(hwToidx(4, 2, 6), hwToidx(4, 1, 6))
+    graph.AddEdge(hwToidx(4, 2, 6), hwToidx(5, 2, 6))
+    graph.AddEdge(hwToidx(5, 2, 6), hwToidx(5, 3, 6))
+    graph.AddEdge(hwToidx(5, 2, 6), hwToidx(4, 2, 6))
+    graph.AddEdge(hwToidx(1, 3, 6), hwToidx(1, 2, 6))
+    graph.AddEdge(hwToidx(2, 3, 6), hwToidx(2, 2, 6))
+    graph.AddEdge(hwToidx(2, 3, 6), hwToidx(3, 3, 6))
     graph.AddEdge(hwToidx(3, 3, 6), hwToidx(2, 3, 6))
-
-    graph.AddEdge(hwToidx(3, 4, 6), hwToidx(3, 5, 6))
-    graph.AddEdge(hwToidx(3, 4, 6), hwToidx(2, 4, 6))
-
-    graph.AddEdge(hwToidx(3, 5, 6), hwToidx(3, 4, 6))
-    graph.AddEdge(hwToidx(3, 5, 6), hwToidx(2, 5, 6))
+    graph.AddEdge(hwToidx(3, 3, 6), hwToidx(3, 2, 6))
+    graph.AddEdge(hwToidx(4, 3, 6), hwToidx(5, 3, 6))
+    graph.AddEdge(hwToidx(4, 3, 6), hwToidx(4, 2, 6))
+    graph.AddEdge(hwToidx(5, 3, 6), hwToidx(4, 3, 6))
+    graph.AddEdge(hwToidx(5, 3, 6), hwToidx(5, 2, 6))
 
     print("图:")
     print(graph)
