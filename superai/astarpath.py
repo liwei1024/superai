@@ -16,7 +16,8 @@ from superai.obstacle import GetGameObstacleData, drawAll
 
 
 class AStartPaths:
-    def __init__(self, d, start, end):
+
+    def initobstacle(self, d):
         # 初始化
         # 1. 地形二叉树 2. 地形数组 3. 地形额外  使用 16 * 12 长宽的格子
         # 4. 障碍物  使用特定长宽的格子
@@ -43,6 +44,11 @@ class AStartPaths:
             self.dixing[cellY * self.mapCellWLen + cellX] = True
 
         self.obstacles = copy.deepcopy(d.obstacles)
+
+    def __init__(self, d, start, end, img):
+        self.img = img
+
+        self.initobstacle(d)
 
         # 初始化 A * 算法数据
         # start end && 行走的路径使用 10 * 10 长宽的格子
@@ -85,7 +91,7 @@ class AStartPaths:
         # 获取八方位邻居格子. 根据地形和障碍数据过滤掉不必要的
         adjs = []
 
-        posx, posy = idxTohw(pos, self.manCellHWLen)
+        posx, posy = idxTohw(pos, self.manCellWLen)
 
         # 上下左右. 左上,左下,右上,右下.
         checks = [
@@ -104,7 +110,13 @@ class AStartPaths:
             # 把10 x 10 格子的中点 转换成 0xc 0x10 的格子. 判断是否可移动
             adjx2 = (adjx * 10 + 5) // 0x10
             adjy2 = (adjy * 10 + 5) // 0xc
-            if not self.dixing[hwToidx(adjx2, adjy2, self.mapCellWLen)]:
+
+            dixingidx = hwToidx(adjx2, adjy2, self.mapCellWLen)
+
+            if dixingidx >= len(self.dixing):
+                continue
+
+            if not self.dixing[dixingidx]:
                 # 2. 障碍物. 矩形的中点和不在障碍物内
                 # 把10 x 10 格子的中点 转换成坐标中点.
                 adjx3 = adjx * 10 + 5
@@ -121,7 +133,9 @@ class AStartPaths:
                 return
             self.openSet.remove(current)
             self.closedSet.append(current)
-            for w in self.GetAdjs(current):
+
+            adjs = self.GetAdjs(current)
+            for w in adjs:
                 if w in self.closedSet:
                     continue
                 # 实际距离
@@ -142,6 +156,10 @@ class AStartPaths:
                 self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, self.manCellWLen),
                                                                     idxTohw(self.end, self.manCellWLen))
                 print("fScore[%d] manhattan: %d" % (w, self.fScore[w]))
+
+                (cellx, celly) = idxTohw(current, self.manCellWLen)
+                cv2.rectangle(self.img, (cellx * 10, celly * 10), (cellx * 10 + 10, celly * 10 + 10),
+                              (127, 255, 0), -1)
 
     def HasPathTo(self, v: int):
         return self.marked[v]
@@ -185,7 +203,7 @@ def main():
     endidx = hwToidx(endcellx, endcelly, wlen)
 
     print("a* 寻径")
-    astar = AStartPaths(d, startidx, endidx)
+    astar = AStartPaths(d, startidx, endidx, img)
     paths = astar.PathTo(hwToidx(endcellx, endcelly, wlen))
     for v in reversed(paths):
         print(v, idxTohw(v, d.mapw // 10))
