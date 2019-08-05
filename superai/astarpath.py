@@ -12,7 +12,7 @@ import copy
 from superai.astartdemo import manhattanDistance, idxTohw, hwToidx
 from superai.common import Log
 from superai.gameapi import FlushPid, GameApiInit, GetMenInfo
-from superai.obstacle import GetGameObstacleData, drawAll
+from superai.obstacle import GetGameObstacleData, drawAll, drawBack
 
 
 class AStartPaths:
@@ -52,7 +52,6 @@ class AStartPaths:
 
         # 初始化 A * 算法数据
         # start end && 行走的路径使用 10 * 10 长宽的格子
-        # 缺点是有误差 水平4个点, 垂直8个点
         self.manCellWLen = d.mapw // 10
         self.manCellHLen = d.maph // 10
         self.manCellnum = self.manCellHLen * self.manCellWLen
@@ -77,41 +76,14 @@ class AStartPaths:
         self.astar()
 
     def DixingTouched(self, x, y):
-        # 获取4个角点的0xc 0x10是否和 地形相交
-        # checks = [
-        #     (x * 10, y * 10),
-        #     (x * 10, y * 10 + 10),
-        #     (x * 10 + 10, y * 10),
-        #     (x * 10 + 10, y * 10 + 10)
-        # ]
-        # for (x, y) in checks:
-        #     cellx = x // 0x10
-        #     celly = y // 0xC
-        #     dixingidx = hwToidx(cellx, celly, self.mapCellWLen)
-        #     if dixingidx >= len(self.dixing):
-        #         return True
-        #     if self.dixing[celly * self.mapCellWLen + cellx]:
-        #         return True
-        # return False
-        pass
+        return False
 
     def ObstacleTouched(self, x, y):
-
-        # for v in self.obstacles:
-        #     # 坐标在障碍物的范围之内
-        #     halfw = int(v.w / 2)
-        #     halfh = int(v.h / 2)
-        #     if (v.x - halfw < x < v.x + halfw) and \
-        #             (v.y - halfh < y < v.y + halfh):
-        #         return True
-        #
-        # return False
-        pass
+        return False
 
     def GetAdjs(self, pos):
         # 获取八方位邻居格子. 根据地形和障碍数据过滤掉不必要的
         adjs = []
-
         posx, posy = idxTohw(pos, self.manCellWLen)
 
         # 上下左右. 左上,左下,右上,右下.
@@ -159,12 +131,12 @@ class AStartPaths:
                 self.edgeTo[w] = current
                 self.marked[w] = True
 
-                print("edgeTo ({},{}) -> ({},{})".format(current % self.manCellWLen, current // self.manCellWLen,
-                                                         w % self.manCellWLen, w // self.manCellWLen))
+                print("edgeTo ({}) -> ({})".format(idxTohw(current, self.manCellWLen), idxTohw(w, self.manCellWLen)))
 
                 self.gScore[w] = tentativeScore
                 self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, self.manCellWLen),
                                                                     idxTohw(self.end, self.manCellWLen))
+
                 print("fScore[%d] manhattan: %d" % (w, self.fScore[w]))
 
     def HasPathTo(self, v: int):
@@ -183,12 +155,6 @@ class AStartPaths:
         return result
 
 
-def drawCell(img, cellx, celly):
-    zuoshang = (cellx * 10, celly * 10)
-    youxia = (cellx * 10 + 10, celly * 10 + 10)
-    cv2.rectangle(img, zuoshang, youxia, (0, 255, 0), -1)
-
-
 def main():
     if GameApiInit():
         print("Init helpdll-xxiii.dll ok")
@@ -197,8 +163,6 @@ def main():
         exit(0)
     FlushPid()
 
-    # (647,312,0) 血滴石
-
     d = GetGameObstacleData()
 
     print("w h : %d %d" % (d.mapw, d.maph))
@@ -206,32 +170,29 @@ def main():
     img = np.zeros((d.maph, d.mapw, 3), dtype=np.uint8)
     img[np.where(img == [0])] = [255]
 
-    drawAll(img, d)
+    drawBack(img, d)
 
-    wlen = d.mapw // 10
+    # 人物矩形
     meninfo = GetMenInfo()
+    beginx, beginy = (int(meninfo.x) // 10) * 10, (int(meninfo.y) // 10) * 10
+    cv2.rectangle(img, (beginx - meninfo.w // 2, beginy - meninfo.h // 2),
+                  (beginx + meninfo.w // 2, beginy + meninfo.h // 2), (0, 0, 255), 1)
 
-    begincellx, begincelly = int(meninfo.x) // 10, int(meninfo.y) // 10
-    endcellx, endcelly = 647 // 10, 312 // 10
+    # 目的地矩形
+    dstx, dsty = 734, 286
+    endx, endy = (int(dstx) // 10) * 10, (int(dsty) // 10) * 10
+    cv2.rectangle(img, (endx - meninfo.w // 2, endy - meninfo.h // 2),
+                  (endx + meninfo.w // 2, endy + meninfo.h // 2), (0, 0, 255), 1)
 
-    drawCell(img, begincellx, begincelly)
-    drawCell(img, endcellx, endcelly)
+    astar = AStartPaths(d, hwToidx(beginx // 10, beginy // 10, d.mapw // 10),
+                        hwToidx(endx // 10, endy // 10, d.mapw // 10), img)
 
-    startidx = hwToidx(begincellx, begincelly, wlen)
-    endidx = hwToidx(endcellx, endcelly, wlen)
-
-    print("a* 寻径")
-    astar = AStartPaths(d, startidx, endidx, img)
-    paths = astar.PathTo(hwToidx(endcellx, endcelly, wlen))
+    paths = astar.PathTo(hwToidx(endx // 10, endy // 10, d.mapw // 10))
 
     for v in reversed(paths):
-        (cellx, celly) = idxTohw(v, d.mapw // 10)
-
-        zuoshang = (cellx * 10, celly * 10)
-        youxia = (cellx * 10 + 10, celly * 10 + 10)
-
-        cv2.rectangle(img, zuoshang, youxia,
-                      (154, 250, 0), -1)
+        (x, y) = idxTohw(v, d.mapw // 10)
+        drawx, drawy = x * 10, y * 10
+        cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
 
     cv2.imshow('img', img)
     cv2.waitKey()

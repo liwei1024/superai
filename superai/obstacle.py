@@ -100,7 +100,14 @@ def drawAll(img, d):
     drawObstacles(img, d)
     drawOther(img)
     drawDoor(img)
-    # drawLine(img, d)
+    drawLine(img, d)
+
+
+def drawBack(img, d):
+    drawDixing(img, d)
+    drawObstacles(img, d)
+    drawDoor(img)
+    drawLine(img, d)
 
 
 def loop():
