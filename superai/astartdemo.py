@@ -1,5 +1,4 @@
 import queue
-from typing import List
 
 
 # 2维到1维
@@ -129,7 +128,7 @@ class AStarPaths:
                 self.edgeTo[w] = current
                 self.marked[w] = True
 
-                print("edgeTo ({},{}) -> ({},{})".format(current % g.W, current // g.W,  w % g.W, w // g.W))
+                print("edgeTo ({},{}) -> ({},{})".format(current % g.W, current // g.W, w % g.W, w // g.W))
                 self.gScore[w] = tentativegScore
                 self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, g.W), idxTohw(self.end, g.W))
 

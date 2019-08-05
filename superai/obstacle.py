@@ -24,7 +24,7 @@ class GameObstacleData():
 
 def GetGameObstacleData():
     dixingtree, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
-    return GameObstacleData(dixingtree, dixingvec, dixingextra, obstacles, wh.w, wh.h)
+    return GameObstacleData(wh.w, wh.h, dixingtree, dixingvec, dixingextra, obstacles)
 
 
 def loop():
