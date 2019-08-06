@@ -1,5 +1,7 @@
 import queue
 
+import sys
+
 
 # 2维到1维
 def hwToidx(x: int, y: int, weight: int):
@@ -98,11 +100,11 @@ class AStarPaths:
         self.marked = [False] * g.V
 
         # 实际距离
-        self.gScore = [0] * g.V
+        self.gScore = [sys.maxsize] * g.V
         self.gScore[start] = 0
 
         # 估算到终点的距离
-        self.fScore = [0] * g.V
+        self.fScore = [sys.maxsize] * g.V
         self.fScore[start] = manhattanDistance(idxTohw(start, g.W), idxTohw(end, g.W))
 
         self.astar(g)
@@ -122,17 +124,16 @@ class AStarPaths:
                                                                            idxTohw(w, g.W))
                 if w not in self.openSet:
                     self.openSet.append(w)
-                elif tentativegScore >= self.gScore[w]:  # 如果此次遍历距离大于其他点遍历过去的距离则抛弃
-                    continue
 
-                self.edgeTo[w] = current
-                self.marked[w] = True
+                if tentativegScore < self.gScore[w]:
+                    self.edgeTo[w] = current
+                    self.marked[w] = True
 
-                print("edgeTo ({}) -> ({})".format(idxTohw(current, g.W), idxTohw(w, g.W)))
-                self.gScore[w] = tentativegScore
-                self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, g.W), idxTohw(self.end, g.W))
+                    print("edgeTo ({}) -> ({})".format(idxTohw(current, g.W), idxTohw(w, g.W)))
+                    self.gScore[w] = tentativegScore
+                    self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, g.W), idxTohw(self.end, g.W))
 
-                print("fScore[%d] manhattan: %d" % (w, self.fScore[w]))
+                    print("fScore[%d] manhattan: %d" % (w, self.fScore[w]))
 
     def HasPathTo(self, v: int):
         return self.marked[v]
