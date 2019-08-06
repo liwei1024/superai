@@ -24,6 +24,7 @@ class Zuobiao():
 
 class AStartPaths:
 
+    # 初始化 地形 + 障碍物
     def initobstacle(self, d):
         # 初始化
         # 1. 地形二叉树 2. 地形数组 3. 地形额外  使用 16 * 12 长宽的格子
@@ -52,6 +53,7 @@ class AStartPaths:
 
         self.obstacles = copy.deepcopy(d.obstacles)
 
+    # 构造函数 地形, 人物信息, 起始点, 终结点, img做测试使用
     def __init__(self, d, meninfo, start, end, img):
         self.img = img
         self.meninfo = meninfo
@@ -87,11 +89,13 @@ class AStartPaths:
 
         self.astar()
 
+    # 是否地形idx可移动
     def IsDixingVecHave(self, idx):
         if idx >= len(self.dixing):
             return True
         return self.dixing[idx]
 
+    # 是否触碰到地形
     def DixingTouched(self, x, y):
         leftx = (x * 10 - self.meninfo.w // 2) // 0x10
         rightx = (x * 10 + self.meninfo.w // 2) // 0x10
@@ -114,15 +118,20 @@ class AStartPaths:
 
         return False
 
-    def IsNotOverlap(self, l1, r1, l2, r2):
-        if r1.x < l2.x or r2.x < l1.x:
-            return True
+    # 矩形相交
+    def IsOverlap(self, l1, r1, l2, r2):
+        def IsNotOverlap(l1, r1, l2, r2):
+            if r1.x < l2.x or r2.x < l1.x:
+                return True
 
-        if r1.y < l2.y or r2.y < l1.y:
-            return True
+            if r1.y < l2.y or r2.y < l1.y:
+                return True
 
-        return False
+            return False
 
+        return not IsNotOverlap(l1, r1, l2, r2)
+
+    # 是否触碰到障碍物
     def ObstacleTouched(self, x, y):
         leftx = (x * 10 - self.meninfo.w // 2)
         rightx = (x * 10 + self.meninfo.w // 2)
@@ -139,12 +148,13 @@ class AStartPaths:
             # cv2.rectangle(self.img, (leftx, topy), (rightx, downy), (0, 0, 139), 1)
             # cv2.rectangle(self.img, (obleftx, obtopy), (obrightx, obdowny), (255, 0, 0), 1)
 
-            if not self.IsNotOverlap(Zuobiao(leftx, topy), Zuobiao(rightx, downy), Zuobiao(obleftx, obtopy),
-                                     Zuobiao(obrightx, obdowny)):
+            if self.IsOverlap(Zuobiao(leftx, topy), Zuobiao(rightx, downy), Zuobiao(obleftx, obtopy),
+                              Zuobiao(obrightx, obdowny)):
                 return True
 
         return False
 
+    # 获取邻居节点
     def GetAdjs(self, pos):
         # 获取八方位邻居格子. 根据地形和障碍数据过滤掉不必要的
         adjs = []
@@ -179,7 +189,8 @@ class AStartPaths:
             # cv2.circle(self.img, (drawx, drawy), 2, (255, 0, 0))
 
         return adjs
-
+    
+    # a* core
     def astar(self):
         while len(self.openSet) > 0:
             current = min(self.openSet, key=lambda s: self.fScore[s])
