@@ -109,9 +109,21 @@ class AStarPaths:
 
         self.astar(g)
 
+    def findMinScore(self):
+        min = sys.maxsize
+        minv = sys.maxsize
+
+        for v in self.openSet:
+            if self.fScore[v] < min:
+                min = self.fScore[v]
+                minv = v
+
+        return minv
+
     def astar(self, g: Graph):
         while len(self.openSet) > 0:
-            current = min(self.openSet, key=lambda s: self.fScore[s])
+            current = self.findMinScore()
+
             if current == self.end:
                 return
             self.openSet.remove(current)

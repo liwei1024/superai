@@ -15,6 +15,12 @@ from superai.gameapi import FlushPid, GameApiInit, GetMenInfo
 from superai.obstacle import GetGameObstacleData, drawAll, drawBack
 
 
+class Zuobiao():
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
 class AStartPaths:
 
     def initobstacle(self, d):
@@ -45,8 +51,9 @@ class AStartPaths:
 
         self.obstacles = copy.deepcopy(d.obstacles)
 
-    def __init__(self, d, start, end, img):
+    def __init__(self, d, meninfo, start, end, img):
         self.img = img
+        self.meninfo = meninfo
 
         self.initobstacle(d)
 
@@ -66,19 +73,58 @@ class AStartPaths:
         self.marked = [False] * self.manCellnum
 
         # 实际距离
-        self.gScore = [0] * self.manCellnum
+        self.gScore = [sys.maxsize] * self.manCellnum
         self.gScore[start] = 0
 
         # 估算到终点的距离
-        self.fScore = [0] * self.manCellnum
+        self.fScore = [sys.maxsize] * self.manCellnum
         self.fScore[start] = manhattanDistance(idxTohw(start, self.manCellWLen), idxTohw(end, self.manCellWLen))
 
         self.astar()
 
     def DixingTouched(self, x, y):
+        leftx = (x * 10 - self.meninfo.w // 2) // 0x10
+        rightx = (x * 10 + self.meninfo.w // 2) // 0x10
+        topy = (y * 10 - self.meninfo.h // 2) // 0xc
+        downy = (y * 10 + self.meninfo.h // 2) // 0xc
+
+        # 横轴0x10步进
+        for i in range(rightx - leftx + 1):
+            if self.dixing[hwToidx(leftx + i, topy, self.mapCellWLen)]:
+                return True
+            if self.dixing[hwToidx(leftx + i, downy, self.mapCellWLen)]:
+                return True
+
+        # 纵轴0xc步进
+        for i in range(downy - topy + 1):
+            if self.dixing[hwToidx(leftx, topy + i, self.mapCellWLen)]:
+                return True
+            if self.dixing[hwToidx(rightx, topy + i, self.mapCellWLen)]:
+                return True
+
         return False
 
+    def IsNotOverlap(self, l1, r1, l2, r2):
+        return r1.x < l2.x or r2.x < l1.x or l2.y < r1.y or r2.y < l1.y
+
     def ObstacleTouched(self, x, y):
+        leftx = (x * 10 - self.meninfo.w // 2)
+        rightx = (x * 10 + self.meninfo.w // 2)
+        topy = (y * 10 - self.meninfo.h // 2)
+        downy = (y * 10 + self.meninfo.h // 2)
+        for v in self.obstacles:
+            halfw = int(v.w / 2)
+            halfh = int(v.h / 2)
+            obleftx = v.x - halfw
+            obrightx = v.x + halfw
+            obtopy = v.y - halfh
+            obdowny = v.y + halfh
+
+            if not self.IsNotOverlap(Zuobiao(leftx, topy), Zuobiao(rightx, downy), Zuobiao(obleftx, obtopy),
+                                     Zuobiao(obrightx, obdowny)):
+                cv2.rectangle(self.img, (obleftx, obtopy), (obrightx, obdowny), (255, 0, 0), 1)
+                return True
+
         return False
 
     def GetAdjs(self, pos):
@@ -99,19 +145,38 @@ class AStartPaths:
         ]
 
         for (adjx, adjy) in checks:
-            if self.DixingTouched(adjx, adjy):
-                continue
-
+            # if self.DixingTouched(adjx, adjy):
+            #     continue
+            #
             if self.ObstacleTouched(adjx, adjy):
                 continue
 
             adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
+            #
+            # drawx, drawy = adjx * 10, adjy * 10
+            # cv2.circle(self.img, (drawx, drawy), 2, (255, 0, 0))
 
         return adjs
 
+    def findMinScore(self):
+        min = sys.maxsize
+        minv = sys.maxsize
+
+        for v in self.openSet:
+            if self.fScore[v] < min:
+                min = self.fScore[v]
+                minv = v
+
+        return minv
+
     def astar(self):
         while len(self.openSet) > 0:
-            current = min(self.openSet, key=lambda s: self.fScore[s])
+            current = self.findMinScore()
+
+            drawx, drawy = idxTohw(current, self.manCellWLen)
+            drawx, drawy = drawx * 10, drawy * 10
+            cv2.circle(self.img, (drawx, drawy), 2, (255, 0, 0))
+
             if current == self.end:
                 return
             self.openSet.remove(current)
@@ -125,19 +190,23 @@ class AStartPaths:
                                                                           idxTohw(w, self.manCellWLen))
                 if w not in self.openSet:
                     self.openSet.append(w)
-                elif tentativeScore >= self.gScore[w]:  # 如果此遍历距离大于其他点遍历过去的距离则抛弃
-                    continue
 
-                self.edgeTo[w] = current
-                self.marked[w] = True
+                if tentativeScore < self.gScore[w]:
 
-                print("edgeTo ({}) -> ({})".format(idxTohw(current, self.manCellWLen), idxTohw(w, self.manCellWLen)))
+                    # drawx, drawy = idxTohw(current, self.manCellWLen)
+                    # drawx, drawy = drawx * 10, drawy * 10
+                    # cv2.circle(self.img, (drawx, drawy), 2, (255, 0, 0))
 
-                self.gScore[w] = tentativeScore
-                self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, self.manCellWLen),
-                                                                    idxTohw(self.end, self.manCellWLen))
+                    self.edgeTo[w] = current
+                    self.marked[w] = True
 
-                print("fScore[%d] manhattan: %d" % (w, self.fScore[w]))
+                    # print("edgeTo ({}) -> ({})".format(idxTohw(current, self.manCellWLen), idxTohw(w, self.manCellWLen)))
+
+                    self.gScore[w] = tentativeScore
+                    self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, self.manCellWLen),
+                                                                        idxTohw(self.end, self.manCellWLen))
+
+                    # print("fScore[%d] manhattan: %d" % (w, self.fScore[w]))
 
     def HasPathTo(self, v: int):
         return self.marked[v]
@@ -184,7 +253,7 @@ def main():
     cv2.rectangle(img, (endx - meninfo.w // 2, endy - meninfo.h // 2),
                   (endx + meninfo.w // 2, endy + meninfo.h // 2), (0, 0, 255), 1)
 
-    astar = AStartPaths(d, hwToidx(beginx // 10, beginy // 10, d.mapw // 10),
+    astar = AStartPaths(d, meninfo, hwToidx(beginx // 10, beginy // 10, d.mapw // 10),
                         hwToidx(endx // 10, endy // 10, d.mapw // 10), img)
 
     paths = astar.PathTo(hwToidx(endx // 10, endy // 10, d.mapw // 10))
