@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 import cv2
 import numpy as np
@@ -9,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 # a* 8方位
 import copy
 
-from superai.astartdemo import manhattanDistance, idxTohw, hwToidx
+from superai.astartdemo import idxTohw, hwToidx, dist_between
 from superai.common import Log
 from superai.gameapi import FlushPid, GameApiInit, GetMenInfo
 from superai.obstacle import GetGameObstacleData, drawAll, drawBack
@@ -54,6 +55,8 @@ class AStartPaths:
     def __init__(self, d, meninfo, start, end, img):
         self.img = img
         self.meninfo = meninfo
+        self.mapwlen = d.mapw
+        self.maphlen = d.maph
 
         self.initobstacle(d)
 
@@ -62,6 +65,8 @@ class AStartPaths:
         self.manCellWLen = d.mapw // 10
         self.manCellHLen = d.maph // 10
         self.manCellnum = self.manCellHLen * self.manCellWLen
+
+        print("manCellWLen: %d manCellHLen: %d manCellnum: %d" % (self.manCellWLen, self.manCellHLen, self.manCellnum))
 
         self.closedSet = []
         self.openSet = [start]
@@ -78,7 +83,7 @@ class AStartPaths:
 
         # 估算到终点的距离
         self.fScore = [sys.maxsize] * self.manCellnum
-        self.fScore[start] = manhattanDistance(idxTohw(start, self.manCellWLen), idxTohw(end, self.manCellWLen))
+        self.fScore[start] = dist_between(idxTohw(start, self.manCellWLen), idxTohw(end, self.manCellWLen))
 
         self.astar()
 
@@ -105,7 +110,13 @@ class AStartPaths:
         return False
 
     def IsNotOverlap(self, l1, r1, l2, r2):
-        return r1.x < l2.x or r2.x < l1.x or l2.y < r1.y or r2.y < l1.y
+        if r1.x < l2.x or r2.x < l1.x:
+            return True
+
+        if r1.y < l2.y or r2.y < l1.y:
+            return True
+
+        return False
 
     def ObstacleTouched(self, x, y):
         leftx = (x * 10 - self.meninfo.w // 2)
@@ -120,9 +131,11 @@ class AStartPaths:
             obtopy = v.y - halfh
             obdowny = v.y + halfh
 
+            # cv2.rectangle(self.img, (leftx, topy), (rightx, downy), (0, 0, 139), 1)
+            # cv2.rectangle(self.img, (obleftx, obtopy), (obrightx, obdowny), (255, 0, 0), 1)
+
             if not self.IsNotOverlap(Zuobiao(leftx, topy), Zuobiao(rightx, downy), Zuobiao(obleftx, obtopy),
                                      Zuobiao(obrightx, obdowny)):
-                cv2.rectangle(self.img, (obleftx, obtopy), (obrightx, obdowny), (255, 0, 0), 1)
                 return True
 
         return False
@@ -145,37 +158,26 @@ class AStartPaths:
         ]
 
         for (adjx, adjy) in checks:
+            if adjx * 10 > self.mapwlen or adjy * 10 > self.maphlen:
+                continue
+
             # if self.DixingTouched(adjx, adjy):
             #     continue
-            #
+
             if self.ObstacleTouched(adjx, adjy):
                 continue
 
             adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
-            #
+
+            # 临时打印下 邻居节点
             # drawx, drawy = adjx * 10, adjy * 10
             # cv2.circle(self.img, (drawx, drawy), 2, (255, 0, 0))
 
         return adjs
 
-    def findMinScore(self):
-        min = sys.maxsize
-        minv = sys.maxsize
-
-        for v in self.openSet:
-            if self.fScore[v] < min:
-                min = self.fScore[v]
-                minv = v
-
-        return minv
-
     def astar(self):
         while len(self.openSet) > 0:
-            current = self.findMinScore()
-
-            drawx, drawy = idxTohw(current, self.manCellWLen)
-            drawx, drawy = drawx * 10, drawy * 10
-            cv2.circle(self.img, (drawx, drawy), 2, (255, 0, 0))
+            current = min(self.openSet, key=lambda s: self.fScore[s])
 
             if current == self.end:
                 return
@@ -186,27 +188,19 @@ class AStartPaths:
                 if w in self.closedSet:
                     continue
                 # 实际距离
-                tentativeScore = self.gScore[current] + manhattanDistance(idxTohw(current, self.manCellWLen),
-                                                                          idxTohw(w, self.manCellWLen))
+                tentativeScore = self.gScore[current] + dist_between(idxTohw(current, self.manCellWLen),
+                                                                     idxTohw(w, self.manCellWLen))
                 if w not in self.openSet:
                     self.openSet.append(w)
+                elif tentativeScore >= self.gScore[w]:
+                    continue
 
-                if tentativeScore < self.gScore[w]:
-
-                    # drawx, drawy = idxTohw(current, self.manCellWLen)
-                    # drawx, drawy = drawx * 10, drawy * 10
-                    # cv2.circle(self.img, (drawx, drawy), 2, (255, 0, 0))
-
-                    self.edgeTo[w] = current
-                    self.marked[w] = True
-
-                    # print("edgeTo ({}) -> ({})".format(idxTohw(current, self.manCellWLen), idxTohw(w, self.manCellWLen)))
-
-                    self.gScore[w] = tentativeScore
-                    self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, self.manCellWLen),
-                                                                        idxTohw(self.end, self.manCellWLen))
-
-                    # print("fScore[%d] manhattan: %d" % (w, self.fScore[w]))
+                # print("add w : %d  (%s)" % (current, idxTohw(w, self.manCellWLen)))
+                self.edgeTo[w] = current
+                self.marked[w] = True
+                self.gScore[w] = tentativeScore
+                self.fScore[w] = self.gScore[w] + dist_between(idxTohw(w, self.manCellWLen),
+                                                               idxTohw(self.end, self.manCellWLen))
 
     def HasPathTo(self, v: int):
         return self.marked[v]

@@ -87,6 +87,11 @@ def manhattanDistance(x, y):
     return sum(map(lambda i, j: abs(i - j), x, y))
 
 
+# 几何距离
+def dist_between(a, b):
+    return (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
+
+
 # a*  4方位
 class AStarPaths:
     def __init__(self, g: Graph, start: int, end: int):
@@ -109,20 +114,11 @@ class AStarPaths:
 
         self.astar(g)
 
-    def findMinScore(self):
-        min = sys.maxsize
-        minv = sys.maxsize
 
-        for v in self.openSet:
-            if self.fScore[v] < min:
-                min = self.fScore[v]
-                minv = v
-
-        return minv
 
     def astar(self, g: Graph):
         while len(self.openSet) > 0:
-            current = self.findMinScore()
+            current = min(self.openSet, key=lambda s: self.fScore[s])
 
             if current == self.end:
                 return
@@ -136,16 +132,16 @@ class AStarPaths:
                                                                            idxTohw(w, g.W))
                 if w not in self.openSet:
                     self.openSet.append(w)
+                elif tentativegScore >= self.gScore[w]:
+                    continue
+                self.edgeTo[w] = current
+                self.marked[w] = True
 
-                if tentativegScore < self.gScore[w]:
-                    self.edgeTo[w] = current
-                    self.marked[w] = True
+                print("edgeTo ({}) -> ({})".format(idxTohw(current, g.W), idxTohw(w, g.W)))
+                self.gScore[w] = tentativegScore
+                self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, g.W), idxTohw(self.end, g.W))
 
-                    print("edgeTo ({}) -> ({})".format(idxTohw(current, g.W), idxTohw(w, g.W)))
-                    self.gScore[w] = tentativegScore
-                    self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, g.W), idxTohw(self.end, g.W))
-
-                    print("fScore[%d] manhattan: %d" % (w, self.fScore[w]))
+                print("fScore[%d] manhattan: %d" % (w, self.fScore[w]))
 
     def HasPathTo(self, v: int):
         return self.marked[v]
