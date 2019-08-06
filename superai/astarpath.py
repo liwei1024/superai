@@ -161,8 +161,8 @@ class AStartPaths:
             if adjx * 10 > self.mapwlen or adjy * 10 > self.maphlen:
                 continue
 
-            # if self.DixingTouched(adjx, adjy):
-            #     continue
+            if self.DixingTouched(adjx, adjy):
+                continue
 
             if self.ObstacleTouched(adjx, adjy):
                 continue
