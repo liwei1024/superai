@@ -33,7 +33,7 @@ class AStartPaths:
         self.cellnum = self.mapCellWLen * self.mapCellHLen
         self.dixing = [False] * self.cellnum
 
-        Log("self.mapCellWLen: %d self.mapCellHLen: %d \n" % (self.mapCellWLen, self.mapCellHLen))
+        # Log("self.mapCellWLen: %d self.mapCellHLen: %d \n" % (self.mapCellWLen, self.mapCellHLen))
 
         for obj in d.dixingtree:
             cellX = obj.x // 0x10
@@ -66,7 +66,7 @@ class AStartPaths:
         self.manCellHLen = d.maph // 10
         self.manCellnum = self.manCellHLen * self.manCellWLen
 
-        print("manCellWLen: %d manCellHLen: %d manCellnum: %d" % (self.manCellWLen, self.manCellHLen, self.manCellnum))
+        # Log("manCellWLen: %d manCellHLen: %d manCellnum: %d" % (self.manCellWLen, self.manCellHLen, self.manCellnum))
 
         self.closedSet = []
         self.openSet = [start]
@@ -87,6 +87,11 @@ class AStartPaths:
 
         self.astar()
 
+    def IsDixingVecHave(self, idx):
+        if idx >= len(self.dixing):
+            return True
+        return self.dixing[idx]
+
     def DixingTouched(self, x, y):
         leftx = (x * 10 - self.meninfo.w // 2) // 0x10
         rightx = (x * 10 + self.meninfo.w // 2) // 0x10
@@ -95,16 +100,16 @@ class AStartPaths:
 
         # 横轴0x10步进
         for i in range(rightx - leftx + 1):
-            if self.dixing[hwToidx(leftx + i, topy, self.mapCellWLen)]:
+            if self.IsDixingVecHave(hwToidx(leftx + i, topy, self.mapCellWLen)):
                 return True
-            if self.dixing[hwToidx(leftx + i, downy, self.mapCellWLen)]:
+            if self.IsDixingVecHave(hwToidx(leftx + i, downy, self.mapCellWLen)):
                 return True
 
         # 纵轴0xc步进
         for i in range(downy - topy + 1):
-            if self.dixing[hwToidx(leftx, topy + i, self.mapCellWLen)]:
+            if self.IsDixingVecHave(hwToidx(leftx, topy + i, self.mapCellWLen)):
                 return True
-            if self.dixing[hwToidx(rightx, topy + i, self.mapCellWLen)]:
+            if self.IsDixingVecHave(hwToidx(rightx, topy + i, self.mapCellWLen)):
                 return True
 
         return False
@@ -242,7 +247,7 @@ def main():
                   (beginx + meninfo.w // 2, beginy + meninfo.h // 2), (0, 0, 255), 1)
 
     # 目的地矩形
-    dstx, dsty = 734, 286
+    dstx, dsty = 443, 364
     endx, endy = (int(dstx) // 10) * 10, (int(dsty) // 10) * 10
     cv2.rectangle(img, (endx - meninfo.w // 2, endy - meninfo.h // 2),
                   (endx + meninfo.w // 2, endy + meninfo.h // 2), (0, 0, 255), 1)
