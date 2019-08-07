@@ -197,8 +197,8 @@ class AStartPaths:
     def RangesAllObstacle(self, l, r, t, d):
         obstacles = []
         for v in self.obstacles:
-            halfw = int(v.w / 2)
-            halfh = int(v.h / 2)
+            halfw = v.w // 2
+            halfh = v.h // 2
             obleftx = v.x - halfw
             obrightx = v.x + halfw
             obtopy = v.y - halfh
@@ -247,10 +247,10 @@ class AStartPaths:
                     return False
 
         for twopointline in towpointlines:
-            for obstacle in obstacles:
-                halfw = obstacle.w // 2
-                halfh = obstacle.h // 2
-                l, r, t, d = obstacle.x - halfw, obstacle.x + halfw, obstacle.h - halfh, obstacle.h + halfh
+            for v in obstacles:
+                halfw = v.w // 2
+                halfh = v.h // 2
+                l, r, t, d = v.x - halfw, v.x + halfw, v.y - halfh, v.y + halfh
                 if self.IsRectagleOverlapLine(l, r, t, d, twopointline):
                     return False
 
@@ -427,19 +427,19 @@ def main():
         curnode = curnode.next
 
     # 平滑
-    # e1 = firstnode.next
-    # e2 = e1.next
-    # while e2:
-    #     (curx, cury) = idxTohw(e1.pos, d.mapw // 10)
-    #     (nextx, nexty) = idxTohw(e2.pos, d.mapw // 10)
-    #     firstzuobiao = Zuobiao(curx * 10, cury * 10)
-    #     nextzuobiao = Zuobiao(nextx * 10, nexty * 10)
-    #     if astar.CanTwoPointBeMove(firstzuobiao, nextzuobiao):
-    #         e1.next = e2
-    #         e2 = e2.next
-    #     else:
-    #         e1 = e2
-    #         e2 = e2.next
+    e1 = firstnode.next
+    e2 = e1.next
+    while e2:
+        (curx, cury) = idxTohw(e1.pos, d.mapw // 10)
+        (nextx, nexty) = idxTohw(e2.pos, d.mapw // 10)
+        firstzuobiao = Zuobiao(curx * 10, cury * 10)
+        nextzuobiao = Zuobiao(nextx * 10, nexty * 10)
+        if astar.CanTwoPointBeMove(firstzuobiao, nextzuobiao):
+            e1.next = e2
+            e2 = e2.next
+        else:
+            e1 = e2
+            e2 = e2.next
 
     iternode = firstnode.next
     while iternode:
