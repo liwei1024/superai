@@ -404,6 +404,7 @@ ATTACK_H_WIDTH = 40 / 2
 ATTACK_TOO_CLOSE_V_WIDTH = 1.0 / 2
 
 
+# 坐标位置
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
     # 同一个垂直位置
     if abs(x2) < chuizhikuandu:
@@ -458,35 +459,26 @@ def GetQuadrant(x1, y1, x2, y2):
 def CanbePickup(x1, y1, x2, y2):
     V_WIDTH = abs(x2 - x1)
     H_WIDTH = abs(y2 - y1)
-    if V_WIDTH < PICKUP_V_WIDTH and H_WIDTH < PICKUP_H_WIDTH:
-        return True
-    return False
+    return V_WIDTH < PICKUP_V_WIDTH and H_WIDTH < PICKUP_H_WIDTH
 
 
 # 是否在捡取buff范围内
 def CanbeGetBuff(x1, y1, x2, y2):
     V_WIDTH = abs(x2 - x1)
     H_WIDTH = abs(y2 - y1)
-    if V_WIDTH < BUFF_V_WIDTH and H_WIDTH < BUFF_H_WIDTH:
-        return True
-    return False
+    return V_WIDTH < BUFF_V_WIDTH and H_WIDTH < BUFF_H_WIDTH
 
 
 # 是否在慢走范围内
 def WithInManzou(x1, y1, x2, y2):
     V_WIDTH = abs(x2 - x1)
     H_WIDTH = abs(y2 - y1)
-    if V_WIDTH < MANZOU_V_WIDTH and H_WIDTH < MANZOU_H_WIDTH:
-        return True
-    return False
+    return V_WIDTH < MANZOU_V_WIDTH and H_WIDTH < MANZOU_H_WIDTH
 
 
 # 获取对象在右边还是左边
 def GetFangxiang(x1, x2):
-    if x2 - x1 > 0:
-        return RIGHT
-    else:
-        return LEFT
+    return RIGHT if x2 - x1 > 0 else LEFT
 
 
 # === help dll 基础
@@ -1067,7 +1059,7 @@ def IsEscTop():
     return meninfo.esc
 
 
-# 技能包装.
+# 技能对应的按键
 idxkeymap = {
     0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
     6: VK_CODE['q'], 7: VK_CODE['w'], 8: VK_CODE['e'], 9: VK_CODE['r'], 10: VK_CODE['t'], 11: VK_CODE['y'],
@@ -1081,7 +1073,7 @@ class SkillType(Enum):
     Buff = 3
 
 
-# 技能属性包装
+# 单个技能属性包装
 class SkillData:
     def __init__(self, **kw):
         # 技能种类
@@ -1114,80 +1106,7 @@ class SkillData:
             setattr(self, k, w)
 
 
-# 初始化技能配置. 因为内存中读取不到
-skillSettingMap = {
-
-    # 通用
-    "远古记忆": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-
-    # 移动
-    "后跳": SkillData(type=SkillType.Yidong),
-
-    # 阿修罗
-
-    # buff
-    "波动刻印": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-    "杀意波动": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-
-    # 近
-    "上挑": SkillData(type=SkillType.Gongji, level=3),
-    "鬼斩": SkillData(type=SkillType.Gongji, level=5),
-    "裂波斩": SkillData(type=SkillType.Gongji, level=7, afterdelay=0.3),
-    "鬼连斩": SkillData(type=SkillType.Gongji, level=8),
-    "波动爆发": SkillData(type=SkillType.Gongji, level=11),
-    "无双波": SkillData(type=SkillType.Gongji, level=13),
-
-    # 远
-    "地裂 · 波动剑": SkillData(type=SkillType.Gongji, level=10, v_w=200 / 2, h_w=40 / 2),
-    "鬼印珠": SkillData(type=SkillType.Gongji, level=12, v_w=400 / 2, h_w=40 / 2, too_close_v_w=140 / 2, delaytime=0.5),
-    "邪光斩": SkillData(type=SkillType.Gongji, level=15, v_w=400 / 2, h_w=40 / 2, delaytime=0.6),
-    "冰刃 · 波动剑": SkillData(type=SkillType.Gongji, level=16, v_w=400 / 2, h_w=40 / 2),
-    "爆炎 · 波动剑": SkillData(type=SkillType.Gongji, level=14, v_w=400 / 2, h_w=40 / 2),
-
-    # 神龙天女
-    "神谕之祈愿": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-
-    # 光枪
-    "能量萃取": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-
-    # 暗枪
-    "黑暗化身": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-
-    # 女光剑
-    "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-
-    # 女气功
-    "光之兵刃": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-    "烈日气息": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-    "念兽 : 龙虎啸": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-    "千莲怒放": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),
-
-    # 男气功
-    "念气流转": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-
-    # 女散打
-    "强拳": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-    "霸体护甲": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-
-    # 龙骑士
-    "龙语召唤 : 阿斯特拉": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=1.2),
-    "肉食主义": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
-
-    # 关羽
-    "不灭战戟": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-
-    # 赵云
-    "无双枪术": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-
-    # 四姨
-    "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4, thenpress=VK_CODE["left_arrow"]),
-
-    # 吸怪,蓄力
-    "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),
-}
-
-
-# 技能包装
+# 单个技能包装
 class Skill:
 
     def __init__(self, **kw):
@@ -1279,11 +1198,6 @@ class Skill:
                    self.skilldata.doublepress)
 
 
-# 普通攻击
-simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击")
-simpleAttackSkill.skilldata.delaytime = 1.0
-
-
 # 技能列表
 class Skills:
     def __init__(self):
@@ -1362,6 +1276,83 @@ class Skills:
                 if obj.sendtime != 0:
                     return True
         return False
+
+
+# 初始化技能配置. 因为内存中读取不到
+skillSettingMap = {
+
+    # 通用
+    "远古记忆": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    # 移动
+    "后跳": SkillData(type=SkillType.Yidong),
+
+    # 阿修罗
+
+    # buff
+    "波动刻印": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "杀意波动": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    # 近
+    "上挑": SkillData(type=SkillType.Gongji, level=3),
+    "鬼斩": SkillData(type=SkillType.Gongji, level=5),
+    "裂波斩": SkillData(type=SkillType.Gongji, level=7, afterdelay=0.3),
+    "鬼连斩": SkillData(type=SkillType.Gongji, level=8),
+    "波动爆发": SkillData(type=SkillType.Gongji, level=11),
+    "无双波": SkillData(type=SkillType.Gongji, level=13),
+
+    # 远
+    "地裂 · 波动剑": SkillData(type=SkillType.Gongji, level=10, v_w=200 / 2, h_w=40 / 2),
+    "鬼印珠": SkillData(type=SkillType.Gongji, level=12, v_w=400 / 2, h_w=40 / 2, too_close_v_w=140 / 2, delaytime=0.5),
+    "邪光斩": SkillData(type=SkillType.Gongji, level=15, v_w=400 / 2, h_w=40 / 2, delaytime=0.6),
+    "冰刃 · 波动剑": SkillData(type=SkillType.Gongji, level=16, v_w=400 / 2, h_w=40 / 2),
+    "爆炎 · 波动剑": SkillData(type=SkillType.Gongji, level=14, v_w=400 / 2, h_w=40 / 2),
+
+    # 神龙天女
+    "神谕之祈愿": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    # 光枪
+    "能量萃取": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    # 暗枪
+    "黑暗化身": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    # 女光剑
+    "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    # 女气功
+    "光之兵刃": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "烈日气息": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "念兽 : 龙虎啸": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "千莲怒放": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),
+
+    # 男气功
+    "念气流转": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    # 女散打
+    "强拳": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "霸体护甲": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    # 龙骑士
+    "龙语召唤 : 阿斯特拉": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=1.2),
+    "肉食主义": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+
+    # 关羽
+    "不灭战戟": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    # 赵云
+    "无双枪术": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    # 四姨
+    "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4, thenpress=VK_CODE["left_arrow"]),
+
+    # 吸怪,蓄力
+    "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),
+}
+
+# 普通攻击
+simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击")
+simpleAttackSkill.skilldata.delaytime = 1.0
 
 
 # 读写速度测试
