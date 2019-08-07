@@ -87,7 +87,7 @@ def manhattanDistance(x, y):
     return sum(map(lambda i, j: abs(i - j), x, y))
 
 
-# 几何距离
+# 欧几里得距离
 def dist_between(a, b):
     return (b[0] - a[0]) ** 2 + (b[1] - a[1]) ** 2
 

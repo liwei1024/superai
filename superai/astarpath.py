@@ -11,9 +11,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 import copy
 
 from superai.astartdemo import idxTohw, hwToidx, dist_between
-from superai.common import Log
-from superai.gameapi import FlushPid, GameApiInit, GetMenInfo
-from superai.obstacle import GetGameObstacleData, drawAll, drawBack
+from superai.gameapi import FlushPid, GameApiInit, GetMenInfo, GetNextDoor
+from superai.obstacle import GetGameObstacleData, drawBack
 
 
 class Zuobiao():
@@ -39,6 +38,19 @@ class PathEdge():
         self.pos = pos
         self.next = next
         self.type = type
+
+
+def Calc(x, y, way):
+    # 左右上下
+    if way == 0:
+        return x - 1, y
+    if way == 1:
+        return x + 1, y
+    if way == 2:
+        return x, y - 1
+    if way == 3:
+        return x, y + 1
+    return x, y
 
 
 class AStartPaths:
@@ -89,6 +101,23 @@ class AStartPaths:
 
         # Log("manCellWLen: %d manCellHLen: %d manCellnum: %d" % (self.manCellWLen, self.manCellHLen, self.manCellnum))
 
+        # 修正人物与目的位置 10 x 10 坐标位置
+        b = idxTohw(start, self.manCellWLen)
+        if self.DixingTouched(b[0], b[1]) or self.ObstacleTouched(b[0], b[1]):
+            curx, cury = idxTohw(start, self.manCellWLen)
+            for i in range(4):
+                nowx, nowy = Calc(curx, cury, i)
+                if not self.DixingTouched(nowx, nowy) and not self.ObstacleTouched(nowx, nowy):
+                    start = hwToidx(nowx, nowy, self.manCellWLen)
+
+        b = idxTohw(end, self.manCellWLen)
+        if self.DixingTouched(b[0], b[1]) or self.ObstacleTouched(b[0], b[1]):
+            curx, cury = idxTohw(end, self.manCellWLen)
+            for i in range(4):
+                nowx, nowy = Calc(curx, cury, i)
+                if not self.DixingTouched(nowx, nowy) and not self.ObstacleTouched(nowx, nowy):
+                    end = hwToidx(nowx, nowy, self.manCellWLen)
+
         self.closedSet = []
         self.openSet = [start]
 
@@ -119,41 +148,33 @@ class AStartPaths:
 
         return not IsNotOverlap(l1, r1, l2, r2)
 
-    # 构造线段
-    def line(self, p1, p2):
-        A = (p1[1] - p2[1])
-        B = (p2[0] - p1[0])
-        C = (p1[0] * p2[1] - p2[0] * p1[1])
-        return A, B, -C
+    # https://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
+    def ccw(self, A, B, C):
+        return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
 
-    # 交点
-    def intersection(self, L1, L2):
-        D = L1[0] * L2[1] - L1[1] * L2[0]
-        Dx = L1[2] * L2[1] - L1[1] * L2[2]
-        Dy = L1[0] * L2[2] - L1[2] * L2[0]
-        if D != 0:
-            x = Dx / D
-            y = Dy / D
-            return x, y
-        else:
-            return False
+    # Return true if line segments AB and CD intersect
+    def intersect(self, A, B, C, D):
+        return self.ccw(A, C, D) != self.ccw(B, C, D) and self.ccw(A, B, C) != self.ccw(A, B, D)
 
-    # 线段与线段是否相交 https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-    # https://stackoverflow.com/questions/20677795/how-do-i-compute-the-intersection-point-of-two-lines
-    def IsLineOverlapLine(self, L1, L2):
-        R = self.intersection(L1, L2)
-        return True if R else False
+    def IsLineOverlapLine(self, A, B, C, D):
+        return self.intersect(A, B, C, D)
 
     # 矩形是否和线段相交
-    def IsRectagleOverlapLine(self, renleftx, renrightx, rentopy, rendowny, line):
-        checks = [
-            self.line([renleftx, rentopy], [renrightx, rentopy]),
-            self.line([renleftx, rendowny], [renrightx, rendowny]),
-            self.line([renleftx, rentopy], [renleftx, rendowny]),
-            self.line([renrightx, rentopy], [renrightx, rendowny])
+    def IsRectagleOverlapLine(self, renleftx, renrightx, rentopy, rendowny, twopointline):
+        rentlines = [
+            [Zuobiao(renleftx, rentopy), Zuobiao(renrightx, rentopy)],
+            [Zuobiao(renleftx, rendowny), Zuobiao(renrightx, rendowny)],
+            [Zuobiao(renleftx, rentopy), Zuobiao(renleftx, rendowny)],
+            [Zuobiao(renrightx, rentopy), Zuobiao(renrightx, rendowny)],
         ]
-        for check in checks:
-            if self.IsLineOverlapLine(check, line):
+
+        # cv2.line(self.img, (renleftx, rentopy), (renrightx, rentopy), (0, 0, 255), 1)
+        # cv2.line(self.img, (renleftx, rendowny), (renrightx, rendowny), (0, 0, 255), 1)
+        # cv2.line(self.img, (renleftx, rentopy), (renleftx, rendowny), (0, 0, 255), 1)
+        # cv2.line(self.img, (renrightx, rentopy), (renrightx, rendowny), (0, 0, 255), 1)
+
+        for rentline in rentlines:
+            if self.IsLineOverlapLine(rentline[0], rentline[1], twopointline[0], twopointline[1]):
                 return True
         return False
 
@@ -197,8 +218,8 @@ class AStartPaths:
         point2leftx, point2rightx, point2topy, point2downy = point2.x - halfw, point2.x + halfw, point2.y - halfh, point2.y + halfh
         # 范围极值
         minl, minr, mint, mind = min(point1leftx, point2leftx), \
-                                 min(point1rightx, point2rightx), min(point1topy, point2topy), \
-                                 min(point1downy, point2downy)
+                                 max(point1rightx, point2rightx), min(point1topy, point2topy), \
+                                 max(point1downy, point2downy)
 
         dixingcells = self.RangesAllDixing(minl, minr, mint, mind)
         obstacles = self.RangesAllObstacle(minl, minr, mint, mind)
@@ -206,25 +227,31 @@ class AStartPaths:
         if len(dixingcells) < 1 and len(obstacles) < 1:
             return True
 
-        checks = [
-            self.line([point1leftx, point1topy], [point2leftx, point2topy]),
-            self.line([point1rightx, point1topy], [point2rightx, point2topy]),
-            self.line([point1leftx, point1downy], [point2leftx, point2downy]),
-            self.line([point1rightx, point1downy], [point2rightx, point2downy])
+        towpointlines = [
+            [Zuobiao(point1leftx, point1topy), Zuobiao(point2leftx, point2topy)],
+            [Zuobiao(point1rightx, point1topy), Zuobiao(point2rightx, point2topy)],
+            [Zuobiao(point1leftx, point1downy), Zuobiao(point2leftx, point2downy)],
+            [Zuobiao(point1rightx, point1downy), Zuobiao(point2rightx, point2downy)],
         ]
 
-        for checkline in checks:
+        # cv2.line(self.img, (point1leftx, point1topy), (point2leftx, point2topy), (0, 0, 255), 1)
+        # cv2.line(self.img, (point1rightx, point1topy), (point2rightx, point2topy), (0, 0, 255), 1)
+        # cv2.line(self.img, (point1leftx, point1downy), (point2leftx, point2downy), (0, 0, 255), 1)
+        # cv2.line(self.img, (point1rightx, point1downy), (point2rightx, point2downy), (0, 0, 255), 1)
+
+        for twopointline in towpointlines:
             for dixingcell in dixingcells:
-                l, r, t, d = dixingcell[0], dixingcell[0] + 0x10, dixingcell[1], dixingcell[1] + 0xc
-                if self.IsRectagleOverlapLine(l, r, t, d, checkline):
+                l, r, t, d = dixingcell[0] * 0x10, dixingcell[0] * 0x10 + 0x10, dixingcell[1] * 0xc, dixingcell[
+                    1] * 0xc + 0xc
+                if self.IsRectagleOverlapLine(l, r, t, d, twopointline):
                     return False
 
-        for checkline in checks:
+        for twopointline in towpointlines:
             for obstacle in obstacles:
                 halfw = obstacle.w // 2
                 halfh = obstacle.h // 2
                 l, r, t, d = obstacle.x - halfw, obstacle.x + halfw, obstacle.h - halfh, obstacle.h + halfh
-                if self.IsRectagleOverlapLine(l, r, t, d, checkline):
+                if self.IsRectagleOverlapLine(l, r, t, d, twopointline):
                     return False
 
         return True
@@ -237,24 +264,15 @@ class AStartPaths:
 
     # 是否触碰到地形
     def DixingTouched(self, x, y):
-        leftx = (x * 10 - self.meninfo.w // 2) // 0x10
-        rightx = (x * 10 + self.meninfo.w // 2) // 0x10
-        topy = (y * 10 - self.meninfo.h // 2) // 0xc
-        downy = (y * 10 + self.meninfo.h // 2) // 0xc
+        l = (x * 10 - self.meninfo.w // 2) // 0x10
+        r = (x * 10 + self.meninfo.w // 2) // 0x10
+        t = (y * 10 - self.meninfo.h // 2) // 0xc
+        d = (y * 10 + self.meninfo.h // 2) // 0xc
 
-        # 横轴0x10步进
-        for i in range(rightx - leftx + 1):
-            if self.IsDixingVecHave(hwToidx(leftx + i, topy, self.mapCellWLen)):
-                return True
-            if self.IsDixingVecHave(hwToidx(leftx + i, downy, self.mapCellWLen)):
-                return True
-
-        # 纵轴0xc步进
-        for i in range(downy - topy + 1):
-            if self.IsDixingVecHave(hwToidx(leftx, topy + i, self.mapCellWLen)):
-                return True
-            if self.IsDixingVecHave(hwToidx(rightx, topy + i, self.mapCellWLen)):
-                return True
+        for i in range(r - l + 1):
+            for j in range(d - t + 1):
+                if self.IsDixingVecHave(hwToidx(l + i, t + j, self.mapCellWLen)):
+                    return True
 
         return False
 
@@ -381,14 +399,16 @@ def main():
     # 人物矩形
     meninfo = GetMenInfo()
     beginx, beginy = (int(meninfo.x) // 10) * 10, (int(meninfo.y) // 10) * 10
-    cv2.rectangle(img, (beginx - meninfo.w // 2, beginy - meninfo.h // 2),
-                  (beginx + meninfo.w // 2, beginy + meninfo.h // 2), (0, 0, 255), 1)
+    # cv2.rectangle(img, (beginx - meninfo.w // 2, beginy - meninfo.h // 2),
+    #               (beginx + meninfo.w // 2, beginy + meninfo.h // 2), (0, 0, 255), 1)
 
     # 目的地矩形
-    dstx, dsty = 443, 364
+    door = GetNextDoor()
+
+    dstx, dsty = door.prevcx, door.prevcy
     endx, endy = (int(dstx) // 10) * 10, (int(dsty) // 10) * 10
-    cv2.rectangle(img, (endx - meninfo.w // 2, endy - meninfo.h // 2),
-                  (endx + meninfo.w // 2, endy + meninfo.h // 2), (0, 0, 255), 1)
+    # cv2.rectangle(img, (endx - meninfo.w // 2, endy - meninfo.h // 2),
+    #               (endx + meninfo.w // 2, endy + meninfo.h // 2), (0, 0, 255), 1)
 
     astar = AStartPaths(d, meninfo, hwToidx(beginx // 10, beginy // 10, d.mapw // 10),
                         hwToidx(endx // 10, endy // 10, d.mapw // 10), img)
@@ -407,33 +427,31 @@ def main():
         curnode = curnode.next
 
     # 平滑
-    e1 = firstnode.next
-    e2 = e1.next
-    while e2:
-        (curx, cury) = idxTohw(e1.pos, d.mapw // 10)
-        (nextx, nexty) = idxTohw(e2.pos, d.mapw // 10)
-
-        firstzuobiao = Zuobiao(curx * 10, cury * 10)
-        nextzuobiao = Zuobiao(nextx * 10, nexty * 10)
-
-
-        cv2.circle(img, (nextzuobiao.x, nextzuobiao.y), 3, (0, 155, 0))
-
-        if astar.CanTwoPointBeMove(firstzuobiao, nextzuobiao):
-            e1.next = e2
-            e2 = e2.next
-        else:
-            e1 = e2
-            e2 = e2.next
+    # e1 = firstnode.next
+    # e2 = e1.next
+    # while e2:
+    #     (curx, cury) = idxTohw(e1.pos, d.mapw // 10)
+    #     (nextx, nexty) = idxTohw(e2.pos, d.mapw // 10)
+    #     firstzuobiao = Zuobiao(curx * 10, cury * 10)
+    #     nextzuobiao = Zuobiao(nextx * 10, nexty * 10)
+    #     if astar.CanTwoPointBeMove(firstzuobiao, nextzuobiao):
+    #         e1.next = e2
+    #         e2 = e2.next
+    #     else:
+    #         e1 = e2
+    #         e2 = e2.next
 
     iternode = firstnode.next
     while iternode:
         (x, y) = idxTohw(iternode.pos, d.mapw // 10)
         drawx, drawy = x * 10, y * 10
         cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
+
+        halfw = meninfo.w // 2
+        halfh = meninfo.h // 2
+
+        cv2.rectangle(img, (drawx - halfw, drawy - halfh), (drawx + halfw, drawy + halfh), (0, 0, 139), 1)
         iternode = iternode.next
-
-
 
     cv2.imshow('img', img)
     cv2.waitKey()
