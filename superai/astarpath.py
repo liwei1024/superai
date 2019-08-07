@@ -15,12 +15,14 @@ from superai.gameapi import FlushPid, GameApiInit, GetMenInfo, GetNextDoor
 from superai.obstacle import GetGameObstacleData, drawBack
 
 
+# 坐标
 class Zuobiao():
     def __init__(self, x, y):
         self.x = x
         self.y = y
 
 
+# 左右上下极值
 class Cell():
     def __init__(self, l, r, t, d):
         self.l = l
@@ -33,6 +35,7 @@ OTHER = 2
 NODE = 0
 
 
+# 把节点包装到链表里
 class PathEdge():
     def __init__(self, pos, next, type=NODE):
         self.pos = pos
@@ -40,7 +43,8 @@ class PathEdge():
         self.type = type
 
 
-def Calc(x, y, way):
+# 一个偏移的接口, 因为人物和目的地初始位置不一定在线条上
+def NextZuobiao(x, y, way):
     # 左右上下
     if way == 0:
         return x - 1, y
@@ -52,6 +56,24 @@ def Calc(x, y, way):
         return x, y + 1
     return x, y
 
+
+# 矩形是否相交
+def IsRectangleOverlap(l1, r1, l2, r2):
+    def IsNotOverlap(l1, r1, l2, r2):
+        if r1.x < l2.x or r2.x < l1.x:
+            return True
+        if r1.y < l2.y or r2.y < l1.y:
+            return True
+        return False
+
+    return not IsNotOverlap(l1, r1, l2, r2)
+
+
+# 线段是否相交 https://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
+def intersect(A, B, C, D):
+    def ccw(A, B, C):
+        return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
+    return ccw(A, C, D) != ccw(B, C, D) and ccw(A, B, C) != ccw(A, B, D)
 
 class AStartPaths:
 
@@ -106,7 +128,7 @@ class AStartPaths:
         if self.DixingTouched(b[0], b[1]) or self.ObstacleTouched(b[0], b[1]):
             curx, cury = idxTohw(start, self.manCellWLen)
             for i in range(4):
-                nowx, nowy = Calc(curx, cury, i)
+                nowx, nowy = NextZuobiao(curx, cury, i)
                 if not self.DixingTouched(nowx, nowy) and not self.ObstacleTouched(nowx, nowy):
                     start = hwToidx(nowx, nowy, self.manCellWLen)
 
@@ -114,7 +136,7 @@ class AStartPaths:
         if self.DixingTouched(b[0], b[1]) or self.ObstacleTouched(b[0], b[1]):
             curx, cury = idxTohw(end, self.manCellWLen)
             for i in range(4):
-                nowx, nowy = Calc(curx, cury, i)
+                nowx, nowy = NextZuobiao(curx, cury, i)
                 if not self.DixingTouched(nowx, nowy) and not self.ObstacleTouched(nowx, nowy):
                     end = hwToidx(nowx, nowy, self.manCellWLen)
 
@@ -137,30 +159,8 @@ class AStartPaths:
 
         self.astar()
 
-    # 矩形相交
-    def IsRectangleOverlap(self, l1, r1, l2, r2):
-        def IsNotOverlap(l1, r1, l2, r2):
-            if r1.x < l2.x or r2.x < l1.x:
-                return True
-            if r1.y < l2.y or r2.y < l1.y:
-                return True
-            return False
-
-        return not IsNotOverlap(l1, r1, l2, r2)
-
-    # https://stackoverflow.com/questions/3838329/how-can-i-check-if-two-segments-intersect
-    def ccw(self, A, B, C):
-        return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
-
-    # Return true if line segments AB and CD intersect
-    def intersect(self, A, B, C, D):
-        return self.ccw(A, C, D) != self.ccw(B, C, D) and self.ccw(A, B, C) != self.ccw(A, B, D)
-
-    def IsLineOverlapLine(self, A, B, C, D):
-        return self.intersect(A, B, C, D)
-
     # 矩形是否和线段相交
-    def IsRectagleOverlapLine(self, renleftx, renrightx, rentopy, rendowny, twopointline):
+    def IsRectagleOverlapLine(self, renleftx, renrightx, rentopy, rendowny, line):
         rentlines = [
             [Zuobiao(renleftx, rentopy), Zuobiao(renrightx, rentopy)],
             [Zuobiao(renleftx, rendowny), Zuobiao(renrightx, rendowny)],
@@ -174,7 +174,7 @@ class AStartPaths:
         # cv2.line(self.img, (renrightx, rentopy), (renrightx, rendowny), (0, 0, 255), 1)
 
         for rentline in rentlines:
-            if self.IsLineOverlapLine(rentline[0], rentline[1], twopointline[0], twopointline[1]):
+            if intersect(rentline[0], rentline[1], line[0], line[1]):
                 return True
         return False
 
@@ -204,8 +204,8 @@ class AStartPaths:
             obtopy = v.y - halfh
             obdowny = v.y + halfh
 
-            if self.IsRectangleOverlap(Zuobiao(l, t), Zuobiao(r, d), Zuobiao(obleftx, obtopy),
-                                       Zuobiao(obrightx, obdowny)):
+            if IsRectangleOverlap(Zuobiao(l, t), Zuobiao(r, d), Zuobiao(obleftx, obtopy),
+                                  Zuobiao(obrightx, obdowny)):
                 obstacles.append(v)
         return obstacles
 
@@ -293,8 +293,8 @@ class AStartPaths:
             # cv2.rectangle(self.img, (leftx, topy), (rightx, downy), (0, 0, 139), 1)
             # cv2.rectangle(self.img, (obleftx, obtopy), (obrightx, obdowny), (255, 0, 0), 1)
 
-            if self.IsRectangleOverlap(Zuobiao(leftx, topy), Zuobiao(rightx, downy), Zuobiao(obleftx, obtopy),
-                                       Zuobiao(obrightx, obdowny)):
+            if IsRectangleOverlap(Zuobiao(leftx, topy), Zuobiao(rightx, downy), Zuobiao(obleftx, obtopy),
+                                  Zuobiao(obrightx, obdowny)):
                 return True
 
         return False
