@@ -1,10 +1,6 @@
 import os
 import sys
 
-from superai.astarpath import Obstacle, BfsNextDoorWrapCorrect, GetCloseCoord, AStartPaths
-from superai.astartdemo import hwToidx
-from superai.obstacle import GetGameObstacleData
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import threading
@@ -12,6 +8,10 @@ import win32gui
 import math
 import random
 import time
+
+from superai.astarpath import Obstacle, BfsNextDoorWrapCorrect, GetCloseCoord, AStartPaths
+from superai.astartdemo import hwToidx, idxTohw
+from superai.obstacle import GetGameObstacleData
 
 from superai.flannfind import FlushImg, IsCartoonTop, IsVideoTop, SetThreadExit, \
     IsConfirmTop, GetConfirmPos
@@ -262,18 +262,22 @@ class Player:
         # 之前路径规划过. 把路径规划的所有点都走完
         if len(self.latestPathPlans) > 0:
             curpoint = self.latestPathPlans[0]
+            curpoint = idxTohw(curpoint, self.d.mapw // 10)
+            curpoint[0], curpoint[1] = curpoint[0] * 10, curpoint[1] * 10
+
             menx, meny = GetMenXY()
             quad, rent = GetQuadrant(menx, meny, curpoint[0], curpoint[1])
             if quad == Quardant.CHONGDIE:
-                Log("到达路径规划点: (%d, %d) 开始向下一个点前进" % (curpoint[0], curpoint[1]))
                 del self.latestPathPlans[0]
+                Log("到达路径规划点(还剩%d): (%d, %d) 开始向下一个点前进" % (len(self.latestPathPlans), curpoint[0], curpoint[1]))
                 return self.SeekWithPathfinding(destx, desty, obj, dummy)
             else:
-                Log("向路径规划点: (%d, %d) 前进" % (curpoint[0], curpoint[1]))
+                Log("向路径规划点(%d): (%d, %d) 前进" % (len(self.latestPathPlans), curpoint[0], curpoint[1]))
                 return self.Seek(curpoint[0], curpoint[1], obj, dummy)
 
         # 范围内有麻烦就路径规划一下
         menx, meny = GetMenXY()
+        menx, meny = int(menx), int(meny)
         l, r, t, d = menx - PATH_PLANING_RANGE // 2, menx + PATH_PLANING_RANGE // 2, meny - PATH_PLANING_RANGE // 2, meny + PATH_PLANING_RANGE // 2
         if self.ob.RangesHaveTrouble(l, r, t, d):
             beginx, beginy = GetCloseCoord(menx, meny)
@@ -734,6 +738,7 @@ class DoorOpenGotoNext(State):
             if IsCurrentInBossFangjian():
                 Log("进到了boss房间")
             # 进入到了新的门
+            RanSleep(1.0)
             player.NewMapCache()
             player.ChangeState(StandState())
         else:
@@ -748,6 +753,7 @@ class DoorStuckGoToPrev(State):
         if not IsNextDoorOpen():
             if IsCurrentInBossFangjian():
                 Log("进到了boss房间")
+            RanSleep(1.0)
             player.NewMapCache()
             player.ChangeState(StandState())
         elif IsClosedTo(menx, meny, door.prevcx, door.prevcy):
