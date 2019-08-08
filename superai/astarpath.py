@@ -192,7 +192,7 @@ class Obstacle:
 
     # 是否越界
     def OverStep(self, cellx, celly):
-        return not (cellx * 10 > self.mapCellWLen * 10 or celly * 10 > self.mapCellHLen * 10)
+        return  cellx * 10 > self.mapCellWLen * 0x10 or celly * 10 > self.mapCellHLen * 0xc
 
     # 是否触碰到地形或者障碍物或者越界. p[cellx,celly] 10 宽高相应cell位置
     def TouchedAnything(self, p):
