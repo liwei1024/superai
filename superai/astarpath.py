@@ -468,7 +468,7 @@ class BfsNextDoorWrapCorrect:
         return idxTohw(self.s, self.manCellWLen)
 
 
-def DrawNextMenPath():
+def DrawNextDoorPath():
     d = GetGameObstacleData()
     mapcellwlen = d.mapw // 10
 
@@ -476,20 +476,25 @@ def DrawNextMenPath():
 
     img = np.zeros((d.maph, d.mapw, 3), dtype=np.uint8)
     img[np.where(img == [0])] = [255]
-    drawBack(img, d)
+    drawWithOutDoor(img, d)
 
     # 人物
     meninfo = GetMenInfo()
     beginx, beginy = GetCloseCoord(meninfo.x, meninfo.y)
     begincellidx = hwToidx(beginx // 10, beginy // 10, mapcellwlen)
 
+    # 障碍物包装
+    ob = Obstacle(d, meninfo)
+
     # 目的
-    door = GetNextDoor()
-    endx, endy = GetCloseCoord(door.prevcx, door.prevcy)
+    door = GetNextDoorWrap()
+    bfsdoor = BfsNextDoorWrapCorrect(d.mapw, d.maph, door, ob)
+    (cellx, celly) = bfsdoor.bfs()
+    endx, endy = GetCloseCoord(cellx * 10, celly * 10)
     endcellidx = hwToidx(endx // 10, endy // 10, mapcellwlen)
 
     # a star search
-    ob = Obstacle(d, meninfo)
+
     astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
     iter = astar.PathToSmooth(endcellidx)
 
@@ -509,7 +514,7 @@ def DrawNextMenPath():
     cv2.destroyAllWindows()
 
 
-def DrawNextMen():
+def DrawNextDoor():
     d = GetGameObstacleData()
 
     print("w h : %d %d" % (d.mapw, d.maph))
@@ -522,7 +527,6 @@ def DrawNextMen():
     ob = Obstacle(d, meninfo)
     door = GetNextDoorWrap()
     bfsdoor = BfsNextDoorWrapCorrect(d.mapw, d.maph, door, ob)
-
     (cellx, celly) = bfsdoor.bfs()
     drawx = cellx * 10
     drawy = celly * 10
@@ -542,8 +546,8 @@ def main():
         exit(0)
     FlushPid()
 
-    DrawNextMen()
-    # DrawNextMenPath()
+    # DrawNextDoor()
+    DrawNextDoorPath()
 
 
 if __name__ == '__main__':
