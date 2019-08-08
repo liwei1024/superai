@@ -469,14 +469,20 @@ class BfsNextDoorWrapCorrect:
 
 
 def DrawNextDoorPath():
+    t1 = time.time()
     d = GetGameObstacleData()
-    mapcellwlen = d.mapw // 10
+    t2 = time.time()
 
+    print("获取障碍物: %f" % (t2 - t1))  # 100ms
+
+    mapcellwlen = d.mapw // 10
     print("w h : %d %d" % (d.mapw, d.maph))
 
     img = np.zeros((d.maph, d.mapw, 3), dtype=np.uint8)
     img[np.where(img == [0])] = [255]
     drawWithOutDoor(img, d)
+
+    t1 = time.time()
 
     # 人物
     meninfo = GetMenInfo()
@@ -494,9 +500,12 @@ def DrawNextDoorPath():
     endcellidx = hwToidx(endx // 10, endy // 10, mapcellwlen)
 
     # a star search
-
     astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
     iter = astar.PathToSmooth(endcellidx)
+
+    t2 = time.time()
+
+    print("寻路: %f" % (t2 - t1))  # 50ms
 
     while iter:
         # 画路径点
