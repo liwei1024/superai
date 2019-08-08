@@ -403,6 +403,8 @@ ATTACK_H_WIDTH = 40 / 2
 # 攻击太靠近的垂直宽度
 ATTACK_TOO_CLOSE_V_WIDTH = 1.0 / 2
 
+# 路径规划范围
+PATH_PLANING_RANGE = 100
 
 # 坐标位置
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):

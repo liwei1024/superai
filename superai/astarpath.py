@@ -99,7 +99,10 @@ def GetCloseCoord(x, y):
 
 
 class Obstacle:
-    def __init__(self, d: GameObstacleData, meninfo):
+    def __init__(self, d: GameObstacleData, menw, menh):
+        self.menw = menw
+        self.menh = menh
+
         # 初始化 1. 地形二叉树 2. 地形数组 3. 地形额外  使用 16 * 12 长宽的格子
         self.mapCellWLen = d.mapw // 0x10
         self.mapCellHLen = d.maph // 0xc
@@ -120,9 +123,6 @@ class Obstacle:
 
         # 4. 障碍物  使用特定长宽的格子
         self.obstacles = copy.deepcopy(d.obstacles)
-
-        # 人物信息
-        self.meninfo = meninfo
 
     # 刷新障碍(障碍被攻击掉了)
     def UpdateObstacle(self, obstacles):
@@ -164,12 +164,18 @@ class Obstacle:
                     dixingcells.append((l + i, t + j))
         return dixingcells
 
+    # 范围内有障碍物或地形格子, 是否选择路径规划用. l,r,t,d 范围格子坐标极值. 返回True False
+    def RangesHaveTrouble(self, l, r, t, d):
+        if len(self.RangesAllObstacle(l, r, t, d)) > 0:
+            return True
+        return self.RangesAllDixing(l, r, t, d)
+
     # 是否触碰到地形. x,y 10 宽高的相应cell位置
     def DixingTouched(self, cellx, celly):
-        l = (cellx * 10 - self.meninfo.w // 2) // 0x10
-        r = (cellx * 10 + self.meninfo.w // 2) // 0x10
-        t = (celly * 10 - self.meninfo.h // 2) // 0xc
-        d = (celly * 10 + self.meninfo.h // 2) // 0xc
+        l = (cellx * 10 - self.menw // 2) // 0x10
+        r = (cellx * 10 + self.menw // 2) // 0x10
+        t = (celly * 10 - self.menh // 2) // 0xc
+        d = (celly * 10 + self.menh // 2) // 0xc
         for i in range(r - l + 1):
             for j in range(d - t + 1):
                 if self.IsDixingVecHave(hwToidx(l + i, t + j, self.mapCellWLen)):
@@ -178,10 +184,10 @@ class Obstacle:
 
     # 是否触碰到障碍物. x,y 10 宽高的相应cell位置
     def ObstacleTouched(self, cellx, celly):
-        leftx = (cellx * 10 - self.meninfo.w // 2)
-        rightx = (cellx * 10 + self.meninfo.w // 2)
-        topy = (celly * 10 - self.meninfo.h // 2)
-        downy = (celly * 10 + self.meninfo.h // 2)
+        leftx = (cellx * 10 - self.menw // 2)
+        rightx = (cellx * 10 + self.menw // 2)
+        topy = (celly * 10 - self.menh // 2)
+        downy = (celly * 10 + self.menh // 2)
         for v in self.obstacles:
             halfw = int(v.w / 2)
             halfh = int(v.h / 2)
@@ -210,8 +216,8 @@ class Obstacle:
 
     # 两点之间人物是否可以直接移动过去 检查 1. 地形 2. 障碍物
     def CanTwoPointBeMove(self, point1: Zuobiao, point2: Zuobiao):
-        halfw = self.meninfo.w // 2
-        halfh = self.meninfo.h // 2
+        halfw = self.menw // 2
+        halfh = self.menh // 2
         # 人物矩形左右上下
         point1leftx, point1rightx, point1topy, point1downy = point1.x - halfw, point1.x + halfw, point1.y - halfh, point1.y + halfh
         point2leftx, point2rightx, point2topy, point2downy = point2.x - halfw, point2.x + halfw, point2.y - halfh, point2.y + halfh
@@ -364,7 +370,7 @@ class AStartPaths:
         result.append(self.start)
         return result
 
-    # 平滑
+    # 平滑 返回链表, [idx]
     def PathToSmooth(self, v: int):
         paths = self.PathTo(v)
         paths = list(reversed(paths))
@@ -393,9 +399,17 @@ class AStartPaths:
 
         return firstnode.next
 
+    # 平滑列表 返回列表 [idx]
+    def PathToSmoothLst(self, v: int):
+        result = []
+        iter = self.PathToSmooth(v)
+        while iter:
+            result.append(iter.pos)
+            iter = iter.next
+        return result
+
 
 # 取门范围内的可移动位置 (就写在这里吧. 防止py循环引用)
-
 class BfsNextDoorWrapCorrect:
     def __init__(self, MAPW, MAPH, door, ob: Obstacle):
         self.MAPW = MAPW
@@ -468,6 +482,7 @@ class BfsNextDoorWrapCorrect:
         return idxTohw(self.s, self.manCellWLen)
 
 
+# 画寻找到门的路径
 def DrawNextDoorPath():
     t1 = time.time()
     d = GetGameObstacleData()
@@ -475,7 +490,7 @@ def DrawNextDoorPath():
 
     print("获取障碍物: %f" % (t2 - t1))  # 100ms
 
-    mapcellwlen = d.mapw // 10
+    mancellwlen = d.mapw // 10
     print("w h : %d %d" % (d.mapw, d.maph))
 
     img = np.zeros((d.maph, d.mapw, 3), dtype=np.uint8)
@@ -487,42 +502,42 @@ def DrawNextDoorPath():
     # 人物
     meninfo = GetMenInfo()
     beginx, beginy = GetCloseCoord(meninfo.x, meninfo.y)
-    begincellidx = hwToidx(beginx // 10, beginy // 10, mapcellwlen)
+    begincellidx = hwToidx(beginx // 10, beginy // 10, mancellwlen)
 
     # 障碍物包装
-    ob = Obstacle(d, meninfo)
+    ob = Obstacle(d, meninfo.w, meninfo.h)
 
     # 目的
     door = GetNextDoorWrap()
     bfsdoor = BfsNextDoorWrapCorrect(d.mapw, d.maph, door, ob)
     (cellx, celly) = bfsdoor.bfs()
     endx, endy = GetCloseCoord(cellx * 10, celly * 10)
-    endcellidx = hwToidx(endx // 10, endy // 10, mapcellwlen)
+    endcellidx = hwToidx(endx // 10, endy // 10, mancellwlen)
 
     # a star search
     astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
-    iter = astar.PathToSmooth(endcellidx)
+    lst = astar.PathToSmoothLst(endcellidx)
 
     t2 = time.time()
 
     print("寻路: %f" % (t2 - t1))  # 50ms
 
-    while iter:
+    for ele in lst:
         # 画路径点
-        (cellx, celly) = idxTohw(iter.pos, mapcellwlen)
+        (cellx, celly) = idxTohw(ele, mancellwlen)
         drawx, drawy = cellx * 10, celly * 10
         cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
 
         # 画起始点和目的点的矩形
         halfw, halfh = meninfo.w // 2, meninfo.h // 2
         cv2.rectangle(img, (drawx - halfw, drawy - halfh), (drawx + halfw, drawy + halfh), (0, 0, 139), 1)
-        iter = iter.next
 
     cv2.imshow('img', img)
     cv2.waitKey()
     cv2.destroyAllWindows()
 
 
+# 画下一个门坐标
 def DrawNextDoor():
     d = GetGameObstacleData()
 
@@ -533,7 +548,7 @@ def DrawNextDoor():
     drawWithOutDoor(img, d)
 
     meninfo = GetMenInfo()
-    ob = Obstacle(d, meninfo)
+    ob = Obstacle(d, meninfo, meninfo.w, meninfo.h)
     door = GetNextDoorWrap()
     bfsdoor = BfsNextDoorWrapCorrect(d.mapw, d.maph, door, ob)
     (cellx, celly) = bfsdoor.bfs()
