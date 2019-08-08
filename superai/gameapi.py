@@ -66,8 +66,8 @@ class Door(Structure):
     _fields_ = [
         ("x", c_int32),
         ("y", c_int32),
-        ("xf", c_int32),
-        ("yf", c_int32),
+        ("w", c_int32),
+        ("h", c_int32),
 
         ("cx", c_int32),
         ("cy", c_int32),
@@ -662,6 +662,18 @@ def GetSeceneInfo():
     return outlst1, outlst2, outlst3, outlst4, sceneinfo
 
 
+# 单独获取障碍数组
+def GetObstacle():
+    objs = POINTER(ObstacleObj)()
+    count = c_int(0)
+    lib.ExGetObstacleVector(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst = []
+    for i in range(count.value):
+        outlst.append(copy.deepcopy(objs[i]))
+    return outlst
+
+
 # 吸怪
 def Xiguai():
     lib.ExXiGuai()
@@ -1023,7 +1035,6 @@ def GetNextDoorWrap():
     if "冰霜幽暗密林" in mapinfo.name and mapinfo.curx == 0 and mapinfo.cury == 0:
         return mapinfo.right
     return GetNextDoor()
-
 
 
 # 以下地图 弹出窗口也可以移动

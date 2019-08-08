@@ -13,7 +13,7 @@ import copy
 
 from superai.astartdemo import idxTohw, hwToidx, dist_between
 from superai.gameapi import FlushPid, GameApiInit, GetMenInfo, GetNextDoor, GetNextDoorWrap
-from superai.obstacle import GetGameObstacleData, drawBack, GameObstacleData
+from superai.obstacle import GetGameObstacleData, drawBack, GameObstacleData, drawWithOutDoor
 
 
 # 坐标
@@ -124,6 +124,10 @@ class Obstacle:
         # 人物信息
         self.meninfo = meninfo
 
+    # 刷新障碍(障碍被攻击掉了)
+    def UpdateObstacle(self, obstacles):
+        self.obstacles = copy.deepcopy(obstacles)
+
     # 是否地形idx可移动. idx  10 宽高的相应cell一维位置
     def IsDixingVecHave(self, cellidx):
         if cellidx >= len(self.dixing):
@@ -192,7 +196,7 @@ class Obstacle:
 
     # 是否越界
     def OverStep(self, cellx, celly):
-        return  cellx * 10 > self.mapCellWLen * 0x10 or celly * 10 > self.mapCellHLen * 0xc
+        return cellx * 10 > self.mapCellWLen * 0x10 or celly * 10 > self.mapCellHLen * 0xc
 
     # 是否触碰到地形或者障碍物或者越界. p[cellx,celly] 10 宽高相应cell位置
     def TouchedAnything(self, p):
@@ -393,18 +397,18 @@ class AStartPaths:
 # 取门范围内的可移动位置 (就写在这里吧. 防止py循环引用)
 
 class BfsNextDoorWrapCorrect:
-    def __init__(self, MAPW, MAPH, ob: Obstacle):
+    def __init__(self, MAPW, MAPH, door, ob: Obstacle):
         self.MAPW = MAPW
         self.MAPH = MAPH
+        self.door = door
         self.ob = ob
 
         self.manCellWLen = MAPW // 10
         self.manCellHLen = MAPH // 10
         self.manCellnum = self.manCellHLen * self.manCellWLen
 
-        self.door = GetNextDoorWrap()
-        self.l, self.r, self.t, self.d = self.door.x, self.door.x + self.door.xf, self.door.y, self.door.y + self.door.yf
-        self.halfw, self.halfh = self.door.xf // 2, self.door.yf // 2
+        self.l, self.r, self.t, self.d = self.door.x, self.door.x + self.door.w, self.door.y, self.door.y + self.door.h
+        self.halfw, self.halfh = self.door.w // 2, self.door.h // 2
 
         # bfs core
         self.marked = [False] * self.manCellnum
@@ -413,7 +417,7 @@ class BfsNextDoorWrapCorrect:
         startcellx = (self.l + self.halfw) // 10
         startcelly = (self.t + self.halfh) // 10
 
-        self.s = hwToidx(startcellx, startcelly, self.manCellnum)
+        self.s = hwToidx(startcellx, startcelly, self.manCellWLen)
 
     def OutRange(self, cellx, celly):
         l = cellx * 10
@@ -451,8 +455,11 @@ class BfsNextDoorWrapCorrect:
 
             adjs = self.GetAdjs(v)
             for w in adjs:
-                if not self.ob.TouchedAnything(w):
-                    return w
+
+                adjcellx, adjcelly = idxTohw(w, self.manCellWLen)
+
+                if not self.ob.TouchedAnything([adjcellx, adjcelly]):
+                    return idxTohw(w, self.manCellWLen)
 
                 if not self.marked[w]:
                     self.edgeTo[w] = v
@@ -461,14 +468,7 @@ class BfsNextDoorWrapCorrect:
         return idxTohw(self.s, self.manCellWLen)
 
 
-def main():
-    if GameApiInit():
-        print("Init helpdll-xxiii.dll ok")
-    else:
-        print("Init helpdll-xxiii.dll err")
-        exit(0)
-    FlushPid()
-
+def DrawNextMenPath():
     d = GetGameObstacleData()
     mapcellwlen = d.mapw // 10
 
@@ -507,6 +507,43 @@ def main():
     cv2.imshow('img', img)
     cv2.waitKey()
     cv2.destroyAllWindows()
+
+
+def DrawNextMen():
+    d = GetGameObstacleData()
+
+    print("w h : %d %d" % (d.mapw, d.maph))
+
+    img = np.zeros((d.maph, d.mapw, 3), dtype=np.uint8)
+    img[np.where(img == [0])] = [255]
+    drawWithOutDoor(img, d)
+
+    meninfo = GetMenInfo()
+    ob = Obstacle(d, meninfo)
+    door = GetNextDoorWrap()
+    bfsdoor = BfsNextDoorWrapCorrect(d.mapw, d.maph, door, ob)
+
+    (cellx, celly) = bfsdoor.bfs()
+    drawx = cellx * 10
+    drawy = celly * 10
+
+    cv2.rectangle(img, (drawx, drawy), (drawx + 10, drawy + 10), (255, 0, 0), -1)
+
+    cv2.imshow('img', img)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+
+
+def main():
+    if GameApiInit():
+        print("Init helpdll-xxiii.dll ok")
+    else:
+        print("Init helpdll-xxiii.dll err")
+        exit(0)
+    FlushPid()
+
+    DrawNextMen()
+    # DrawNextMenPath()
 
 
 if __name__ == '__main__':

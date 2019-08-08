@@ -22,6 +22,7 @@ class GameObstacleData():
         self.obstacles = obstacles
 
 
+# 获取地形 障碍 宽高
 def GetGameObstacleData():
     dixingtree, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
     return GameObstacleData(wh.w, wh.h, dixingtree, dixingvec, dixingextra, obstacles)
@@ -107,6 +108,13 @@ def drawBack(img, d):
     drawDixing(img, d)
     drawObstacles(img, d)
     drawDoor(img)
+    drawLine(img, d)
+
+
+def drawWithOutDoor(img, d):
+    drawDixing(img, d)
+    drawObstacles(img, d)
+    # drawDoor(img)
     drawLine(img, d)
 
 
