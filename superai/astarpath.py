@@ -45,16 +45,16 @@ class PathEdge():
 
 
 # 一个偏移的接口, 因为人物和目的地初始位置不一定在线条上
-def NextZuobiao(x, y, way):
+def NextZuobiao(x, y, way, k):
     # 左右上下
     if way == 0:
-        return x - 1, y
+        return x - k, y
     if way == 1:
-        return x + 1, y
+        return x + k, y
     if way == 2:
-        return x, y - 1
+        return x, y - k
     if way == 3:
-        return x, y + 1
+        return x, y + k
     return x, y
 
 
@@ -200,7 +200,7 @@ class Obstacle:
                 return True
         return False
 
-    # 是否越界
+    # 是否越界 TODO 写死了
     def OverStep(self, cellx, celly):
         return cellx * 10 > self.mapCellWLen * 0x10 or celly * 10 > self.mapCellHLen * 0xc
 
@@ -262,16 +262,19 @@ class Obstacle:
     def CorrectZuobiao(self, cellpos):
         if self.TouchedAnything([cellpos[0], cellpos[1]]):
             curx, cury = cellpos[0], cellpos[1]
-            for i in range(4):
-                correctx, correcty = NextZuobiao(curx, cury, i)
-                if not self.TouchedAnything([correctx, correcty]):
-                    return correctx, correcty
+            for k in range(10):
+                for i in range(4):
+                    correctx, correcty = NextZuobiao(curx, cury, i, k)
+                    if not self.TouchedAnything([correctx, correcty]):
+                        return correctx, correcty
         return cellpos[0], cellpos[1]
 
 
 class AStartPaths:
     # 构造函数 地形, 人物信息, 起始点, 终结点,
     def __init__(self, MAPW, MAPH, ob, start, end):
+
+
         self.MAPW = MAPW
         self.MAPH = MAPH
         self.ob = ob
@@ -285,8 +288,19 @@ class AStartPaths:
         (ccellx, ccelly) = self.ob.CorrectZuobiao(idxTohw(start, self.manCellWLen))
         start = hwToidx(ccellx, ccelly, self.manCellWLen)
 
+        # global img
+        # # TODO 打印
+        # halfw, halfh = 40 // 2, 10 // 2
+        # cv2.rectangle(img, (ccellx * 10 - halfw, ccelly * 10 - halfh), (ccellx * 10 + halfw, ccelly * 10 + halfh),
+        #               (0, 0, 255), 1)
+
         (ccellx, ccelly) = self.ob.CorrectZuobiao(idxTohw(end, self.manCellWLen))
         end = hwToidx(ccellx, ccelly, self.manCellWLen)
+
+        # # TODO 打印
+        # halfw, halfh = 40 // 2, 10 // 2
+        # cv2.rectangle(img, (ccellx * 10 - halfw, ccelly * 10 - halfh), (ccellx * 10 + halfw, ccelly * 10 + halfh),
+        #               (0, 0, 255), 1)
 
         # a * 核心算法
         self.closedSet = []
@@ -482,8 +496,13 @@ class BfsNextDoorWrapCorrect:
         return idxTohw(self.s, self.manCellWLen)
 
 
+img = None
+
+
 # 画寻找到门的路径
 def DrawNextDoorPath():
+    global img
+
     t1 = time.time()
     d = GetGameObstacleData()
     t2 = time.time()
@@ -504,10 +523,9 @@ def DrawNextDoorPath():
     beginx, beginy = GetCloseCoord(meninfo.x, meninfo.y)
     begincellidx = hwToidx(beginx // 10, beginy // 10, mancellwlen)
 
+    # 目的
     # 障碍物包装
     ob = Obstacle(d, meninfo.w, meninfo.h)
-
-    # 目的
     door = GetNextDoorWrap()
     bfsdoor = BfsNextDoorWrapCorrect(d.mapw, d.maph, door, ob)
     (cellx, celly) = bfsdoor.bfs()
@@ -548,7 +566,7 @@ def DrawNextDoor():
     drawWithOutDoor(img, d)
 
     meninfo = GetMenInfo()
-    ob = Obstacle(d, meninfo, meninfo.w, meninfo.h)
+    ob = Obstacle(d, meninfo.w, meninfo.h)
     door = GetNextDoorWrap()
     bfsdoor = BfsNextDoorWrapCorrect(d.mapw, d.maph, door, ob)
     (cellx, celly) = bfsdoor.bfs()

@@ -404,7 +404,7 @@ ATTACK_H_WIDTH = 40 / 2
 ATTACK_TOO_CLOSE_V_WIDTH = 1.0 / 2
 
 # 路径规划范围
-PATH_PLANING_RANGE = 100
+PATH_PLANING_RANGE = 150
 
 # 坐标位置
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):

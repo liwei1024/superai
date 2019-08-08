@@ -95,9 +95,6 @@ class Player:
         # 状态机
         self.stateMachine = StateMachine(self)
 
-        # 上一次寻路的点. 必须要走完才能进入下一次决策
-        self.latestPathPlans = []
-
     # 更改当前状态机
     def ChangeState(self, state):
         self.UpLatestKey()
@@ -259,27 +256,13 @@ class Player:
 
     # 靠近(带寻路)
     def SeekWithPathfinding(self, destx, desty, obj=None, dummy=None):
-        # 之前路径规划过. 把路径规划的所有点都走完
-        if len(self.latestPathPlans) > 0:
-            curpoint = self.latestPathPlans[0]
-            curpoint = idxTohw(curpoint, self.d.mapw // 10)
-            curpoint[0], curpoint[1] = curpoint[0] * 10, curpoint[1] * 10
-
-            menx, meny = GetMenXY()
-            quad, rent = GetQuadrant(menx, meny, curpoint[0], curpoint[1])
-            if quad == Quardant.CHONGDIE:
-                del self.latestPathPlans[0]
-                Log("到达路径规划点(还剩%d): (%d, %d) 开始向下一个点前进" % (len(self.latestPathPlans), curpoint[0], curpoint[1]))
-                return self.SeekWithPathfinding(destx, desty, obj, dummy)
-            else:
-                Log("向路径规划点(%d): (%d, %d) 前进" % (len(self.latestPathPlans), curpoint[0], curpoint[1]))
-                return self.Seek(curpoint[0], curpoint[1], obj, dummy)
-
         # 范围内有麻烦就路径规划一下
         menx, meny = GetMenXY()
         menx, meny = int(menx), int(meny)
         l, r, t, d = menx - PATH_PLANING_RANGE // 2, menx + PATH_PLANING_RANGE // 2, meny - PATH_PLANING_RANGE // 2, meny + PATH_PLANING_RANGE // 2
         if self.ob.RangesHaveTrouble(l, r, t, d):
+            Log("前往目的地有障碍物, 开始规划(%d, %d)" % (destx, desty))
+
             beginx, beginy = GetCloseCoord(menx, meny)
             begincellidx = hwToidx(beginx // 10, beginy // 10, self.d.mapw // 10)
             endx, endy = GetCloseCoord(destx, desty)
@@ -292,8 +275,11 @@ class Player:
                 return self.Seek(destx, desty, obj, dummy)
             else:
                 Log("路径规划一共%d 个路程点" % len(lst))
-                self.latestPathPlans = lst
-                return self.SeekWithPathfinding(destx, desty, obj, dummy)
+                curpoint = lst[1]
+                curpoint = idxTohw(curpoint, self.d.mapw // 10)
+                curpoint[0], curpoint[1] = curpoint[0] * 10, curpoint[1] * 10
+
+                return self.Seek(curpoint[0], curpoint[1], obj, dummy)
         else:
             Log("没有障碍物直接过去")
             return self.Seek(destx, desty, obj, dummy)
