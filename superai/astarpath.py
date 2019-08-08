@@ -248,15 +248,15 @@ class Obstacle:
 
         return True
 
-    # 修正初始坐标, 初始坐标可能和障碍物相交, 所以需要稍微调整
-    def CorrectZuobiao(self, cellx, celly):
-        if self.TouchedAnything([cellx, celly]):
-            curx, cury = cellx, celly
+    # 修正初始坐标, 初始坐标可能和障碍物相交, 所以需要稍微调整. return (cellx, celly)
+    def CorrectZuobiao(self, cellpos):
+        if self.TouchedAnything([cellpos[0], cellpos[1]]):
+            curx, cury = cellpos[0], cellpos[1]
             for i in range(4):
                 correctx, correcty = NextZuobiao(curx, cury, i)
                 if not self.TouchedAnything([correctx, correcty]):
                     return correctx, correcty
-        return cellx, celly
+        return cellpos[0], cellpos[1]
 
 
 class AStartPaths:
@@ -272,10 +272,10 @@ class AStartPaths:
         self.manCellnum = self.manCellHLen * self.manCellWLen
 
         # 修正人物 && 目的位置 10 x 10 坐标位置
-        ccellx, ccelly = self.ob.CorrectZuobiao(idxTohw(start, self.manCellWLen))
+        (ccellx, ccelly) = self.ob.CorrectZuobiao(idxTohw(start, self.manCellWLen))
         start = hwToidx(ccellx, ccelly, self.manCellWLen)
 
-        ccellx, ccelly = self.ob.CorrectZuobiao(idxTohw(end, self.manCellWLen))
+        (ccellx, ccelly) = self.ob.CorrectZuobiao(idxTohw(end, self.manCellWLen))
         end = hwToidx(ccellx, ccelly, self.manCellWLen)
 
         # a * 核心算法
