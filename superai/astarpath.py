@@ -1,4 +1,5 @@
 import os
+import queue
 import sys
 import time
 
@@ -12,7 +13,7 @@ import copy
 
 from superai.astartdemo import idxTohw, hwToidx, dist_between
 from superai.gameapi import FlushPid, GameApiInit, GetMenInfo, GetNextDoor, GetNextDoorWrap
-from superai.obstacle import GetGameObstacleData, drawBack
+from superai.obstacle import GetGameObstacleData, drawBack, GameObstacleData
 
 
 # 坐标
@@ -92,18 +93,13 @@ def IsRectagleOverlapLine(renleftx, renrightx, rentopy, rendowny, line):
     return False
 
 
-# 取门范围内的可移动位置
-def GetNextDoorWrapCorrect():
-    door = GetNextDoorWrap()
-
-
 # 取相近 10 x 10 坐标 return [x, y]
 def GetCloseCoord(x, y):
     return (int(x) // 10) * 10, (int(y) // 10) * 10
 
 
 class Obstacle:
-    def __init__(self, d, meninfo):
+    def __init__(self, d: GameObstacleData, meninfo):
         # 初始化 1. 地形二叉树 2. 地形数组 3. 地形额外  使用 16 * 12 长宽的格子
         self.mapCellWLen = d.mapw // 0x10
         self.mapCellHLen = d.maph // 0xc
@@ -394,6 +390,77 @@ class AStartPaths:
         return firstnode.next
 
 
+# 取门范围内的可移动位置 (就写在这里吧. 防止py循环引用)
+
+class BfsNextDoorWrapCorrect:
+    def __init__(self, MAPW, MAPH, ob: Obstacle):
+        self.MAPW = MAPW
+        self.MAPH = MAPH
+        self.ob = ob
+
+        self.manCellWLen = MAPW // 10
+        self.manCellHLen = MAPH // 10
+        self.manCellnum = self.manCellHLen * self.manCellWLen
+
+        self.door = GetNextDoorWrap()
+        self.l, self.r, self.t, self.d = self.door.x, self.door.x + self.door.xf, self.door.y, self.door.y + self.door.yf
+        self.halfw, self.halfh = self.door.xf // 2, self.door.yf // 2
+
+        # bfs core
+        self.marked = [False] * self.manCellnum
+        self.edgeTo = [0] * self.manCellnum
+
+        startcellx = (self.l + self.halfw) // 10
+        startcelly = (self.t + self.halfh) // 10
+
+        self.s = hwToidx(startcellx, startcelly, self.manCellnum)
+
+    def OutRange(self, cellx, celly):
+        l = cellx * 10
+        r = cellx * 10 + 10
+        t = celly * 10
+        d = celly * 10 + 10
+        return not IsRectangleOverlap(Zuobiao(self.l, self.t), Zuobiao(self.r, self.d), Zuobiao(l, t),
+                                      Zuobiao(r, d))
+
+    # 获取邻居节点. return [cellx, celly]
+    def GetAdjs(self, pos):
+        # 不超过门的范围
+        adjs = []
+        cellx, celly = idxTohw(pos, self.manCellWLen)
+
+        # 上下左右. 左上,左下,右上,右下.
+        checks = [
+            (cellx, celly - 1), (cellx, celly + 1), (cellx - 1, celly), (cellx + 1, celly),
+            (cellx - 1, celly - 1), (cellx - 1, celly + 1), (cellx + 1, celly - 1), (cellx + 1, celly + 1),
+        ]
+
+        for (adjx, adjy) in checks:
+            if not self.OutRange(adjx, adjy):
+                adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
+
+        return adjs
+
+    # bfs 获取没有碰撞到障碍物的点, return [cellx, celly]
+    def bfs(self):
+        q = queue.Queue()
+        q.put(self.s)
+
+        while q.qsize() != 0:
+            v = q.get()
+
+            adjs = self.GetAdjs(v)
+            for w in adjs:
+                if not self.ob.TouchedAnything(w):
+                    return w
+
+                if not self.marked[w]:
+                    self.edgeTo[w] = v
+                    self.marked[w] = True
+                    q.put(w)
+        return idxTohw(self.s, self.manCellWLen)
+
+
 def main():
     if GameApiInit():
         print("Init helpdll-xxiii.dll ok")
@@ -403,39 +470,37 @@ def main():
     FlushPid()
 
     d = GetGameObstacleData()
+    mapcellwlen = d.mapw // 10
 
     print("w h : %d %d" % (d.mapw, d.maph))
 
     img = np.zeros((d.maph, d.mapw, 3), dtype=np.uint8)
     img[np.where(img == [0])] = [255]
-
     drawBack(img, d)
 
     # 人物
     meninfo = GetMenInfo()
     beginx, beginy = GetCloseCoord(meninfo.x, meninfo.y)
+    begincellidx = hwToidx(beginx // 10, beginy // 10, mapcellwlen)
 
     # 目的
     door = GetNextDoor()
     endx, endy = GetCloseCoord(door.prevcx, door.prevcy)
+    endcellidx = hwToidx(endx // 10, endy // 10, mapcellwlen)
 
     # a star search
     ob = Obstacle(d, meninfo)
-    begincellidx = hwToidx(beginx // 10, beginy // 10, d.mapw // 10)
-    endcellidx = hwToidx(endx // 10, endy // 10, d.mapw // 10)
-
     astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
     iter = astar.PathToSmooth(endcellidx)
 
     while iter:
         # 画路径点
-        (cellx, celly) = idxTohw(iter.pos, d.mapw // 10)
+        (cellx, celly) = idxTohw(iter.pos, mapcellwlen)
         drawx, drawy = cellx * 10, celly * 10
         cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
 
         # 画起始点和目的点的矩形
-        halfw = meninfo.w // 2
-        halfh = meninfo.h // 2
+        halfw, halfh = meninfo.w // 2, meninfo.h // 2
         cv2.rectangle(img, (drawx - halfw, drawy - halfh), (drawx + halfw, drawy + halfh), (0, 0, 139), 1)
         iter = iter.next
 
