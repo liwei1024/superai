@@ -412,7 +412,7 @@ class GlobalState(State):
 
         # 在图内需要判断卡死的状态
         MapStateList = [SeekAndPickUp, PickBuf, SeekAndAttackMonster, DoorOpenGotoNext, DoorStuckGoToPrev,
-                        FuckDuonierState, DoorDidnotOpen]
+                        FuckDuonierState]
 
         # 防止卡死目前只判断几种情况
         def MapStateCheck(curstate):
@@ -570,8 +570,9 @@ class StandState(State):
                 player.ChangeState(FubenOver())
                 return
         elif not IsCurrentInBossFangjian() and not IsNextDoorOpen():
+            pass
             # 打死怪物后, 门可能不是马上就开, 直接靠近门
-            player.ChangeState(DoorDidnotOpen())
+            # player.ChangeState(DoorDidnotOpen())
         else:
             if IsCurrentInBossFangjian():
                 # 得不到怪物对象. 可能副本结束的瞬间 按esc吧!
@@ -736,8 +737,7 @@ class DoorOpenGotoNext(State):
             player.NewMapCache()
             player.ChangeState(StandState())
         else:
-            door = GetNextDoorWrap()
-            player.SeekWithPathfinding(door.secondcx, door.secondcy, dummy="靠近门")
+            player.SeekWithPathfinding(player.doorx, player.doory, dummy="靠近门")
 
 
 # 走门时卡死,走到离门远一些的地方
@@ -754,20 +754,6 @@ class DoorStuckGoToPrev(State):
             player.ChangeState(DoorOpenGotoNext())
         else:
             player.SeekWithPathfinding(door.prevcx, door.prevcy, dummy="靠近门前")
-
-
-# 怪物打死瞬间, 门没有开, 直接靠近门
-class DoorDidnotOpen(State):
-    def Execute(self, player):
-        menx, meny = GetMenXY()
-        door = GetNextDoorWrap()
-        if IsNextDoorOpen():
-            player.NewMapCache()
-            player.ChangeState(StandState())
-        elif IsClosedTo(menx, meny, door.secondcx, door.secondcy):
-            player.ChangeState(StandState())
-        else:
-            player.SeekWithPathfinding(door.secondcx, door.secondcy, dummy="靠近门")
 
 
 def main():
