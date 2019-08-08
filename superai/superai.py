@@ -261,12 +261,13 @@ class Player:
         menx, meny = int(menx), int(meny)
         l, r, t, d = menx - PATH_PLANING_RANGE // 2, menx + PATH_PLANING_RANGE // 2, meny - PATH_PLANING_RANGE // 2, meny + PATH_PLANING_RANGE // 2
         if self.ob.RangesHaveTrouble(l, r, t, d):
-            Log("前往目的地有障碍物, 开始规划(%d, %d)" % (destx, desty))
-
             beginx, beginy = GetCloseCoord(menx, meny)
             begincellidx = hwToidx(beginx // 10, beginy // 10, self.d.mapw // 10)
             endx, endy = GetCloseCoord(destx, desty)
             endcellidx = hwToidx(endx // 10, endy // 10, self.d.mapw // 10)
+
+            Log("前往目的地有障碍物, 开始规划(%d, %d) -> (%d, %d)" % (beginx, beginy, endx, endy))
+
             astar = AStartPaths(self.d.mapw, self.d.maph, self.ob, begincellidx, endcellidx)
             lst = astar.PathToSmoothLst(endcellidx)
 

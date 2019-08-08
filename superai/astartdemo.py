@@ -114,8 +114,6 @@ class AStarPaths:
 
         self.astar(g)
 
-
-
     def astar(self, g: Graph):
         while len(self.openSet) > 0:
             current = min(self.openSet, key=lambda s: self.fScore[s])

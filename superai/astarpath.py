@@ -158,8 +158,8 @@ class Obstacle:
         d = d // 0xc
 
         # 横轴0x10步进, 竖轴0xc步进
-        for i in range(r - l + 1):
-            for j in range(d - t + 1):
+        for i in range(r - l):
+            for j in range(d - t):
                 if self.IsDixingVecHave(hwToidx(l + i, t + j, self.mapCellWLen)):
                     dixingcells.append((l + i, t + j))
         return dixingcells
@@ -176,8 +176,8 @@ class Obstacle:
         r = (cellx * 10 + self.menw // 2) // 0x10
         t = (celly * 10 - self.menh // 2) // 0xc
         d = (celly * 10 + self.menh // 2) // 0xc
-        for i in range(r - l + 1):
-            for j in range(d - t + 1):
+        for i in range(r - l):
+            for j in range(d - t):
                 if self.IsDixingVecHave(hwToidx(l + i, t + j, self.mapCellWLen)):
                     return True
         return False
@@ -274,7 +274,6 @@ class AStartPaths:
     # 构造函数 地形, 人物信息, 起始点, 终结点,
     def __init__(self, MAPW, MAPH, ob, start, end):
 
-
         self.MAPW = MAPW
         self.MAPH = MAPH
         self.ob = ob
@@ -288,19 +287,19 @@ class AStartPaths:
         (ccellx, ccelly) = self.ob.CorrectZuobiao(idxTohw(start, self.manCellWLen))
         start = hwToidx(ccellx, ccelly, self.manCellWLen)
 
-        # global img
-        # # TODO 打印
-        # halfw, halfh = 40 // 2, 10 // 2
-        # cv2.rectangle(img, (ccellx * 10 - halfw, ccelly * 10 - halfh), (ccellx * 10 + halfw, ccelly * 10 + halfh),
-        #               (0, 0, 255), 1)
+        global img
+        if img is not None:
+            halfw, halfh = 40 // 2, 10 // 2
+            cv2.rectangle(img, (ccellx * 10 - halfw, ccelly * 10 - halfh), (ccellx * 10 + halfw, ccelly * 10 + halfh),
+                          (0, 0, 255), 1)
 
         (ccellx, ccelly) = self.ob.CorrectZuobiao(idxTohw(end, self.manCellWLen))
         end = hwToidx(ccellx, ccelly, self.manCellWLen)
 
-        # # TODO 打印
-        # halfw, halfh = 40 // 2, 10 // 2
-        # cv2.rectangle(img, (ccellx * 10 - halfw, ccelly * 10 - halfh), (ccellx * 10 + halfw, ccelly * 10 + halfh),
-        #               (0, 0, 255), 1)
+        if img is not None:
+            halfw, halfh = 40 // 2, 10 // 2
+            cv2.rectangle(img, (ccellx * 10 - halfw, ccelly * 10 - halfh), (ccellx * 10 + halfw, ccelly * 10 + halfh),
+                          (0, 0, 255), 1)
 
         # a * 核心算法
         self.closedSet = []
@@ -499,6 +498,43 @@ class BfsNextDoorWrapCorrect:
 img = None
 
 
+def DrawAnyPath(beginx, beginy, endx, endy):
+    global img
+
+    d = GetGameObstacleData()
+    meninfo = GetMenInfo()
+    ob = Obstacle(d, meninfo.w, meninfo.h)
+
+    img = np.zeros((d.maph, d.mapw, 3), dtype=np.uint8)
+    img[np.where(img == [0])] = [255]
+    drawWithOutDoor(img, d)
+
+    mancellwlen = d.mapw // 10
+
+    begincellidx = hwToidx(beginx // 10, beginy // 10, mancellwlen)
+
+    endcellidx = hwToidx(endx // 10, endy // 10, mancellwlen)
+
+    # a star search
+    astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
+
+    # lst = astar.PathToSmoothLst(endcellidx)
+    #
+    # for ele in lst:
+    #     # 画路径点
+    #     (cellx, celly) = idxTohw(ele, mancellwlen)
+    #     drawx, drawy = cellx * 10, celly * 10
+    #     cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
+    #
+    #     # 方格子
+    #     halfw, halfh = meninfo.w // 2, meninfo.h // 2
+    #     cv2.rectangle(img, (drawx - halfw, drawy - halfh), (drawx + halfw, drawy + halfh), (0, 0, 139), 1)
+
+    cv2.imshow('img', img)
+    cv2.waitKey()
+    cv2.destroyAllWindows()
+
+
 # 画寻找到门的路径
 def DrawNextDoorPath():
     global img
@@ -546,7 +582,7 @@ def DrawNextDoorPath():
         drawx, drawy = cellx * 10, celly * 10
         cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
 
-        # 画起始点和目的点的矩形
+        # 方格子
         halfw, halfh = meninfo.w // 2, meninfo.h // 2
         cv2.rectangle(img, (drawx - halfw, drawy - halfh), (drawx + halfw, drawy + halfh), (0, 0, 139), 1)
 
@@ -589,7 +625,8 @@ def main():
     FlushPid()
 
     # DrawNextDoor()
-    DrawNextDoorPath()
+    # DrawNextDoorPath()
+    DrawAnyPath(130, 260, 660, 140)
 
 
 if __name__ == '__main__':
