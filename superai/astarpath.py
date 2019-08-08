@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 import copy
 
 from superai.astartdemo import idxTohw, hwToidx, dist_between
-from superai.gameapi import FlushPid, GameApiInit, GetMenInfo, GetNextDoor
+from superai.gameapi import FlushPid, GameApiInit, GetMenInfo, GetNextDoor, GetNextDoorWrap
 from superai.obstacle import GetGameObstacleData, drawBack
 
 
@@ -92,18 +92,23 @@ def IsRectagleOverlapLine(renleftx, renrightx, rentopy, rendowny, line):
     return False
 
 
-class AStartPaths:
-    # 初始化 地形 + 障碍物
-    def initobstacle(self, d):
-        # 初始化
-        # 1. 地形二叉树 2. 地形数组 3. 地形额外  使用 16 * 12 长宽的格子
-        # 4. 障碍物  使用特定长宽的格子
+# 取门范围内的可移动位置
+def GetNextDoorWrapCorrect():
+    door = GetNextDoorWrap()
+
+
+# 取相近 10 x 10 坐标 return [x, y]
+def GetCloseCoord(x, y):
+    return (int(x) // 10) * 10, (int(y) // 10) * 10
+
+
+class Obstacle:
+    def __init__(self, d, meninfo):
+        # 初始化 1. 地形二叉树 2. 地形数组 3. 地形额外  使用 16 * 12 长宽的格子
         self.mapCellWLen = d.mapw // 0x10
         self.mapCellHLen = d.maph // 0xc
         self.cellnum = self.mapCellWLen * self.mapCellHLen
         self.dixing = [False] * self.cellnum
-
-        # Log("self.mapCellWLen: %d self.mapCellHLen: %d \n" % (self.mapCellWLen, self.mapCellHLen))
 
         def dealcell(cell):
             cellX = cell.x // 0x10
@@ -117,62 +122,34 @@ class AStartPaths:
         for cell in d.dixingextra:
             dealcell(cell)
 
+        # 4. 障碍物  使用特定长宽的格子
         self.obstacles = copy.deepcopy(d.obstacles)
 
-    # 构造函数 地形, 人物信息, 起始点, 终结点, img做测试使用
-    def __init__(self, d, meninfo, start, end, img):
-        self.img = img
+        # 人物信息
         self.meninfo = meninfo
-        self.mapwlen = d.mapw
-        self.maphlen = d.maph
 
-        self.initobstacle(d)
+    # 是否地形idx可移动. idx  10 宽高的相应cell一维位置
+    def IsDixingVecHave(self, cellidx):
+        if cellidx >= len(self.dixing):
+            return True
+        return self.dixing[cellidx]
 
-        # 初始化 A * 算法数据
-        # start end && 行走的路径使用 10 * 10 长宽的格子
-        self.manCellWLen = d.mapw // 10
-        self.manCellHLen = d.maph // 10
-        self.manCellnum = self.manCellHLen * self.manCellWLen
+    # 范围内相交的所有的障碍物. l,r,t,d 范围格子坐标极值. 返回 [obstacles]
+    def RangesAllObstacle(self, l, r, t, d):
+        obstacles = []
+        for v in self.obstacles:
+            halfw = v.w // 2
+            halfh = v.h // 2
+            obleftx = v.x - halfw
+            obrightx = v.x + halfw
+            obtopy = v.y - halfh
+            obdowny = v.y + halfh
+            if IsRectangleOverlap(Zuobiao(l, t), Zuobiao(r, d), Zuobiao(obleftx, obtopy),
+                                  Zuobiao(obrightx, obdowny)):
+                obstacles.append(v)
+        return obstacles
 
-        # Log("manCellWLen: %d manCellHLen: %d manCellnum: %d" % (self.manCellWLen, self.manCellHLen, self.manCellnum))
-
-        # 修正人物与目的位置 10 x 10 坐标位置
-        b = idxTohw(start, self.manCellWLen)
-        if self.DixingTouched(b[0], b[1]) or self.ObstacleTouched(b[0], b[1]):
-            curx, cury = idxTohw(start, self.manCellWLen)
-            for i in range(4):
-                nowx, nowy = NextZuobiao(curx, cury, i)
-                if not self.DixingTouched(nowx, nowy) and not self.ObstacleTouched(nowx, nowy):
-                    start = hwToidx(nowx, nowy, self.manCellWLen)
-
-        b = idxTohw(end, self.manCellWLen)
-        if self.DixingTouched(b[0], b[1]) or self.ObstacleTouched(b[0], b[1]):
-            curx, cury = idxTohw(end, self.manCellWLen)
-            for i in range(4):
-                nowx, nowy = NextZuobiao(curx, cury, i)
-                if not self.DixingTouched(nowx, nowy) and not self.ObstacleTouched(nowx, nowy):
-                    end = hwToidx(nowx, nowy, self.manCellWLen)
-
-        self.closedSet = []
-        self.openSet = [start]
-
-        self.start = start
-        self.end = end
-
-        self.edgeTo = [0] * self.manCellnum
-        self.marked = [False] * self.manCellnum
-
-        # 实际距离
-        self.gScore = [sys.maxsize] * self.manCellnum
-        self.gScore[start] = 0
-
-        # 估算到终点的距离
-        self.fScore = [sys.maxsize] * self.manCellnum
-        self.fScore[start] = dist_between(idxTohw(start, self.manCellWLen), idxTohw(end, self.manCellWLen))
-
-        self.astar()
-
-    # 范围内所有的地形格子
+    # 范围内所有的地形格子. l,r,t,d 范围格子坐标极值. 返回 [(cellx, celly)]
     def RangesAllDixing(self, l, r, t, d):
         dixingcells = []
         l = l // 0x10
@@ -187,20 +164,49 @@ class AStartPaths:
                     dixingcells.append((l + i, t + j))
         return dixingcells
 
-    # 范围内相交的所有的障碍物
-    def RangesAllObstacle(self, l, r, t, d):
-        obstacles = []
+    # 是否触碰到地形. x,y 10 宽高的相应cell位置
+    def DixingTouched(self, cellx, celly):
+        l = (cellx * 10 - self.meninfo.w // 2) // 0x10
+        r = (cellx * 10 + self.meninfo.w // 2) // 0x10
+        t = (celly * 10 - self.meninfo.h // 2) // 0xc
+        d = (celly * 10 + self.meninfo.h // 2) // 0xc
+        for i in range(r - l + 1):
+            for j in range(d - t + 1):
+                if self.IsDixingVecHave(hwToidx(l + i, t + j, self.mapCellWLen)):
+                    return True
+        return False
+
+    # 是否触碰到障碍物. x,y 10 宽高的相应cell位置
+    def ObstacleTouched(self, cellx, celly):
+        leftx = (cellx * 10 - self.meninfo.w // 2)
+        rightx = (cellx * 10 + self.meninfo.w // 2)
+        topy = (celly * 10 - self.meninfo.h // 2)
+        downy = (celly * 10 + self.meninfo.h // 2)
         for v in self.obstacles:
-            halfw = v.w // 2
-            halfh = v.h // 2
+            halfw = int(v.w / 2)
+            halfh = int(v.h / 2)
             obleftx = v.x - halfw
             obrightx = v.x + halfw
             obtopy = v.y - halfh
             obdowny = v.y + halfh
-            if IsRectangleOverlap(Zuobiao(l, t), Zuobiao(r, d), Zuobiao(obleftx, obtopy),
+            if IsRectangleOverlap(Zuobiao(leftx, topy), Zuobiao(rightx, downy), Zuobiao(obleftx, obtopy),
                                   Zuobiao(obrightx, obdowny)):
-                obstacles.append(v)
-        return obstacles
+                return True
+        return False
+
+    # 是否越界
+    def OverStep(self, cellx, celly):
+        return not (cellx * 10 > self.mapCellWLen * 10 or celly * 10 > self.mapCellHLen * 10)
+
+    # 是否触碰到地形或者障碍物或者越界. p[cellx,celly] 10 宽高相应cell位置
+    def TouchedAnything(self, p):
+        if self.DixingTouched(p[0], p[1]):
+            return True
+        if self.ObstacleTouched(p[0], p[1]):
+            return True
+        if self.OverStep(p[0], p[1]):
+            return True
+        return False
 
     # 两点之间人物是否可以直接移动过去 检查 1. 地形 2. 障碍物
     def CanTwoPointBeMove(self, point1: Zuobiao, point2: Zuobiao):
@@ -220,6 +226,7 @@ class AStartPaths:
         if len(dixingcells) < 1 and len(obstacles) < 1:
             return True
 
+        # 两个位置之间的4角的连线
         towpointlines = [
             [Zuobiao(point1leftx, point1topy), Zuobiao(point2leftx, point2topy)],
             [Zuobiao(point1rightx, point1topy), Zuobiao(point2rightx, point2topy)],
@@ -227,13 +234,14 @@ class AStartPaths:
             [Zuobiao(point1rightx, point1downy), Zuobiao(point2rightx, point2downy)],
         ]
 
+        # 地形判断
         for twopointline in towpointlines:
             for dixingcell in dixingcells:
                 l, r, t, d = dixingcell[0] * 0x10, dixingcell[0] * 0x10 + 0x10, dixingcell[1] * 0xc, dixingcell[
                     1] * 0xc + 0xc
                 if IsRectagleOverlapLine(l, r, t, d, twopointline):
                     return False
-
+        # 障碍物判断
         for twopointline in towpointlines:
             for v in obstacles:
                 halfw = v.w // 2
@@ -244,66 +252,70 @@ class AStartPaths:
 
         return True
 
-    # 是否地形idx可移动
-    def IsDixingVecHave(self, idx):
-        if idx >= len(self.dixing):
-            return True
-        return self.dixing[idx]
+    # 修正初始坐标, 初始坐标可能和障碍物相交, 所以需要稍微调整
+    def CorrectZuobiao(self, cellx, celly):
+        if self.TouchedAnything([cellx, celly]):
+            curx, cury = cellx, celly
+            for i in range(4):
+                correctx, correcty = NextZuobiao(curx, cury, i)
+                if not self.TouchedAnything([correctx, correcty]):
+                    return correctx, correcty
+        return cellx, celly
 
-    # 是否触碰到地形
-    def DixingTouched(self, x, y):
-        l = (x * 10 - self.meninfo.w // 2) // 0x10
-        r = (x * 10 + self.meninfo.w // 2) // 0x10
-        t = (y * 10 - self.meninfo.h // 2) // 0xc
-        d = (y * 10 + self.meninfo.h // 2) // 0xc
-        for i in range(r - l + 1):
-            for j in range(d - t + 1):
-                if self.IsDixingVecHave(hwToidx(l + i, t + j, self.mapCellWLen)):
-                    return True
-        return False
 
-    # 是否触碰到障碍物
-    def ObstacleTouched(self, x, y):
-        leftx = (x * 10 - self.meninfo.w // 2)
-        rightx = (x * 10 + self.meninfo.w // 2)
-        topy = (y * 10 - self.meninfo.h // 2)
-        downy = (y * 10 + self.meninfo.h // 2)
-        for v in self.obstacles:
-            halfw = int(v.w / 2)
-            halfh = int(v.h / 2)
-            obleftx = v.x - halfw
-            obrightx = v.x + halfw
-            obtopy = v.y - halfh
-            obdowny = v.y + halfh
-            if IsRectangleOverlap(Zuobiao(leftx, topy), Zuobiao(rightx, downy), Zuobiao(obleftx, obtopy),
-                                  Zuobiao(obrightx, obdowny)):
-                return True
-        return False
+class AStartPaths:
+    # 构造函数 地形, 人物信息, 起始点, 终结点,
+    def __init__(self, MAPW, MAPH, ob, start, end):
+        self.MAPW = MAPW
+        self.MAPH = MAPH
+        self.ob = ob
+
+        # start end && 行走的路径使用 10 * 10 长宽的格子
+        self.manCellWLen = MAPW // 10
+        self.manCellHLen = MAPH // 10
+        self.manCellnum = self.manCellHLen * self.manCellWLen
+
+        # 修正人物 && 目的位置 10 x 10 坐标位置
+        ccellx, ccelly = self.ob.CorrectZuobiao(idxTohw(start, self.manCellWLen))
+        start = hwToidx(ccellx, ccelly, self.manCellWLen)
+
+        ccellx, ccelly = self.ob.CorrectZuobiao(idxTohw(end, self.manCellWLen))
+        end = hwToidx(ccellx, ccelly, self.manCellWLen)
+
+        # a * 核心算法
+        self.closedSet = []
+        self.openSet = [start]
+
+        self.start = start
+        self.end = end
+
+        self.edgeTo = [0] * self.manCellnum
+        self.marked = [False] * self.manCellnum
+
+        # 实际距离
+        self.gScore = [sys.maxsize] * self.manCellnum
+        self.gScore[start] = 0
+
+        # 估算到终点的距离
+        self.fScore = [sys.maxsize] * self.manCellnum
+        self.fScore[start] = dist_between(idxTohw(start, self.manCellWLen), idxTohw(end, self.manCellWLen))
+
+        self.astar()
 
     # 获取邻居节点
     def GetAdjs(self, pos):
         # 获取八方位邻居格子. 根据地形和障碍数据过滤掉不必要的
         adjs = []
-        posx, posy = idxTohw(pos, self.manCellWLen)
+        cellx, celly = idxTohw(pos, self.manCellWLen)
 
         # 上下左右. 左上,左下,右上,右下.
         checks = [
-            (posx, posy - 1),
-            (posx, posy + 1),
-            (posx - 1, posy),
-            (posx + 1, posy),
-            (posx - 1, posy - 1),
-            (posx - 1, posy + 1),
-            (posx + 1, posy - 1),
-            (posx + 1, posy + 1),
+            (cellx, celly - 1), (cellx, celly + 1), (cellx - 1, celly), (cellx + 1, celly),
+            (cellx - 1, celly - 1), (cellx - 1, celly + 1), (cellx + 1, celly - 1), (cellx + 1, celly + 1),
         ]
 
         for (adjx, adjy) in checks:
-            if adjx * 10 > self.mapwlen or adjy * 10 > self.maphlen:
-                continue
-            if self.DixingTouched(adjx, adjy):
-                continue
-            if self.ObstacleTouched(adjx, adjy):
+            if self.ob.TouchedAnything([adjx, adjy]):
                 continue
             adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
         return adjs
@@ -352,6 +364,35 @@ class AStartPaths:
         result.append(self.start)
         return result
 
+    # 平滑
+    def PathToSmooth(self, v: int):
+        paths = self.PathTo(v)
+        paths = list(reversed(paths))
+        # 把数组变成链表
+        firstnode = PathEdge(0, None, OTHER)
+        curnode = firstnode
+        for v in paths:
+            curnode.next = PathEdge(v, None, NODE)
+            curnode = curnode.next
+
+        # 平滑路径
+        e1 = firstnode.next
+        e2 = e1.next
+        while e2:
+            (curcellx, curcelly) = idxTohw(e1.pos, self.manCellWLen)
+            (nextcellx, nextcelly) = idxTohw(e2.pos, self.manCellWLen)
+            firstzuobiao = Zuobiao(curcellx * 10, curcelly * 10)
+            nextzuobiao = Zuobiao(nextcellx * 10, nextcelly * 10)
+
+            if self.ob.CanTwoPointBeMove(firstzuobiao, nextzuobiao):
+                e1.next = e2
+                e2 = e2.next
+            else:
+                e1 = e2
+                e2 = e2.next
+
+        return firstnode.next
+
 
 def main():
     if GameApiInit():
@@ -372,53 +413,31 @@ def main():
 
     # 人物
     meninfo = GetMenInfo()
-    beginx, beginy = (int(meninfo.x) // 10) * 10, (int(meninfo.y) // 10) * 10
+    beginx, beginy = GetCloseCoord(meninfo.x, meninfo.y)
 
     # 目的
     door = GetNextDoor()
-    dstx, dsty = door.prevcx, door.prevcy
-    endx, endy = (int(dstx) // 10) * 10, (int(dsty) // 10) * 10
+    endx, endy = GetCloseCoord(door.prevcx, door.prevcy)
 
     # a star search
-    astar = AStartPaths(d, meninfo, hwToidx(beginx // 10, beginy // 10, d.mapw // 10),
-                        hwToidx(endx // 10, endy // 10, d.mapw // 10), img)
-    paths = astar.PathTo(hwToidx(endx // 10, endy // 10, d.mapw // 10))
-    paths = list(reversed(paths))
+    ob = Obstacle(d, meninfo)
+    begincellidx = hwToidx(beginx // 10, beginy // 10, d.mapw // 10)
+    endcellidx = hwToidx(endx // 10, endy // 10, d.mapw // 10)
 
-    # 把数组变成链表
-    firstnode = PathEdge(0, None, OTHER)
-    curnode = firstnode
-    for v in paths:
-        curnode.next = PathEdge(v, None, NODE)
-        curnode = curnode.next
+    astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
+    iter = astar.PathToSmooth(endcellidx)
 
-    # 平滑路径
-    e1 = firstnode.next
-    e2 = e1.next
-    while e2:
-        (curx, cury) = idxTohw(e1.pos, d.mapw // 10)
-        (nextx, nexty) = idxTohw(e2.pos, d.mapw // 10)
-        firstzuobiao = Zuobiao(curx * 10, cury * 10)
-        nextzuobiao = Zuobiao(nextx * 10, nexty * 10)
-        if astar.CanTwoPointBeMove(firstzuobiao, nextzuobiao):
-            e1.next = e2
-            e2 = e2.next
-        else:
-            e1 = e2
-            e2 = e2.next
-
-    iternode = firstnode.next
-    while iternode:
+    while iter:
         # 画路径点
-        (x, y) = idxTohw(iternode.pos, d.mapw // 10)
-        drawx, drawy = x * 10, y * 10
+        (cellx, celly) = idxTohw(iter.pos, d.mapw // 10)
+        drawx, drawy = cellx * 10, celly * 10
         cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
 
         # 画起始点和目的点的矩形
         halfw = meninfo.w // 2
         halfh = meninfo.h // 2
         cv2.rectangle(img, (drawx - halfw, drawy - halfh), (drawx + halfw, drawy + halfh), (0, 0, 139), 1)
-        iternode = iternode.next
+        iter = iter.next
 
     cv2.imshow('img', img)
     cv2.waitKey()
