@@ -95,6 +95,9 @@ class Player:
         # 状态机
         self.stateMachine = StateMachine(self)
 
+        # 移动路径列表
+        self.pathfindinglst = []
+
     # 更改当前状态机
     def ChangeState(self, state):
         self.UpLatestKey()
