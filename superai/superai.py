@@ -272,7 +272,7 @@ class Player:
                 return
             else:
                 dummy = "" if dummy is None else dummy
-                self.Seek(curpoint[0], curpoint[1], obj, dummy= dummy + "(寻路)")
+                self.Seek(curpoint[0], curpoint[1], obj, dummy=dummy + "(寻路)")
                 return
 
         # 范围内有麻烦就路径规划一下
@@ -305,8 +305,11 @@ class Player:
             self.Seek(destx, desty, obj, dummy)
             return
 
-            # 每次进图缓存一下当前的 1. 地形 2. 障碍 3. 门位置.
+    # 因为到达目的地了清空当前寻路
+    def ClearPathfindingLst(self):
+        self.pathfindinglst = []
 
+    # 每次进图缓存一下当前的 1. 地形 2. 障碍 3. 门位置.
     def NewMapCache(self):
         meninfo = GetMenInfo()
         self.d = GetGameObstacleData()
@@ -318,7 +321,8 @@ class Player:
             doorcellx, doorcelly = bfsdoor.bfs()
             self.doorx, self.doory = doorcellx * 10, doorcelly * 10
 
-        self.pathfindinglst = []
+        self.ClearPathfindingLst()
+
 
 class State:
     def Execute(self, player):
