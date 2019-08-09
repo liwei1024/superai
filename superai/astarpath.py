@@ -1,7 +1,6 @@
 import os
 import queue
 import sys
-import time
 
 import cv2
 import numpy as np
@@ -12,8 +11,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 import copy
 
 from superai.astartdemo import idxTohw, hwToidx, dist_between
-from superai.gameapi import FlushPid, GameApiInit, GetMenInfo, GetNextDoor, GetNextDoorWrap
-from superai.obstacle import GetGameObstacleData, drawBack, GameObstacleData, drawWithOutDoor
+from superai.gameapi import FlushPid, GameApiInit, GetMenInfo, GetNextDoorWrap, ZUO, QuardantMap, YOU, SHANG, XIA, \
+    Quardant
+from superai.obstacle import GetGameObstacleData, GameObstacleData, drawWithOutDoor
 
 
 # 坐标
@@ -93,6 +93,7 @@ def IsRectagleOverlapLine(renleftx, renrightx, rentopy, rendowny, line):
     return False
 
 
+# obstacle 包装
 class Obstacle:
     def __init__(self, d: GameObstacleData, menw, menh):
         self.menw = menw
@@ -129,10 +130,29 @@ class Obstacle:
             return True
         return self.dixing[cellidx]
 
+    # ** 范围内相交的所有的可被攻击障碍物. l,r,t,d 范围格子坐标极值. 返回 [obstacles]
+    def RangesAllObstacleAttack(self, l, r, t, d):
+        obstacles = []
+        for v in self.obstacles:
+            if v.CanBeAttack():
+                halfw = v.w // 2
+                halfh = v.h // 2
+                obleftx = v.x - halfw
+                obrightx = v.x + halfw
+                obtopy = v.y - halfh
+                obdowny = v.y + halfh
+                if IsRectangleOverlap(Zuobiao(l, t), Zuobiao(r, d), Zuobiao(obleftx, obtopy),
+                                      Zuobiao(obrightx, obdowny)):
+                    obstacles.append(v)
+        return obstacles
+
     # 范围内相交的所有的障碍物. l,r,t,d 范围格子坐标极值. 返回 [obstacles]
     def RangesAllObstacle(self, l, r, t, d):
         obstacles = []
         for v in self.obstacles:
+            if v.CanBeAttack():
+                continue
+
             halfw = v.w // 2
             halfh = v.h // 2
             obleftx = v.x - halfw
@@ -159,11 +179,11 @@ class Obstacle:
                     dixingcells.append((l + i, t + j))
         return dixingcells
 
-    # 范围内有障碍物或地形格子, 是否选择路径规划用. l,r,t,d 范围格子坐标极值. 返回True False
+    # ** 范围内有障碍物或地形格子, 是否选择路径规划用. l,r,t,d 范围格子坐标极值. 返回True False
     def RangesHaveTrouble(self, l, r, t, d):
         if len(self.RangesAllObstacle(l, r, t, d)) > 0:
             return True
-        return self.RangesAllDixing(l, r, t, d)
+        return len(self.RangesAllDixing(l, r, t, d)) > 0
 
     # 是否触碰到地形. x,y 10 宽高的相应cell位置
     def DixingTouched(self, cellx, celly):
@@ -184,6 +204,9 @@ class Obstacle:
         topy = (celly * 10 - self.menh // 2)
         downy = (celly * 10 + self.menh // 2)
         for v in self.obstacles:
+            if v.CanBeAttack():
+                continue
+
             halfw = int(v.w / 2)
             halfh = int(v.h / 2)
             obleftx = v.x - halfw
@@ -264,7 +287,29 @@ class Obstacle:
                         return correctx, correcty
         return cellpos[0], cellpos[1]
 
+    # 人物指定方向是否有障碍物
+    def ManQuadHasObstacle(self, quad, menx, meny):
+        halfmenw, halfmenh = self.menw // 2, self.menh // 2
+        composes = QuardantMap[quad]
+        menl, menr, ment, mend = menx - halfmenw, menx + halfmenw, meny - halfmenh, meny + halfmenh
+        for v in composes:
+            if v == Quardant.ZUO:
+                l, r, t, d = menl - self.menw, menr - self.menw, ment, mend
+            elif v == Quardant.YOU:
+                l, r, t, d = menl + self.menw, menr + self.menw, ment, mend
+            elif v == Quardant.SHANG:
+                l, r, t, d = menl, menr, ment - self.menh, mend - self.menh
+            elif v == Quardant.XIA:
+                l, r, t, d = menl, menr, ment + self.menh, mend + self.menh
+            else:
+                l, r, t, d = menl, menr, ment, mend
 
+            if len(self.RangesAllObstacleAttack(l, r, t, d)) > 0:
+                return True
+        return False
+
+
+# a star search
 class AStartPaths:
     # 构造函数 地形, 人物信息, 起始点, 终结点,
     def __init__(self, MAPW, MAPH, ob, start, end):
@@ -417,24 +462,28 @@ class BfsNextDoorWrapCorrect:
         self.manCellHLen = MAPH // 10
         self.manCellnum = self.manCellHLen * self.manCellWLen
 
-        self.l, self.r, self.t, self.d = self.door.x, self.door.x + self.door.w, self.door.y, self.door.y + self.door.h
+        self.doorl, self.doorr, self.doort, self.doord = self.door.x, self.door.x + self.door.w, self.door.y, self.door.y + self.door.h
         self.halfw, self.halfh = self.door.w // 2, self.door.h // 2
 
         # bfs core
         self.marked = [False] * self.manCellnum
         self.edgeTo = [0] * self.manCellnum
 
-        startcellx = (self.l + self.halfw) // 10
-        startcelly = (self.t + self.halfh) // 10
+        startcellx = (self.doorl + self.halfw) // 10
+        startcelly = (self.doort + self.halfh) // 10
 
         self.s = hwToidx(startcellx, startcelly, self.manCellWLen)
 
+    # 是否超过门的范围
     def OutRange(self, cellx, celly):
         l = cellx * 10
         r = cellx * 10 + 10
         t = celly * 10
         d = celly * 10 + 10
-        return not IsRectangleOverlap(Zuobiao(self.l, self.t), Zuobiao(self.r, self.d), Zuobiao(l, t),
+        # 不超过门的范围
+        return not IsRectangleOverlap(Zuobiao(self.doorl + 1, self.doort + 1),
+                                      Zuobiao(self.doorr - 1, self.doord - 1),
+                                      Zuobiao(l, t),
                                       Zuobiao(r, d))
 
     # 获取邻居节点. return [cellx, celly]
@@ -451,6 +500,12 @@ class BfsNextDoorWrapCorrect:
 
         for (adjx, adjy) in checks:
             if not self.OutRange(adjx, adjy):
+                idx = hwToidx(adjx, adjy, self.manCellWLen)
+
+                # TODO 不知道为啥增加了 不合适的点
+                if idx >= self.manCellnum:
+                    continue
+
                 adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
 
         return adjs
@@ -488,6 +543,25 @@ def CoordToManIdx(x, y, mancellwlen, ob):
     return hwToidx(ccellx, ccelly, mancellwlen)
 
 
+# 获得路径   [d 障碍数据, ob 障碍包装, beginpos, endpos 起点终点坐标]  返回[idx,idx,idx]
+def GetPaths(d, ob, beginpos, endpos):
+    begincellidx = CoordToManIdx(beginpos[0], beginpos[1], d.mapw // 10, ob)
+    endcellidx = CoordToManIdx(endpos[0], endpos[1], d.mapw // 10, ob)
+
+    if ob.TouchedAnything(idxTohw(endcellidx, d.mapw // 10)):
+        # 终点不能行走. 那也返回一个终点过去把
+        lst = [begincellidx, endcellidx]
+    elif begincellidx != endcellidx:
+        # 起点终点不同 就规划下
+        astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
+        lst = astar.PathToSmoothLst(endcellidx)
+    else:
+        # 可能起点终点相同
+        lst = [begincellidx, endcellidx]
+    return lst
+
+
+# 画任意路径寻路
 def DrawAnyPath(beginx, beginy, endx, endy):
     global img
 
@@ -501,12 +575,7 @@ def DrawAnyPath(beginx, beginy, endx, endy):
     img[np.where(img == [0])] = [255]
     drawWithOutDoor(img, d)
 
-    begincellidx = CoordToManIdx(beginx, beginy, mancellwlen, ob)
-    endcellidx = CoordToManIdx(endy, endy, mancellwlen, ob)
-
-    # a star search
-    astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
-    lst = astar.PathToSmoothLst(endcellidx)
+    lst = GetPaths(d, ob, [beginx, beginy], [endx, endy])
 
     for ele in lst:
         # 画路径点
@@ -538,16 +607,11 @@ def DrawNextDoorPath():
     img[np.where(img == [0])] = [255]
     drawWithOutDoor(img, d)
 
-    begincellidx = CoordToManIdx(meninfo.x, meninfo.y, mancellwlen, ob)
-
     door = GetNextDoorWrap()
     bfsdoor = BfsNextDoorWrapCorrect(d.mapw, d.maph, door, ob)
     (cellx, celly) = bfsdoor.bfs()
-    endcellidx = CoordToManIdx(cellx * 10, celly * 10, mancellwlen, ob)
 
-    # a star search
-    astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
-    lst = astar.PathToSmoothLst(endcellidx)
+    lst = GetPaths(d, ob, [meninfo.x, meninfo.y], [cellx * 10, celly * 10])
 
     for ele in lst:
         # 画路径点
@@ -572,8 +636,8 @@ def main():
         exit(0)
     FlushPid()
 
-    # DrawNextDoorPath()
-    DrawAnyPath(1167, 229, 127, 24)
+    DrawNextDoorPath()
+    # DrawAnyPath(235, 176, 1270, 230)
 
 
 if __name__ == '__main__':

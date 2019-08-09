@@ -9,8 +9,8 @@ import math
 import random
 import time
 
-from superai.astarpath import Obstacle, BfsNextDoorWrapCorrect, AStartPaths, CoordToManIdx
-from superai.astartdemo import hwToidx, idxTohw
+from superai.astarpath import Obstacle, BfsNextDoorWrapCorrect, GetPaths
+from superai.astartdemo import idxTohw
 from superai.obstacle import GetGameObstacleData
 
 from superai.flannfind import FlushImg, IsCartoonTop, IsVideoTop, SetThreadExit, \
@@ -32,7 +32,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
-    PATH_PLANING_RANGE
+    PATH_PLANING_RANGE, GetObstacle
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -101,6 +101,7 @@ class Player:
     # 更改当前状态机
     def ChangeState(self, state):
         self.UpLatestKey()
+        self.ClearPathfindingLst()
         self.stateMachine.ChangeState(state)
 
     # 更改全局状态机
@@ -252,17 +253,31 @@ class Player:
         else:
             self.UpLatestKey()
             self.DownKey(quad)
-            RanSleep(0.1)
+            RanSleep(0.05)
             self.UpLatestKey()
             Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
                 (menx, meny, objname, destx, desty, quad.name))
 
     # 靠近(带寻路)
     def SeekWithPathfinding(self, destx, desty, obj=None, dummy=None):
-        # 2个点的话说明是连通的. 超过两个点需要按照路径走
         menx, meny = GetMenXY()
         menx, meny = int(menx), int(meny)
 
+        # 方向是否有障碍物
+        self.ob.UpdateObstacle(GetObstacle())
+        quad, _ = GetQuadrant(menx, meny, destx, desty)
+        if quad is Quardant.CHONGDIE:
+            Log("去的位置重叠了")
+            RanSleep(0.05)
+            return
+
+        if self.ob.ManQuadHasObstacle(quad, menx, meny):
+            Log("方向上有障碍物, 攻击")
+            self.UpLatestKey()
+            PressX()
+            return
+
+        # 1个点就说明规划了路径,往下一个路径走
         if len(self.pathfindinglst) > 0:
             curpoint = self.pathfindinglst[0]  # 往下一个点走
             curpoint = idxTohw(curpoint, self.d.mapw // 10)
@@ -280,14 +295,14 @@ class Player:
         menx, meny = int(menx), int(meny)
         l, r, t, d = menx - PATH_PLANING_RANGE // 2, menx + PATH_PLANING_RANGE // 2, meny - PATH_PLANING_RANGE // 2, meny + PATH_PLANING_RANGE // 2
         if self.ob.RangesHaveTrouble(l, r, t, d):
-
-            begincellidx = CoordToManIdx(menx, meny, self.d.mapw // 10, self.ob)
-            endcellidx = CoordToManIdx(destx, desty, self.d.mapw // 10, self.ob)
-
             Log("前往目的地有障碍物, 开始规划(%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
+            lst = GetPaths(self.d, self.ob, [menx, meny], [destx, desty])
 
-            astar = AStartPaths(self.d.mapw, self.d.maph, self.ob, begincellidx, endcellidx)
-            lst = astar.PathToSmoothLst(endcellidx)
+            # 如果没有点,a*规划错了. 点必然最少也是2个以上,起始点和终点
+            if len(lst) in [0, 1]:
+                raise NotImplemented()
+
+            # 把起点弹出
             if len(lst) > 0:
                 lst.pop(0)
 
@@ -320,6 +335,7 @@ class Player:
             bfsdoor = BfsNextDoorWrapCorrect(self.d.mapw, self.d.maph, door, self.ob)
             doorcellx, doorcelly = bfsdoor.bfs()
             self.doorx, self.doory = doorcellx * 10, doorcelly * 10
+            print("下一个门的坐标: (%d, %d) ->修正 (%d, %d) " % (door.x, door.y, self.doorx, self.doory))
 
         self.ClearPathfindingLst()
 
@@ -451,6 +467,9 @@ class GlobalState(State):
 
         # 检查时间过去了
         if time.time() - self.latesttime > 0.5:
+            # 刷新障碍物 TODO
+            # player.NewMapCache()
+
             curx, cury = GetMenXY()
             if math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
                 if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
@@ -639,6 +658,7 @@ class SeekAndAttackMonster(State):
 
             # 后跳解决问题
             player.UpLatestKey()
+            player.ClearPathfindingLst()
             if random.uniform(0, 1) < 0.8:
                 PressHouTiao()
                 RanSleep(0.05)
@@ -653,6 +673,7 @@ class SeekAndAttackMonster(State):
             Log("目标在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
                 (player.curskill.name, player.curskill.skilldata.v_w, player.curskill.skilldata.h_w))
             player.UpLatestKey()
+            player.ClearPathfindingLst()
             player.ChaoxiangFangxiang(men.x, obj.x)
             if player.IsChaoxiangDuifang(men.x, obj.x):
                 player.UseSkill()
@@ -682,6 +703,7 @@ class FuckDuonierState(State):
             Log("肉瘤在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
                 (simpleAttackSkill.name, simpleAttackSkill.skilldata.v_w, simpleAttackSkill.skilldata.h_w))
             player.UpLatestKey()
+            player.ClearPathfindingLst()
             player.ChaoxiangFangxiang(men.x, obj.x)
             if player.IsChaoxiangDuifang(men.x, obj.x):
                 simpleAttackSkill.Use()
@@ -711,6 +733,7 @@ class SeekAndPickUp(State):
         if CanbePickup(menx, meny, obj.x, obj.y):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
+            player.ClearPathfindingLst()
             Log("捡取 (%d,%d)" % (obj.x, obj.y))
             RanSleep(0.05)
             PressX()
@@ -737,6 +760,7 @@ class PickBuf(State):
         if CanbeGetBuff(menx, meny, obj.x, obj.y):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
+            player.ClearPathfindingLst()
             Log("捡取buff (%d,%d)" % (obj.x, obj.y))
             RanSleep(0.1)
         else:
@@ -751,7 +775,7 @@ class DoorOpenGotoNext(State):
             if IsCurrentInBossFangjian():
                 Log("进到了boss房间")
             # 进入到了新的门
-            RanSleep(0.5)
+            RanSleep(0.025)
             player.NewMapCache()
             player.ChangeState(StandState())
         else:
@@ -766,7 +790,7 @@ class DoorStuckGoToPrev(State):
         if not IsNextDoorOpen():
             if IsCurrentInBossFangjian():
                 Log("进到了boss房间")
-            RanSleep(0.5)
+            RanSleep(0.025)
             player.NewMapCache()
             player.ChangeState(StandState())
         elif IsClosedTo(menx, meny, door.prevcx, door.prevcy):
