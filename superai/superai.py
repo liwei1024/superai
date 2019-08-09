@@ -259,6 +259,22 @@ class Player:
 
     # 靠近(带寻路)
     def SeekWithPathfinding(self, destx, desty, obj=None, dummy=None):
+        # 2个点的话说明是连通的. 超过两个点需要按照路径走
+        menx, meny = GetMenXY()
+        menx, meny = int(menx), int(meny)
+
+        if len(self.pathfindinglst) > 0:
+            curpoint = self.pathfindinglst[0]  # 往下一个点走
+            curpoint = idxTohw(curpoint, self.d.mapw // 10)
+            curpoint[0], curpoint[1] = curpoint[0] * 10, curpoint[1] * 10
+            if IsClosedTo(menx, meny, curpoint[0], curpoint[1]):
+                del self.pathfindinglst[0]
+                return
+            else:
+                dummy = "" if dummy is None else dummy
+                self.Seek(curpoint[0], curpoint[1], obj, dummy= dummy + "(寻路)")
+                return
+
         # 范围内有麻烦就路径规划一下
         menx, meny = GetMenXY()
         menx, meny = int(menx), int(meny)
@@ -272,22 +288,25 @@ class Player:
 
             astar = AStartPaths(self.d.mapw, self.d.maph, self.ob, begincellidx, endcellidx)
             lst = astar.PathToSmoothLst(endcellidx)
+            if len(lst) > 0:
+                lst.pop(0)
 
-            if len(lst) <= 2:
-                Log("路径规划点小于等于2个, 直接过去: (%d, %d)" % (destx, desty))
-                return self.Seek(destx, desty, obj, dummy)
+            if len(lst) == 1:
+                Log("路径规划点为一个, 直接过去: (%d, %d)" % (destx, desty))
+                self.Seek(destx, desty, obj, dummy)
+                return
             else:
                 Log("路径规划一共%d 个路程点" % len(lst))
-                curpoint = lst[1]
-                curpoint = idxTohw(curpoint, self.d.mapw // 10)
-                curpoint[0], curpoint[1] = curpoint[0] * 10, curpoint[1] * 10
+                self.pathfindinglst = lst
+                return
 
-                return self.Seek(curpoint[0], curpoint[1], obj, dummy)
         else:
             Log("没有障碍物直接过去")
-            return self.Seek(destx, desty, obj, dummy)
+            self.Seek(destx, desty, obj, dummy)
+            return
 
-    # 每次进图缓存一下当前的 1. 地形 2. 障碍 3. 门位置.
+            # 每次进图缓存一下当前的 1. 地形 2. 障碍 3. 门位置.
+
     def NewMapCache(self):
         meninfo = GetMenInfo()
         self.d = GetGameObstacleData()
@@ -296,8 +315,10 @@ class Player:
         if not IsCurrentInBossFangjian():
             door = GetNextDoorWrap()
             bfsdoor = BfsNextDoorWrapCorrect(self.d.mapw, self.d.maph, door, self.ob)
-            self.doorx, self.doory = bfsdoor.bfs()
+            doorcellx, doorcelly = bfsdoor.bfs()
+            self.doorx, self.doory = doorcellx * 10, doorcelly * 10
 
+        self.pathfindinglst = []
 
 class State:
     def Execute(self, player):
@@ -726,7 +747,7 @@ class DoorOpenGotoNext(State):
             if IsCurrentInBossFangjian():
                 Log("进到了boss房间")
             # 进入到了新的门
-            RanSleep(1.0)
+            RanSleep(0.5)
             player.NewMapCache()
             player.ChangeState(StandState())
         else:
@@ -741,7 +762,7 @@ class DoorStuckGoToPrev(State):
         if not IsNextDoorOpen():
             if IsCurrentInBossFangjian():
                 Log("进到了boss房间")
-            RanSleep(1.0)
+            RanSleep(0.5)
             player.NewMapCache()
             player.ChangeState(StandState())
         elif IsClosedTo(menx, meny, door.prevcx, door.prevcy):

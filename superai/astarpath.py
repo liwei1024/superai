@@ -572,8 +572,8 @@ def main():
         exit(0)
     FlushPid()
 
-    DrawNextDoorPath()
-    # DrawAnyPath(130, 260, 660, 140)
+    # DrawNextDoorPath()
+    DrawAnyPath(1167, 229, 127, 24)
 
 
 if __name__ == '__main__':
