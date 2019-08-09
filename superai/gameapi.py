@@ -806,6 +806,8 @@ def NearestMonster():
             if any(mon.name != "多尼尔" for mon in monsters):
                 monsters = filter(lambda mon: mon.name != "多尼尔", monsters)
                 monsters = list(monsters)
+    if "暗黑雷鸣废墟" in mapinfo.name:
+        pass
 
     return min(monsters, key=lambda mon: distance(mon.x, mon.y, menInfo.x, menInfo.y))
 
@@ -846,6 +848,10 @@ def GetBossObj():
 def NearestMonsterWrap():
     if IsCurrentInBossFangjian():
         mapinfo = GetMapInfo()
+
+        if "暗黑雷鸣废墟" in mapinfo.name:
+            pass
+
         if "暴君的祭坛" in mapinfo.name:
             obj = NearestMonster()
         else:
