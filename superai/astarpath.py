@@ -554,7 +554,11 @@ def GetPaths(d, ob, beginpos, endpos):
     elif begincellidx != endcellidx:
         # 起点终点不同 就规划下
         astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
-        lst = astar.PathToSmoothLst(endcellidx)
+
+        try:
+            lst = astar.PathToSmoothLst(endcellidx)
+        except AttributeError:
+            lst = []
     else:
         # 可能起点终点相同
         lst = [begincellidx, endcellidx]
@@ -636,8 +640,8 @@ def main():
         exit(0)
     FlushPid()
 
-    DrawNextDoorPath()
-    # DrawAnyPath(235, 176, 1270, 230)
+    # DrawNextDoorPath()
+    DrawAnyPath(979, 245, 848, 230)
 
 
 if __name__ == '__main__':

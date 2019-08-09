@@ -222,41 +222,30 @@ class Player:
 
         if quad == Quardant.CHONGDIE:
             # 已经重叠了, 调用者(靠近怪物, 捡物, 过门 应该不会再次调用seek了). 频繁发生就说明写错了
-            self.UpLatestKey()
+            # self.UpLates tKey()
             Log("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 重叠 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
-            RanSleep(0.05)
+            # RanSleep(0.025)
             return
 
-        # 大范围移动
-        if rent == BIG_RENT:
-            if jizou and not IsManJipao():
-                self.UpLatestKey()
-                self.KeyJiPao(GetFangxiang(menx, destx))
-
-            # 上次和本次按键的分解
-            if self.latestDown is not None:
-                latestDecompose = QuardantMap[self.latestDown]
-                currentDecompose = QuardantMap[quad]
-
-                # 上次的按键在本次方向中没找到就弹起
-                for keydown in latestDecompose:
-                    if keydown not in currentDecompose:
-                        QuadKeyUpMap[keydown]()
-
-            self.DownKey(quad)
-            RanSleep(0.05)
-            Log("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 前行 %s" % (
-                menx, meny, objname, destx, desty, quad.name, jizoustr))
-
-        # 小范围移动
-        else:
+        if jizou and not IsManJipao():
             self.UpLatestKey()
-            self.DownKey(quad)
-            RanSleep(0.05)
-            self.UpLatestKey()
-            Log("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 微小距离靠近" %
-                (menx, meny, objname, destx, desty, quad.name))
+            self.KeyJiPao(GetFangxiang(menx, destx))
+
+        # 上次和本次按键的分解
+        if self.latestDown is not None:
+            latestDecompose = QuardantMap[self.latestDown]
+            currentDecompose = QuardantMap[quad]
+
+            # 上次的按键在本次方向中没找到就弹起
+            for keydown in latestDecompose:
+                if keydown not in currentDecompose:
+                    QuadKeyUpMap[keydown]()
+
+        self.DownKey(quad)
+        RanSleep(0.02)
+        Log("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 前行 %s" % (
+            menx, meny, objname, destx, desty, quad.name, jizoustr))
 
     # 靠近(带寻路)
     def SeekWithPathfinding(self, destx, desty, obj=None, dummy=None):
@@ -266,16 +255,13 @@ class Player:
         # 方向是否有障碍物
         self.ob.UpdateObstacle(GetObstacle())
         quad, _ = GetQuadrant(menx, meny, destx, desty)
-        if quad is Quardant.CHONGDIE:
-            Log("去的位置重叠了")
-            RanSleep(0.05)
-            return
 
-        if self.ob.ManQuadHasObstacle(quad, menx, meny):
-            Log("方向上有障碍物, 攻击")
-            self.UpLatestKey()
-            PressX()
-            return
+        if quad != Quardant.CHONGDIE:
+            if self.ob.ManQuadHasObstacle(quad, menx, meny):
+                Log("方向上有障碍物, 攻击")
+                self.UpLatestKey()
+                PressX()
+                return
 
         # 1个点就说明规划了路径,往下一个路径走
         if len(self.pathfindinglst) > 0:
@@ -300,7 +286,11 @@ class Player:
 
             # 如果没有点,a*规划错了. 点必然最少也是2个以上,起始点和终点
             if len(lst) in [0, 1]:
-                raise NotImplemented()
+                # raise NotImplemented()
+                # 把当前所有缓存刷新下
+                Log("规划错误,刷新地图缓存")
+                self.NewMapCache()
+                return
 
             # 把起点弹出
             if len(lst) > 0:
@@ -775,7 +765,7 @@ class DoorOpenGotoNext(State):
             if IsCurrentInBossFangjian():
                 Log("进到了boss房间")
             # 进入到了新的门
-            RanSleep(0.025)
+            RanSleep(0.03)
             player.NewMapCache()
             player.ChangeState(StandState())
         else:
@@ -790,7 +780,7 @@ class DoorStuckGoToPrev(State):
         if not IsNextDoorOpen():
             if IsCurrentInBossFangjian():
                 Log("进到了boss房间")
-            RanSleep(0.025)
+            RanSleep(0.03)
             player.NewMapCache()
             player.ChangeState(StandState())
         elif IsClosedTo(menx, meny, door.prevcx, door.prevcy):
