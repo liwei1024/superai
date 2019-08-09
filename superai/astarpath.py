@@ -93,11 +93,6 @@ def IsRectagleOverlapLine(renleftx, renrightx, rentopy, rendowny, line):
     return False
 
 
-# 取相近 10 x 10 坐标 return [x, y]
-def GetCloseCoord(x, y):
-    return (int(x) // 10) * 10, (int(y) // 10) * 10
-
-
 class Obstacle:
     def __init__(self, d: GameObstacleData, menw, menh):
         self.menw = menw
@@ -158,8 +153,8 @@ class Obstacle:
         d = d // 0xc
 
         # 横轴0x10步进, 竖轴0xc步进
-        for i in range(r - l):
-            for j in range(d - t):
+        for i in range(r - l + 1):
+            for j in range(d - t + 1):
                 if self.IsDixingVecHave(hwToidx(l + i, t + j, self.mapCellWLen)):
                     dixingcells.append((l + i, t + j))
         return dixingcells
@@ -176,8 +171,8 @@ class Obstacle:
         r = (cellx * 10 + self.menw // 2) // 0x10
         t = (celly * 10 - self.menh // 2) // 0xc
         d = (celly * 10 + self.menh // 2) // 0xc
-        for i in range(r - l):
-            for j in range(d - t):
+        for i in range(r - l + 1):
+            for j in range(d - t + 1):
                 if self.IsDixingVecHave(hwToidx(l + i, t + j, self.mapCellWLen)):
                     return True
         return False
@@ -273,7 +268,6 @@ class Obstacle:
 class AStartPaths:
     # 构造函数 地形, 人物信息, 起始点, 终结点,
     def __init__(self, MAPW, MAPH, ob, start, end):
-
         self.MAPW = MAPW
         self.MAPH = MAPH
         self.ob = ob
@@ -282,24 +276,6 @@ class AStartPaths:
         self.manCellWLen = MAPW // 10
         self.manCellHLen = MAPH // 10
         self.manCellnum = self.manCellHLen * self.manCellWLen
-
-        # 修正人物 && 目的位置 10 x 10 坐标位置
-        (ccellx, ccelly) = self.ob.CorrectZuobiao(idxTohw(start, self.manCellWLen))
-        start = hwToidx(ccellx, ccelly, self.manCellWLen)
-
-        global img
-        if img is not None:
-            halfw, halfh = 40 // 2, 10 // 2
-            cv2.rectangle(img, (ccellx * 10 - halfw, ccelly * 10 - halfh), (ccellx * 10 + halfw, ccelly * 10 + halfh),
-                          (0, 0, 255), 1)
-
-        (ccellx, ccelly) = self.ob.CorrectZuobiao(idxTohw(end, self.manCellWLen))
-        end = hwToidx(ccellx, ccelly, self.manCellWLen)
-
-        if img is not None:
-            halfw, halfh = 40 // 2, 10 // 2
-            cv2.rectangle(img, (ccellx * 10 - halfw, ccelly * 10 - halfh), (ccellx * 10 + halfw, ccelly * 10 + halfh),
-                          (0, 0, 255), 1)
 
         # a * 核心算法
         self.closedSet = []
@@ -336,6 +312,7 @@ class AStartPaths:
         for (adjx, adjy) in checks:
             if self.ob.TouchedAnything([adjx, adjy]):
                 continue
+            # cv2.rectangle(img, (adjx * 10, adjy * 10), (adjx * 10 + 10, adjy * 10 + 10), (0, 0, 139), 1)
             adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
         return adjs
 
@@ -359,6 +336,12 @@ class AStartPaths:
                     self.openSet.append(w)
                 elif tentativeScore >= self.gScore[w]:
                     continue
+
+                global img
+                if img is not None:
+                    # 画邻居
+                    ccellx, ccelly = idxTohw(w, self.manCellWLen)
+                    cv2.circle(img, (ccellx * 10, ccelly * 10), 2, (255, 0, 0))
 
                 self.edgeTo[w] = current
                 self.marked[w] = True
@@ -498,83 +481,32 @@ class BfsNextDoorWrapCorrect:
 img = None
 
 
+# 将x,y转换成 10 格子的坐标.并修正
+def CoordToManIdx(x, y, mancellwlen, ob):
+    x, y = int(x), int(y)
+    (ccellx, ccelly) = ob.CorrectZuobiao([x // 10, y // 10])
+    return hwToidx(ccellx, ccelly, mancellwlen)
+
+
 def DrawAnyPath(beginx, beginy, endx, endy):
     global img
 
-    d = GetGameObstacleData()
     meninfo = GetMenInfo()
+    d = GetGameObstacleData()
     ob = Obstacle(d, meninfo.w, meninfo.h)
+
+    mancellwlen = d.mapw // 10
 
     img = np.zeros((d.maph, d.mapw, 3), dtype=np.uint8)
     img[np.where(img == [0])] = [255]
     drawWithOutDoor(img, d)
 
-    mancellwlen = d.mapw // 10
-
-    begincellidx = hwToidx(beginx // 10, beginy // 10, mancellwlen)
-
-    endcellidx = hwToidx(endx // 10, endy // 10, mancellwlen)
-
-    # a star search
-    astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
-
-    # lst = astar.PathToSmoothLst(endcellidx)
-    #
-    # for ele in lst:
-    #     # 画路径点
-    #     (cellx, celly) = idxTohw(ele, mancellwlen)
-    #     drawx, drawy = cellx * 10, celly * 10
-    #     cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
-    #
-    #     # 方格子
-    #     halfw, halfh = meninfo.w // 2, meninfo.h // 2
-    #     cv2.rectangle(img, (drawx - halfw, drawy - halfh), (drawx + halfw, drawy + halfh), (0, 0, 139), 1)
-
-    cv2.imshow('img', img)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
-
-
-# 画寻找到门的路径
-def DrawNextDoorPath():
-    global img
-
-    t1 = time.time()
-    d = GetGameObstacleData()
-    t2 = time.time()
-
-    print("获取障碍物: %f" % (t2 - t1))  # 100ms
-
-    mancellwlen = d.mapw // 10
-    print("w h : %d %d" % (d.mapw, d.maph))
-
-    img = np.zeros((d.maph, d.mapw, 3), dtype=np.uint8)
-    img[np.where(img == [0])] = [255]
-    drawWithOutDoor(img, d)
-
-    t1 = time.time()
-
-    # 人物
-    meninfo = GetMenInfo()
-    beginx, beginy = GetCloseCoord(meninfo.x, meninfo.y)
-    begincellidx = hwToidx(beginx // 10, beginy // 10, mancellwlen)
-
-    # 目的
-    # 障碍物包装
-    ob = Obstacle(d, meninfo.w, meninfo.h)
-    door = GetNextDoorWrap()
-    bfsdoor = BfsNextDoorWrapCorrect(d.mapw, d.maph, door, ob)
-    (cellx, celly) = bfsdoor.bfs()
-    endx, endy = GetCloseCoord(cellx * 10, celly * 10)
-    endcellidx = hwToidx(endx // 10, endy // 10, mancellwlen)
+    begincellidx = CoordToManIdx(beginx, beginy, mancellwlen, ob)
+    endcellidx = CoordToManIdx(endy, endy, mancellwlen, ob)
 
     # a star search
     astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
     lst = astar.PathToSmoothLst(endcellidx)
-
-    t2 = time.time()
-
-    print("寻路: %f" % (t2 - t1))  # 50ms
 
     for ele in lst:
         # 画路径点
@@ -591,25 +523,41 @@ def DrawNextDoorPath():
     cv2.destroyAllWindows()
 
 
-# 画下一个门坐标
-def DrawNextDoor():
+# 画寻找到门的路径
+def DrawNextDoorPath():
+    global img
+
+    meninfo = GetMenInfo()
     d = GetGameObstacleData()
+    ob = Obstacle(d, meninfo.w, meninfo.h)
 
-    print("w h : %d %d" % (d.mapw, d.maph))
+    mancellwlen = d.mapw // 10
 
+    # 画图
     img = np.zeros((d.maph, d.mapw, 3), dtype=np.uint8)
     img[np.where(img == [0])] = [255]
     drawWithOutDoor(img, d)
 
-    meninfo = GetMenInfo()
-    ob = Obstacle(d, meninfo.w, meninfo.h)
+    begincellidx = CoordToManIdx(meninfo.x, meninfo.y, mancellwlen, ob)
+
     door = GetNextDoorWrap()
     bfsdoor = BfsNextDoorWrapCorrect(d.mapw, d.maph, door, ob)
     (cellx, celly) = bfsdoor.bfs()
-    drawx = cellx * 10
-    drawy = celly * 10
+    endcellidx = CoordToManIdx(cellx * 10, celly * 10, mancellwlen, ob)
 
-    cv2.rectangle(img, (drawx, drawy), (drawx + 10, drawy + 10), (255, 0, 0), -1)
+    # a star search
+    astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
+    lst = astar.PathToSmoothLst(endcellidx)
+
+    for ele in lst:
+        # 画路径点
+        (cellx, celly) = idxTohw(ele, mancellwlen)
+        drawx, drawy = cellx * 10, celly * 10
+        cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
+
+        # 方格子
+        halfw, halfh = meninfo.w // 2, meninfo.h // 2
+        cv2.rectangle(img, (drawx - halfw, drawy - halfh), (drawx + halfw, drawy + halfh), (0, 0, 139), 1)
 
     cv2.imshow('img', img)
     cv2.waitKey()
@@ -624,9 +572,8 @@ def main():
         exit(0)
     FlushPid()
 
-    # DrawNextDoor()
-    # DrawNextDoorPath()
-    DrawAnyPath(130, 260, 660, 140)
+    DrawNextDoorPath()
+    # DrawAnyPath(130, 260, 660, 140)
 
 
 if __name__ == '__main__':

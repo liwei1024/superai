@@ -9,7 +9,7 @@ import math
 import random
 import time
 
-from superai.astarpath import Obstacle, BfsNextDoorWrapCorrect, GetCloseCoord, AStartPaths
+from superai.astarpath import Obstacle, BfsNextDoorWrapCorrect, AStartPaths, CoordToManIdx
 from superai.astartdemo import hwToidx, idxTohw
 from superai.obstacle import GetGameObstacleData
 
@@ -261,12 +261,11 @@ class Player:
         menx, meny = int(menx), int(meny)
         l, r, t, d = menx - PATH_PLANING_RANGE // 2, menx + PATH_PLANING_RANGE // 2, meny - PATH_PLANING_RANGE // 2, meny + PATH_PLANING_RANGE // 2
         if self.ob.RangesHaveTrouble(l, r, t, d):
-            beginx, beginy = GetCloseCoord(menx, meny)
-            begincellidx = hwToidx(beginx // 10, beginy // 10, self.d.mapw // 10)
-            endx, endy = GetCloseCoord(destx, desty)
-            endcellidx = hwToidx(endx // 10, endy // 10, self.d.mapw // 10)
 
-            Log("前往目的地有障碍物, 开始规划(%d, %d) -> (%d, %d)" % (beginx, beginy, endx, endy))
+            begincellidx = CoordToManIdx(menx, meny, self.d.mapw // 10, self.ob)
+            endcellidx = CoordToManIdx(destx, desty, self.d.mapw // 10, self.ob)
+
+            Log("前往目的地有障碍物, 开始规划(%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
 
             astar = AStartPaths(self.d.mapw, self.d.maph, self.ob, begincellidx, endcellidx)
             lst = astar.PathToSmoothLst(endcellidx)
@@ -294,8 +293,7 @@ class Player:
         if not IsCurrentInBossFangjian():
             door = GetNextDoorWrap()
             bfsdoor = BfsNextDoorWrapCorrect(self.d.mapw, self.d.maph, door, self.ob)
-            (cellx, celly) = bfsdoor.bfs()
-            self.doorx, self.doory = GetCloseCoord(cellx * 10, celly * 10)
+            self.doorx, self.doory = bfsdoor.bfs()
 
 
 class State:
