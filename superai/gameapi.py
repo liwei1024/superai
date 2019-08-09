@@ -406,6 +406,7 @@ ATTACK_TOO_CLOSE_V_WIDTH = 1.0 / 2
 # 路径规划范围
 PATH_PLANING_RANGE = 150
 
+
 # 坐标位置
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
     # 同一个垂直位置
@@ -806,8 +807,12 @@ def NearestMonster():
             if any(mon.name != "多尼尔" for mon in monsters):
                 monsters = filter(lambda mon: mon.name != "多尼尔", monsters)
                 monsters = list(monsters)
+
     if "暗黑雷鸣废墟" in mapinfo.name:
-        pass
+        monsters = filter(lambda mon: "领主" not in mon.name, monsters)
+        monsters = list(monsters)
+        if len(monsters) < 1:
+            monsters = GetMonsters()
 
     return min(monsters, key=lambda mon: distance(mon.x, mon.y, menInfo.x, menInfo.y))
 
@@ -826,6 +831,7 @@ def GetBossObj():
     monsters = GetMonsters()
     if len(monsters) < 1:
         return None
+
     objs = filter(lambda mon: "领主" in mon.name and "dummy" not in mon.name and
                               "领主 - 领主" not in mon.name and
                               "通关用" not in mon.name, monsters)
@@ -850,11 +856,14 @@ def NearestMonsterWrap():
         mapinfo = GetMapInfo()
 
         if "暗黑雷鸣废墟" in mapinfo.name:
-            pass
-
-        if "暴君的祭坛" in mapinfo.name:
+            # 暗黑雷鸣废墟有转职任务. 先打小怪,再打boss
+            obj = NearestMonster()
+        elif "暴君的祭坛" in mapinfo.name:
+            # 暴君的祭坛boss可能不及时出现. 给到最近的对象
             obj = NearestMonster()
         else:
+
+            # 其余都是找boss, boss没有最近的对象
             obj = GetBossObj()
             if obj is None:
                 obj = NearestMonster()

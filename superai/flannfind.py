@@ -140,7 +140,7 @@ class Picture:
         return FindPicture(self.img1, self.img2)
 
     def Pos(self):
-        self.img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
+        self.img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士", self.dx, self.dy, self.dw, self.dh)
         return FindPicturePos(self.img1, self.img2)
 
 
