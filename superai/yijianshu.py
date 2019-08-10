@@ -3,13 +3,19 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+import logging
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
 import time
 import win32gui
 import random
 
 from ctypes import *
 
-from superai.common import Log
 from superai.vkcode import *
 
 if os.path.exists("c:/win/superai/dll/"):
@@ -157,20 +163,20 @@ def ReleaseAllKey():
 
 def JiPaoYou():
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    RanSleep(0.1)
+    RanSleep(0.15)
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
-    RanSleep(0.1)
+    RanSleep(0.15)
     lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    RanSleep(0.1)
+    RanSleep(0.15)
 
 
 def JiPaoZuo():
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    RanSleep(0.1)
+    RanSleep(0.15)
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
-    RanSleep(0.1)
+    RanSleep(0.15)
     lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    RanSleep(0.1)
+    RanSleep(0.15)
 
 
 # 八方位移动
@@ -331,9 +337,9 @@ def MouseLeftClick():
 
 def main():
     if YijianshuInit():
-        Log("Init 易键鼠 ok")
+        logger.info("Init 易键鼠 ok")
     else:
-        Log("Init 易键鼠 err")
+        logger.info("Init 易键鼠 err")
         exit(0)
 
     global h

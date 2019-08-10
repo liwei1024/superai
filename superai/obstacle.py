@@ -7,9 +7,16 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+import logging
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
 from superai.gameapi import GameApiInit, GetSeceneInfo, FlushPid, GetMenInfo, GetMonsters, GetGoods, IsManInMap, \
     GetNextDoor
-from superai.common import Log
+
 
 
 class GameObstacleData():
@@ -151,7 +158,7 @@ def main():
     try:
         loop()
     except KeyboardInterrupt:
-        Log("main thread exit")
+        logger.info("main thread exit")
         sys.exit()
 
 

@@ -6,8 +6,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import numpy as np
 
-import threading
+import logging
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.DEBUG)
 
+logger = logging.getLogger(__name__)
 
 from superai.screenshots import WindowCaptureToMem
 import cv2

@@ -2,6 +2,12 @@ import queue
 
 import sys
 
+import logging
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
 
 # 2维到1维
 def hwToidx(x: int, y: int, weight: int):
@@ -13,8 +19,8 @@ def idxTohw(idx, weight: int):
     return [idx % weight, idx // weight]
 
 # 10x10 cell idx 到 [x,y]
-def idxToXY(idx, weight: int):
-    curpoint = idxTohw(idx, weight // 10)
+def idxToXY(idx, cellw: int):
+    curpoint = idxTohw(idx, cellw)
     curpoint[0], curpoint[1] = curpoint[0] * 10, curpoint[1] * 10
     return curpoint
 

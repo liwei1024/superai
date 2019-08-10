@@ -4,6 +4,13 @@ import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+import logging
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
 import cv2
 import numpy as np
 from datetime import datetime
@@ -11,9 +18,6 @@ from superai.screenshots import WindowCaptureToMem
 
 MIN_MATCH_COUNT = 10
 
-
-def Log(s):
-    print("%s %s" % (datetime.now().strftime("%H:%M:%S.%f"), s))
 
 
 FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
@@ -277,14 +281,14 @@ def FlushImg():
         # time.sleep(1000)
 
     # except Exception as e:
-    #     Log("flushimg thread error " + e)
+    #     logger.info("flushimg thread error " + e)
     #     sys.exit()
 
 
 def main():
     # while True:
     #     if IsCartoonTop():
-    #         Log("1")
+    #         logger.info("1")
     #     time.sleep(0.5)
 
     # sifttest()

@@ -3,6 +3,13 @@ import os
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+import logging
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
 from ctypes import *
 from superai.defer import defer
 

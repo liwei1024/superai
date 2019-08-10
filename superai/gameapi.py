@@ -3,12 +3,19 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+import logging
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
 import copy
 import time
 from enum import Enum
 import math
 
-from superai.common import Log
+
 from superai.yijianshu import PressSkill, PressKey
 from superai.vkcode import VK_CODE
 from superai.defer import defer
@@ -280,6 +287,8 @@ lib.ExGetMapGoods.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
 lib.ExGetMapBuff.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
 
 lib.ExGetMapYinghuo.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
+
+lib.ExGetMapObstacle.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
 
 lib.ExGetBagObj.argtypes = [POINTER(POINTER(BagObj)), POINTER(c_int)]
 
@@ -577,6 +586,18 @@ def GetYinghuo():
     return outlst
 
 
+# 获取障碍物
+def GetMapObstacle():
+    objs = POINTER(MapObj)()
+    count = c_int(0)
+    lib.ExGetMapObstacle(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst = []
+    for i in range(count.value):
+        outlst.append(copy.deepcopy(objs[i]))
+    return outlst
+
+
 # 背包数组
 def GetBagObj():
     objs = POINTER(BagObj)()
@@ -707,47 +728,47 @@ def Autoshuntu():
 # === 调试打印
 def PrintMenInfo():
     menInfo = GetMenInfo()
-    Log(menInfo)
+    logger.info(menInfo)
 
 
 def PrintMapInfo():
     mapInfo = GetMapInfo()
-    Log(mapInfo)
+    logger.info(mapInfo)
 
 
 def PrintMapObj():
     outlst = GetMapObj()
     for obj in outlst:
-        Log(obj)
+        logger.info(obj)
 
 
 def PrintBagObj():
     outlst = GetBagObj()
     for obj in outlst:
-        Log(obj)
+        logger.info(obj)
 
 
 def PrintEquipObj():
     outlst = GetEquipObj()
     for obj in outlst:
-        Log(obj)
+        logger.info(obj)
 
 
 def PrintSkillObj():
     outlst = GetSkillObj()
     for obj in outlst:
-        Log(obj)
+        logger.info(obj)
 
 
 def PrintTaskObj():
     outlst = GetTaskObj()
     for obj in outlst:
-        Log(obj)
+        logger.info(obj)
 
 
 def PrintNextMen():
     menzuobiao = GetNextDoor()
-    Log("下一个门坐标: %s" % menzuobiao)
+    logger.info("下一个门坐标: %s" % menzuobiao)
 
 
 def PrintSceneInfo():
@@ -775,7 +796,7 @@ def PrintSceneInfo():
 
 def PrintWH():
     dixinglst, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
-    Log("场景宽高 %s" % wh)
+    logger.info("场景宽高 %s" % wh)
 
 
 # === 2次包装
@@ -812,20 +833,23 @@ def NearestMonster():
     monsters = GetMonsters()
     if len(monsters) < 1:
         return None
-
     mapinfo = GetMapInfo()
     if "极昼" in mapinfo.name:
         if any(mon.name == "多尼尔" for mon in monsters):
             if any(mon.name != "多尼尔" for mon in monsters):
                 monsters = filter(lambda mon: mon.name != "多尼尔", monsters)
                 monsters = list(monsters)
-
-    if "暗黑雷鸣废墟" in mapinfo.name:
+    elif "暗黑雷鸣废墟" in mapinfo.name:
         monsters = filter(lambda mon: "领主" not in mon.name, monsters)
         monsters = list(monsters)
         if len(monsters) < 1:
             monsters = GetMonsters()
-
+    elif "利库天井" in mapinfo.name:
+        obstacles = GetMapObstacle()
+        obstacles = filter(lambda ob: "哥布林投石车" in ob.name, obstacles)
+        obstacles = list(obstacles)
+        if len(obstacles) > 0:
+            monsters = obstacles
     return min(monsters, key=lambda mon: distance(mon.x, mon.y, menInfo.x, menInfo.y))
 
 
@@ -1233,7 +1257,7 @@ class Skill:
 
     # 使用
     def Use(self):
-        Log(" %s delay %f afterdelay %f doublepress %d" % (
+        logger.info(" %s delay %f afterdelay %f doublepress %d" % (
             self.name, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.doublepress))
         PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.thenpress,
                    self.skilldata.doublepress)
@@ -1398,32 +1422,32 @@ simpleAttackSkill.skilldata.delaytime = 1.0
 
 # 读写速度测试
 def SpeedTest():
-    Log("HaveGoods")
+    logger.info("HaveGoods")
     HaveGoods()
-    Log("HaveGoods")
+    logger.info("HaveGoods")
 
-    Log("HaveBuffs")
+    logger.info("HaveBuffs")
     HaveBuffs()
-    Log("HaveBuffs")
+    logger.info("HaveBuffs")
 
-    Log("NearestMonster")
+    logger.info("NearestMonster")
     NearestMonster()
-    Log("NearestMonster")
+    logger.info("NearestMonster")
 
-    Log("GetMapInfo")
+    logger.info("GetMapInfo")
     GetMapInfo()
-    Log("GetMapInfo")
+    logger.info("GetMapInfo")
 
-    Log("GetMenInfo")
+    logger.info("GetMenInfo")
     GetMenInfo()
-    Log("GetMenInfo")
+    logger.info("GetMenInfo")
 
 
 def main():
     if GameApiInit():
-        Log("Init helpdll-xxiii.dll ok")
+        logger.info("Init helpdll-xxiii.dll ok")
     else:
-        Log("Init helpdll-xxiii.dll err")
+        logger.info("Init helpdll-xxiii.dll err")
 
     FlushPid()
 

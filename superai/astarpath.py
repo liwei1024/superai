@@ -7,10 +7,17 @@ import numpy as np
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+import logging
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
 # a* 8方位
 import copy
 
-from superai.astartdemo import idxTohw, hwToidx, dist_between
+from superai.astartdemo import idxTohw, hwToidx, dist_between, idxToXY
 from superai.gameapi import FlushPid, GameApiInit, GetMenInfo, GetNextDoorWrap, ZUO, QuardantMap, YOU, SHANG, XIA, \
     Quardant
 from superai.obstacle import GetGameObstacleData, GameObstacleData, drawWithOutDoor
@@ -22,6 +29,9 @@ class Zuobiao():
         self.x = x
         self.y = y
 
+    def __str__(self):
+        return "(%d,%d)" % (self.x, self.y)
+
 
 # 左右上下极值
 class Cell():
@@ -30,6 +40,12 @@ class Cell():
         self.r = r
         self.t = t
         self.d = d
+
+
+# idx -> [x, y] -> Zuobiao
+def idxToZuobiao(idx, cellw: int):
+    (x, y) = idxToXY(idx, cellw)
+    return Zuobiao(x, y)
 
 
 OTHER = 2
@@ -308,6 +324,8 @@ class Obstacle:
                 return True
         return False
 
+    # ** 人物指定方向是否有障碍物或地形
+    # TODO
 
 # a star search
 class AStartPaths:

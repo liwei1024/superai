@@ -3,13 +3,21 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+import logging
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
 import threading
 import win32gui
 import math
 import random
 import time
 
-from superai.astarpath import Obstacle, BfsNextDoorWrapCorrect, GetPaths, GetCorrectDoorXY
+from superai.astarpath import Obstacle, BfsNextDoorWrapCorrect, GetPaths, GetCorrectDoorXY, idxToZuobiao, Zuobiao, \
+    CoordToManIdx
 from superai.astartdemo import idxTohw, idxToXY
 from superai.obstacle import GetGameObstacleData
 
@@ -18,7 +26,6 @@ from superai.flannfind import FlushImg, IsCartoonTop, IsVideoTop, SetThreadExit,
 
 from superai.vkcode import VK_CODE
 
-from superai.common import Log
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, PressRight, \
@@ -70,7 +77,7 @@ class StateMachine:
     def ChangeState(self, newState):
         tmp = self.currentState
         self.currentState = newState
-        Log("状态切换 %s -> %s" % (type(tmp), type(self.currentState)))
+        logger.info("状态切换 %s -> %s" % (type(tmp), type(self.currentState)))
 
     def Update(self):
         if self.globalState is not None:
@@ -114,13 +121,13 @@ class Player:
 
     # 保存当前状态,并且切换到什么也不做的状态机
     def SaveAndChangeToEmpty(self, forwhat):
-        Log("状态保存 currentState: %s" % type(self.stateMachine.currentState))
+        logger.info("状态保存 currentState: %s" % type(self.stateMachine.currentState))
         self.SetLatestState(self.stateMachine.currentState)
         self.ChangeState(EmptyState(forwhat))
 
     # 恢复状态机
     def RestoreContext(self):
-        Log("状态恢复 latestState: %s" % type(self.stateMachine.latestState))
+        logger.info("状态恢复 latestState: %s" % type(self.stateMachine.latestState))
         self.ChangeState(self.stateMachine.latestState)
         self.SetLatestState(None)
 
@@ -193,10 +200,10 @@ class Player:
         menfangxiang = GetMenChaoxiang()
         # 调整朝向
         if menfangxiang == RIGHT and monlocation == LEFT:
-            Log("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
+            logger.info("调整朝向 人物: %d 怪物: %d, 向左调整" % (menfangxiang, monlocation))
             PressLeft()
         elif menfangxiang == LEFT and monlocation == RIGHT:
-            Log("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
+            logger.info("调整朝向 人物: %d 怪物: %d, 向右调整" % (menfangxiang, monlocation))
             PressRight()
 
     # 疾跑
@@ -223,13 +230,13 @@ class Player:
         if quad == Quardant.CHONGDIE:
             # 已经重叠了, 调用者(靠近怪物, 捡物, 过门 应该不会再次调用seek了). 频繁发生就说明写错了
             # self.UpLatestKey()
-            Log("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 重叠 %s" % (
+            logger.info("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 重叠 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
-            # RanSleep(0.02)
+            RanSleep(0.02)
             return
 
         if jizou and not IsManJipao():
-            Log("开始疾跑")
+            logger.info("开始疾跑")
             self.UpLatestKey()
             self.KeyJiPao(GetFangxiang(menx, destx))
 
@@ -243,7 +250,7 @@ class Player:
                 if keydown not in currentDecompose:
                     QuadKeyUpMap[keydown]()
 
-        Log("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 前行 %s" % (
+        logger.info("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 前行 %s" % (
             menx, meny, objname, destx, desty, quad.name, jizoustr))
         self.DownKey(quad)
         RanSleep(0.02)
@@ -259,72 +266,85 @@ class Player:
 
         if quad != Quardant.CHONGDIE:
             if self.ob.ManQuadHasObstacle(quad, menx, meny):
-                Log("方向上有障碍物, 攻击")
+                logger.info("方向上有障碍物, 攻击")
                 self.UpLatestKey()
                 PressX()
                 return
 
-        # 1个点就说明规划了路径,往下一个路径走
-        if len(self.pathfindinglst) > 0:
-            curpoint = self.pathfindinglst[0]  # 往下一个点走
-            curpoint = idxToXY(curpoint, self.d.mapw)
+        if len(self.pathfindinglst) == 0:
+            # 范围内有麻烦就路径规划一下
+            l, r, t, d = menx - PATH_PLANING_RANGE // 2, menx + PATH_PLANING_RANGE // 2, meny - PATH_PLANING_RANGE // 2, meny + PATH_PLANING_RANGE // 2
+            if self.ob.RangesHaveTrouble(l, r, t, d):
+                logger.info("前往目的地有障碍物, 开始规划(%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
+                lst, err = GetPaths(self.d, self.ob, [menx, meny], [destx, desty])
 
-            if IsClosedTo(menx, meny, curpoint[0], curpoint[1]):
+                # 如果没有点,a*规划错了. 点必然最少也是2个以上,起始点和终点
+                if err is not None or len(lst) < 2:
+                    # 把当前所有缓存刷新下
+                    logger.info("规划错误,刷新地图缓存 (%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
+                    self.NewMapCache()
+                    self.SeekWithPathfinding(destx, desty, obj, dummy)
+                    return
+
+                # 把起点弹出
+                lst.pop(0)
+
+                if len(lst) == 1:
+                    logger.info("路径规划点为一个, 直接过去: (%d, %d)" % (destx, desty))
+                    self.Seek(destx, desty, obj, dummy)
+                    return
+                else:
+                    s = ""
+                    for v in lst:
+                        curpoint = idxToXY(v, self.d.mapw // 10)
+                        s += "(%d, %d) " % (curpoint[0], curpoint[1])
+
+                    logger.info("路径规划一共%d 个路程点 %s" % (len(lst), s))
+                    self.pathfindinglst = lst
+                    self.SeekWithPathfinding(destx, desty, obj, dummy)
+                    return
+
+            else:
+                logger.info("没有障碍物直接过去 (%d, %d)" % (destx, desty))
+                self.Seek(destx, desty, obj, dummy)
+                return
+        elif len(self.pathfindinglst) == 1:
+            del self.pathfindinglst[0]
+            logger.info("就一个最终目的规划点了,直接过去 (%d, %d)" % (destx, desty))
+            self.Seek(destx, desty, obj, dummy)
+            return
+        elif len(self.pathfindinglst) >= 2:
+            # 路径规划过
+            curpoint = idxToXY(self.pathfindinglst[0], self.d.mapw // 10)
+
+            nowcoord = idxToZuobiao(CoordToManIdx(menx, meny, self.d.mapw // 10, self.ob), self.d.mapw // 10)
+            nextcoord = idxToZuobiao(self.pathfindinglst[1], self.d.mapw // 10)
+
+            flag = self.ob.CanTwoPointBeMove(nowcoord, nextcoord)
+            logger.info("检测 %s -> %s 是否连通 %d" % (nowcoord, nextcoord, flag))
+
+            # 是否直接到达位置
+            if not flag:
+                if IsClosedTo(menx, meny, curpoint[0], curpoint[1]):
+                    flag = True
+                    logger.info("直接设置到达位置 (%d, %d) (%d, %d)" % (menx, meny, curpoint[0], curpoint[1]))
+
+            if flag:
                 del self.pathfindinglst[0]
-                Log("到达了规划点 (%d, %d) 剩余 %d" % (destx, desty, len(self.pathfindinglst)))
+                logger.info("到达了规划点 (%d, %d) 剩余 %d" % (destx, desty, len(self.pathfindinglst)))
 
                 # 到达了规划的终点
                 if len(self.pathfindinglst) < 1:
+                    logger.info("规划点走完 (%d, %d)" % (destx, desty))
                     return
 
-                # 还没没走到的点
+                # 还没走到的点
                 self.SeekWithPathfinding(destx, desty, obj, dummy)
                 return
             else:
                 dummy = "" if dummy is None else dummy
                 self.Seek(curpoint[0], curpoint[1], obj, dummy=dummy + "(寻路)")
                 return
-
-        # 范围内有麻烦就路径规划一下
-        menx, meny = GetMenXY()
-        menx, meny = int(menx), int(meny)
-        l, r, t, d = menx - PATH_PLANING_RANGE // 2, menx + PATH_PLANING_RANGE // 2, meny - PATH_PLANING_RANGE // 2, meny + PATH_PLANING_RANGE // 2
-        if self.ob.RangesHaveTrouble(l, r, t, d):
-            Log("前往目的地有障碍物, 开始规划(%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
-            lst, err = GetPaths(self.d, self.ob, [menx, meny], [destx, desty])
-
-            # 如果没有点,a*规划错了. 点必然最少也是2个以上,起始点和终点
-            if err is not None:
-                # 把当前所有缓存刷新下
-                Log("规划错误,刷新地图缓存 (%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
-                self.NewMapCache()
-                self.SeekWithPathfinding(destx, desty, obj, dummy)
-                return
-
-            # 把起点弹出
-            if len(lst) > 0:
-                lst.pop(0)
-
-            if len(lst) == 1:
-                Log("路径规划点为一个, 直接过去: (%d, %d)" % (destx, desty))
-                self.Seek(destx, desty, obj, dummy)
-                return
-            else:
-
-                s = ""
-                for v in lst:
-                    curpoint = idxToXY(v, self.d.mapw)
-                    s += "(%d, %d) " % (curpoint[0], curpoint[1])
-
-                Log("路径规划一共%d 个路程点 %s" % (len(lst), s))
-                self.pathfindinglst = lst
-                self.SeekWithPathfinding(destx, desty, obj, dummy)
-                return
-
-        else:
-            Log("没有障碍物直接过去 (%d, %d)" % (destx, desty))
-            self.Seek(destx, desty, obj, dummy)
-            return
 
     # 因为到达目的地了清空当前寻路
     def ClearPathfindingLst(self):
@@ -382,7 +402,7 @@ class GlobalState(State):
     def Execute(self, player):
         # 对话处理
         if player.IsEmptyFor(FOR_DUIHUA):
-            Log("对话状态")
+            logger.info("对话状态")
             PressKey(VK_CODE["spacebar"])
             RanSleep(0.2)
             if not IsWindowTop():
@@ -390,7 +410,7 @@ class GlobalState(State):
             return
         # 动画处理
         elif player.IsEmptyFor(FOR_CARTOON):
-            Log("动画状态")
+            logger.info("动画状态")
             PressKey(VK_CODE["esc"])
             RanSleep(0.5)
             if not IsCartoonTop():
@@ -398,34 +418,34 @@ class GlobalState(State):
             return
         # 视频处理
         elif player.IsEmptyFor(FOR_VIDEO):
-            Log("视频状态")
+            logger.info("视频状态")
             PressKey(VK_CODE["esc"])
             RanSleep(0.5)
             if IsConfirmTop():
                 confirmPos = GetConfirmPos()
                 if confirmPos != (0, 0):
-                    Log("移动到: %d %d" % (confirmPos[0], confirmPos[1]))
+                    logger.info("移动到: %d %d" % (confirmPos[0], confirmPos[1]))
                     MouseMoveTo(confirmPos[0], confirmPos[1])
                     MouseLeftClick()
                     RanSleep(0.2)
             else:
-                Log("确认按钮没有置顶")
+                logger.info("确认按钮没有置顶")
             RanSleep(0.5)
             if not IsVideoTop():
                 player.RestoreContext()
             return
         # 确认处理
         elif player.IsEmptyFor(FOR_CONFIRM):
-            Log("确认状态")
+            logger.info("确认状态")
             if IsConfirmTop():
                 confirmPos = GetConfirmPos()
                 if confirmPos != (0, 0):
-                    Log("移动到: %d %d" % (confirmPos[0], confirmPos[1]))
+                    logger.info("移动到: %d %d" % (confirmPos[0], confirmPos[1]))
                     MouseMoveTo(confirmPos[0], confirmPos[1])
                     MouseLeftClick()
                     RanSleep(0.2)
             else:
-                Log("确认按钮没有置顶")
+                logger.info("确认按钮没有置顶")
             RanSleep(0.5)
             if not IsConfirmTop():
                 player.RestoreContext()
@@ -472,23 +492,23 @@ class GlobalState(State):
         # 检查时间过去了
         if time.time() - self.latesttime > 0.5:
             # 刷新障碍物 TODO
-            # player.NewMapCache()
+            player.NewMapCache()
 
             curx, cury = GetMenXY()
 
             if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
                 # 去下一个门的情况下.坐标判断宽松些
-                if WithInRange(curx, cury, self.beginx, self.beginy, 20):
+                if WithInRange(curx, cury, self.beginx, self.beginy, 30):
                     self.Reset()
                     player.ChangeState(DoorStuckGoToPrev())
-                    Log("进门的时候卡死了, 回退一些再进门")
+                    logger.info("进门的时候卡死了, 回退一些再进门")
                 else:
                     self.Reset()
 
             elif math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
                 self.Reset()
                 player.ChangeState(StandState())
-                Log("卡死了, 重置状态")
+                logger.info("卡死了, 重置状态")
             else:
                 self.Reset()
 
@@ -566,18 +586,18 @@ class FirstInMap(State):
         if player.skills.HaveBuffCanBeUse():
 
             if not CanbeMovTest():
-                Log("没法移动位置 可能被什么遮挡了, 临时退出状态机")
+                logger.info("没法移动位置 可能被什么遮挡了, 临时退出状态机")
                 time.sleep(0.5)
                 return
             RanSleep(0.5)
             if not CanbeMovTest():
-                Log("没法移动位置 可能被什么遮挡了, 临时退出状态机")
+                logger.info("没法移动位置 可能被什么遮挡了, 临时退出状态机")
                 time.sleep(0.5)
                 return
 
             skills = player.skills.GetCanBeUseBuffSkills()
             for skill in skills:
-                Log("使用buff: %s" % skill.name)
+                logger.info("使用buff: %s" % skill.name)
                 skill.Use()
                 player.skills.Update()
 
@@ -628,7 +648,7 @@ class StandState(State):
                     PressKey(VK_CODE["esc"])
 
         RanSleep(0.3)
-        Log("state can not switch")
+        logger.info("state can not switch")
 
 
 # 靠近并攻击怪物
@@ -661,7 +681,7 @@ class SeekAndAttackMonster(State):
         if player.curskill.IsH_WInRange(men.y, obj.y) and \
                 player.curskill.IsV_WTOOClose(men.x, obj.x):
             seekx, seeky = player.curskill.GetSeekXY(men.x, men.y, obj.x, obj.y)
-            Log("目标太接近,无法攻击,选择合适位置: men:(%d,%d) obj:(%d,%d) seek(%d,%d), 技能%s 太靠近垂直水平(%d,%d)" %
+            logger.info("目标太接近,无法攻击,选择合适位置: men:(%d,%d) obj:(%d,%d) seek(%d,%d), 技能%s 太靠近垂直水平(%d,%d)" %
                 (men.x, men.y, obj.x, obj.y, seekx, seeky, player.curskill.name,
                  player.curskill.skilldata.too_close_v_w, player.curskill.skilldata.h_w))
 
@@ -679,7 +699,7 @@ class SeekAndAttackMonster(State):
         # 在攻击的水平宽度和垂直宽度之内,攻击
         if player.curskill.IsH_WInRange(men.y, obj.y) and \
                 player.curskill.isV_WInRange(men.x, obj.x):
-            Log("目标在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
+            logger.info("目标在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
                 (player.curskill.name, player.curskill.skilldata.v_w, player.curskill.skilldata.h_w))
             player.UpLatestKey()
             player.ClearPathfindingLst()
@@ -700,7 +720,7 @@ class FuckDuonierState(State):
             player.ChangeState(StandState())
             return
 
-        Log("fuck 多尼尔")
+        logger.info("fuck 多尼尔")
         obj = GetouliuObj()
         if obj is None:
             player.ChangeState(StandState())
@@ -709,7 +729,7 @@ class FuckDuonierState(State):
         men = GetMenInfo()
         if simpleAttackSkill.IsH_WInRange(men.y, obj.y) and \
                 simpleAttackSkill.isV_WInRange(men.x, obj.x):
-            Log("肉瘤在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
+            logger.info("肉瘤在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
                 (simpleAttackSkill.name, simpleAttackSkill.skilldata.v_w, simpleAttackSkill.skilldata.h_w))
             player.UpLatestKey()
             player.ClearPathfindingLst()
@@ -743,7 +763,7 @@ class SeekAndPickUp(State):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
             player.ClearPathfindingLst()
-            Log("捡取 (%d,%d)" % (obj.x, obj.y))
+            logger.info("捡取 (%d,%d)" % (obj.x, obj.y))
             RanSleep(0.05)
             PressX()
         else:
@@ -770,7 +790,7 @@ class PickBuf(State):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
             player.ClearPathfindingLst()
-            Log("捡取buff (%d,%d)" % (obj.x, obj.y))
+            logger.info("捡取buff (%d,%d)" % (obj.x, obj.y))
             RanSleep(0.1)
         else:
             player.SeekWithPathfinding(obj.x, obj.y, dummy="捡取buff")
@@ -782,7 +802,7 @@ class DoorOpenGotoNext(State):
         # 进到新的地图
         if not IsNextDoorOpen():
             if IsCurrentInBossFangjian():
-                Log("进到了boss房间")
+                logger.info("进到了boss房间")
             # 进入到了新的门
             RanSleep(0.05)
             player.NewMapCache()
@@ -798,7 +818,7 @@ class DoorStuckGoToPrev(State):
         door = GetNextDoorWrap()
         if not IsNextDoorOpen():
             if IsCurrentInBossFangjian():
-                Log("进到了boss房间")
+                logger.info("进到了boss房间")
             RanSleep(0.05)
             player.NewMapCache()
             player.ChangeState(StandState())
@@ -810,15 +830,15 @@ class DoorStuckGoToPrev(State):
 
 def main():
     if GameApiInit():
-        Log("Init helpdll-xxiii.dll ok")
+        logger.info("Init helpdll-xxiii.dll ok")
     else:
-        Log("Init helpdll-xxiii.dll err")
+        logger.info("Init helpdll-xxiii.dll err")
         exit(0)
 
     if YijianshuInit():
-        Log("Init 易键鼠 ok")
+        logger.info("Init 易键鼠 ok")
     else:
-        Log("Init 易键鼠 err")
+        logger.info("Init 易键鼠 err")
         exit(0)
 
     FlushPid()
@@ -851,7 +871,7 @@ def main():
         ReleaseAllKey()
         SetThreadExit()
         t.join()
-        Log("main thread exit")
+        logger.info("main thread exit")
         sys.exit()
 
 
