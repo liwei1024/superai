@@ -316,7 +316,7 @@ class Obstacle:
                         return correctx, correcty
         return cellpos[0], cellpos[1]
 
-    # 人物指定方向是否有障碍物
+    # 人物指定方向是否有障碍物 (攻击用)
     def ManQuadHasObstacle(self, quad, menx, meny):
         halfmenw, halfmenh = self.menw // 2, self.menh // 2
         composes = QuardantMap[quad]
@@ -338,8 +338,25 @@ class Obstacle:
         return False
 
     # ** 人物指定方向是否有障碍物或地形
-    # TODO
+    def ManQuadHasTrouble(self, quad, menx, meny):
+        halfmenw, halfmenh = self.menw // 2, self.menh // 2
+        composes = QuardantMap[quad]
+        menl, menr, ment, mend = menx - halfmenw, menx + halfmenw, meny - halfmenh, meny + halfmenh
+        for v in composes:
+            if v == Quardant.ZUO:
+                l, r, t, d = menl - self.menw, menr - self.menw, ment, mend
+            elif v == Quardant.YOU:
+                l, r, t, d = menl + self.menw, menr + self.menw, ment, mend
+            elif v == Quardant.SHANG:
+                l, r, t, d = menl, menr, ment - self.menh, mend - self.menh
+            elif v == Quardant.XIA:
+                l, r, t, d = menl, menr, ment + self.menh, mend + self.menh
+            else:
+                l, r, t, d = menl, menr, ment, mend
 
+            if self.RangesHaveTrouble(l, r, t, d) > 0:
+                return True
+        return False
 
 # a star search
 class AStartPaths:
@@ -693,7 +710,7 @@ def main():
     FlushPid()
 
     # DrawNextDoorPath()
-    DrawAnyPath(862, 472, 645, 395)
+    DrawAnyPath(1238, 468, 641, 617)
 
 
 if __name__ == '__main__':

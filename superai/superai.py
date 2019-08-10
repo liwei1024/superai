@@ -5,9 +5,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import coloredlogs, logging
 
-coloredlogs.DEFAULT_FIELD_STYLES['filename'] =  {'color': 'blue'}
-coloredlogs.DEFAULT_FIELD_STYLES['lineno'] =  {'color': 'blue'}
-coloredlogs.DEFAULT_FIELD_STYLES['levelname'] =  {'color': 'magenta'}
+coloredlogs.DEFAULT_FIELD_STYLES['filename'] = {'color': 'blue'}
+coloredlogs.DEFAULT_FIELD_STYLES['lineno'] = {'color': 'blue'}
+coloredlogs.DEFAULT_FIELD_STYLES['levelname'] = {'color': 'magenta'}
 
 fmt = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s'
 datefmt = '%Y-%m-%d:%H:%M:%S'
@@ -273,6 +273,10 @@ class Player:
         self.ob.UpdateObstacle(GetObstacle())
         quad, _ = GetQuadrant(menx, meny, destx, desty)
 
+        if quad == Quardant.CHONGDIE:
+            logger.info("寻路 重叠了")
+            return
+
         if quad != Quardant.CHONGDIE:
             if self.ob.ManQuadHasObstacle(quad, menx, meny):
                 logger.info("方向上有障碍物, 攻击")
@@ -282,9 +286,9 @@ class Player:
 
         if len(self.pathfindinglst) == 0:
             # 范围内有麻烦就路径规划一下
-            l, r, t, d = menx - PATH_PLANING_RANGE // 2, menx + PATH_PLANING_RANGE // 2, meny - PATH_PLANING_RANGE // 2, meny + PATH_PLANING_RANGE // 2
-            if self.ob.RangesHaveTrouble(l, r, t, d):
-                logger.info("前往目的地有障碍物, 开始规划(%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
+            # l, r, t, d = menx - PATH_PLANING_RANGE // 2, menx + PATH_PLANING_RANGE // 2, meny - PATH_PLANING_RANGE // 2, meny + PATH_PLANING_RANGE // 2
+            if self.ob.ManQuadHasTrouble(quad, menx, meny):
+                logger.warning("前往目的地有障碍物, 开始规划(%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
                 lst, err = GetPaths(self.d, self.ob, [menx, meny], [destx, desty])
 
                 # 如果没有点,a*规划错了. 点必然最少也是2个以上,起始点和终点
@@ -292,6 +296,7 @@ class Player:
                     # 把当前所有缓存刷新下
                     logger.warning("规划错误,刷新地图缓存 (%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
                     self.NewMapCache()
+                    self.SeekWithPathfinding(destx, desty, obj, dummy)
                     return
 
                 # 把起点弹出
@@ -309,6 +314,7 @@ class Player:
 
                     logger.info("路径规划一共%d 个路程点 %s" % (len(lst), s))
                     self.pathfindinglst = lst
+                    self.SeekWithPathfinding(destx, desty, obj, dummy)
                     return
 
             else:
@@ -360,6 +366,16 @@ class Player:
             logger.info("下一个门的坐标: (%d, %d) ->修正 (%d, %d) " % (door.x, door.y, self.doorx, self.doory))
 
         self.ClearPathfindingLst()
+
+        logger.info("获取了地图地形,障碍物数据 ")
+
+    # 切换到新的图
+    def CheckInToNewMap(self):
+        self.UpLatestKey()
+        RanSleep(0.1)
+        logger.info("进了新的门")
+        self.NewMapCache()
+        self.ChangeState(StandState())
 
 
 class State:
@@ -497,18 +513,18 @@ class GlobalState(State):
                 if WithInRange(curx, cury, self.beginx, self.beginy, 30):
                     self.Reset()
                     # 刷新障碍物
+                    logger.warning("进门的时候卡死了, 回退一些再进门")
                     player.NewMapCache()
                     player.ChangeState(DoorStuckGoToPrev())
-                    logger.warning("进门的时候卡死了, 回退一些再进门")
                 else:
                     self.Reset()
 
             elif math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
                 self.Reset()
                 # 刷新障碍物
+                logger.warning("卡死了, 重置状态")
                 player.NewMapCache()
                 player.ChangeState(StandState())
-                logger.warning("卡死了, 重置状态")
             else:
                 self.Reset()
 
@@ -801,14 +817,11 @@ class DoorOpenGotoNext(State):
     def Execute(self, player):
         # 进到新的地图
         if IsCurrentInBossFangjian():
-            player.ChangeState(StandState())
+            player.CheckInToNewMap()
         if not IsNextDoorOpen():
             if IsCurrentInBossFangjian():
                 logger.info("进到了boss房间")
-            # 进入到了新的门
-            RanSleep(0.05)
-            player.NewMapCache()
-            player.ChangeState(StandState())
+            player.CheckInToNewMap()
         else:
             player.SeekWithPathfinding(player.doorx, player.doory, dummy="靠近门")
 
@@ -821,9 +834,7 @@ class DoorStuckGoToPrev(State):
         if not IsNextDoorOpen():
             if IsCurrentInBossFangjian():
                 logger.info("进到了boss房间")
-            RanSleep(0.05)
-            player.NewMapCache()
-            player.ChangeState(StandState())
+            player.CheckInToNewMap()
         elif IsClosedTo(menx, meny, door.prevcx, door.prevcy):
             player.ChangeState(DoorOpenGotoNext())
         else:
