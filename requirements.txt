@@ -6,3 +6,4 @@ pywin32
 scikit-image
 scipy
 pypiwin32
+coloredlogs

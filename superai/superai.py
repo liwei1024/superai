@@ -3,11 +3,15 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-import logging
+import coloredlogs, logging
 
-logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-                    datefmt='%Y-%m-%d:%H:%M:%S',
-                    level=logging.DEBUG)
+coloredlogs.DEFAULT_FIELD_STYLES['filename'] =  {'color': 'blue'}
+coloredlogs.DEFAULT_FIELD_STYLES['lineno'] =  {'color': 'blue'}
+coloredlogs.DEFAULT_FIELD_STYLES['levelname'] =  {'color': 'magenta'}
+
+fmt = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s'
+datefmt = '%Y-%m-%d:%H:%M:%S'
+coloredlogs.install(fmt=fmt, datefmt=datefmt, level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +21,8 @@ import math
 import random
 import time
 
-from superai.astarpath import Obstacle, BfsNextDoorWrapCorrect, GetPaths, GetCorrectDoorXY, idxToZuobiao, Zuobiao, \
-    CoordToManIdx
-from superai.astartdemo import idxTohw, idxToXY
-from superai.obstacle import GetGameObstacleData
+from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, CoordToManIdx, SafeGetDAndOb
+from superai.astartdemo import idxToXY
 
 from superai.flannfind import FlushImg, IsCartoonTop, IsVideoTop, SetThreadExit, \
     IsConfirmTop, GetConfirmPos
@@ -36,7 +38,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, GetMenXY, GetQuadrant, Quardant, \
     GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
     NearestGood, IsNextDoorOpen, IsCurrentInBossFangjian, GetMenInfo, \
-    BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
+    CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
     PATH_PLANING_RANGE, GetObstacle, WithInRange
@@ -288,7 +290,7 @@ class Player:
                 # 如果没有点,a*规划错了. 点必然最少也是2个以上,起始点和终点
                 if err is not None or len(lst) < 2:
                     # 把当前所有缓存刷新下
-                    logger.info("规划错误,刷新地图缓存 (%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
+                    logger.warning("规划错误,刷新地图缓存 (%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
                     self.NewMapCache()
                     return
 
@@ -350,8 +352,7 @@ class Player:
     # 每次进图缓存一下当前的 1. 地形 2. 障碍 3. 门位置.
     def NewMapCache(self):
         meninfo = GetMenInfo()
-        self.d = GetGameObstacleData()
-        self.ob = Obstacle(self.d, meninfo.w, meninfo.h)
+        self.d, self.ob = SafeGetDAndOb(meninfo.w, meninfo.h)
 
         if not IsCurrentInBossFangjian():
             door = GetNextDoorWrap()
@@ -498,7 +499,7 @@ class GlobalState(State):
                     # 刷新障碍物
                     player.NewMapCache()
                     player.ChangeState(DoorStuckGoToPrev())
-                    logger.info("进门的时候卡死了, 回退一些再进门")
+                    logger.warning("进门的时候卡死了, 回退一些再进门")
                 else:
                     self.Reset()
 
@@ -507,7 +508,7 @@ class GlobalState(State):
                 # 刷新障碍物
                 player.NewMapCache()
                 player.ChangeState(StandState())
-                logger.info("卡死了, 重置状态")
+                logger.warning("卡死了, 重置状态")
             else:
                 self.Reset()
 
@@ -585,12 +586,12 @@ class FirstInMap(State):
         if player.skills.HaveBuffCanBeUse():
 
             if not CanbeMovTest():
-                logger.info("没法移动位置 可能被什么遮挡了, 临时退出状态机")
+                logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机")
                 time.sleep(0.5)
                 return
             RanSleep(0.5)
             if not CanbeMovTest():
-                logger.info("没法移动位置 可能被什么遮挡了, 临时退出状态机")
+                logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机")
                 time.sleep(0.5)
                 return
 

@@ -1,6 +1,7 @@
 import os
 import queue
 import sys
+import time
 
 import cv2
 import numpy as np
@@ -8,9 +9,7 @@ import numpy as np
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
-logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-    datefmt='%Y-%m-%d:%H:%M:%S',
-    level=logging.DEBUG)
+
 
 logger = logging.getLogger(__name__)
 
@@ -107,6 +106,20 @@ def IsRectagleOverlapLine(renleftx, renrightx, rentopy, rendowny, line):
         if intersect(rentline[0], rentline[1], line[0], line[1]):
             return True
     return False
+
+
+# 安全获得d和ob对象. 因为直接读内存会产生不同步的问题
+def SafeGetDAndOb(menw, menh):
+    d = GetGameObstacleData()
+
+    try:
+        ob = Obstacle(d, menw, menh)
+    except IndexError:
+        time.sleep(0.5)
+        logger.warning("获得地形和ob对象发生错误, 重新获取")
+        return SafeGetDAndOb(menw, menh)
+
+    return d, ob
 
 
 # obstacle 包装
@@ -326,6 +339,7 @@ class Obstacle:
 
     # ** 人物指定方向是否有障碍物或地形
     # TODO
+
 
 # a star search
 class AStartPaths:
