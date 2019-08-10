@@ -4,9 +4,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
+
 logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
-    datefmt='%Y-%m-%d:%H:%M:%S',
-    level=logging.DEBUG)
+                    datefmt='%Y-%m-%d:%H:%M:%S',
+                    level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,6 @@ from superai.flannfind import FlushImg, IsCartoonTop, IsVideoTop, SetThreadExit,
     IsConfirmTop, GetConfirmPos
 
 from superai.vkcode import VK_CODE
-
 
 from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, PressRight, \
@@ -229,19 +229,18 @@ class Player:
 
         if quad == Quardant.CHONGDIE:
             # 已经重叠了, 调用者(靠近怪物, 捡物, 过门 应该不会再次调用seek了). 频繁发生就说明写错了
-            # self.UpLatestKey()
+            self.UpLatestKey()
+            RanSleep(0.05)
             logger.info("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 重叠 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
-            RanSleep(0.02)
             return
 
-        if jizou and not IsManJipao():
-            logger.info("开始疾跑")
-            self.UpLatestKey()
-            self.KeyJiPao(GetFangxiang(menx, destx))
+        if self.KeyDowned():
+            if jizou and not IsManJipao():
+                logger.info("不在疾跑退出状态,重新来过")
+                self.UpLatestKey()
+                return
 
-        # 上次和本次按键的分解
-        if self.latestDown is not None:
             latestDecompose = QuardantMap[self.latestDown]
             currentDecompose = QuardantMap[quad]
 
@@ -249,11 +248,19 @@ class Player:
             for keydown in latestDecompose:
                 if keydown not in currentDecompose:
                     QuadKeyUpMap[keydown]()
-
-        logger.info("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 前行 %s" % (
-            menx, meny, objname, destx, desty, quad.name, jizoustr))
-        self.DownKey(quad)
-        RanSleep(0.02)
+            self.DownKey(quad)
+            RanSleep(0.05)
+            logger.info("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 保持部分移动方向 %s" % (
+                menx, meny, objname, destx, desty, quad.name, jizoustr))
+        else:
+            # 没有按过键
+            self.UpLatestKey()
+            if jizou:
+                self.KeyJiPao(GetFangxiang(menx, destx))
+            self.DownKey(quad)
+            RanSleep(0.05)
+            logger.info("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
+                menx, meny, objname, destx, desty, quad.name, jizoustr))
 
     # 靠近(带寻路)
     def SeekWithPathfinding(self, destx, desty, obj=None, dummy=None):
@@ -283,7 +290,6 @@ class Player:
                     # 把当前所有缓存刷新下
                     logger.info("规划错误,刷新地图缓存 (%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
                     self.NewMapCache()
-                    self.SeekWithPathfinding(destx, desty, obj, dummy)
                     return
 
                 # 把起点弹出
@@ -301,7 +307,6 @@ class Player:
 
                     logger.info("路径规划一共%d 个路程点 %s" % (len(lst), s))
                     self.pathfindinglst = lst
-                    self.SeekWithPathfinding(destx, desty, obj, dummy)
                     return
 
             else:
@@ -332,14 +337,6 @@ class Player:
             if flag:
                 del self.pathfindinglst[0]
                 logger.info("到达了规划点 (%d, %d) 剩余 %d" % (destx, desty, len(self.pathfindinglst)))
-
-                # 到达了规划的终点
-                if len(self.pathfindinglst) < 1:
-                    logger.info("规划点走完 (%d, %d)" % (destx, desty))
-                    return
-
-                # 还没走到的点
-                self.SeekWithPathfinding(destx, desty, obj, dummy)
                 return
             else:
                 dummy = "" if dummy is None else dummy
@@ -359,7 +356,7 @@ class Player:
         if not IsCurrentInBossFangjian():
             door = GetNextDoorWrap()
             self.doorx, self.doory = GetCorrectDoorXY(self.d.mapw, self.d.maph, door, self.ob)
-            print("下一个门的坐标: (%d, %d) ->修正 (%d, %d) " % (door.x, door.y, self.doorx, self.doory))
+            logger.info("下一个门的坐标: (%d, %d) ->修正 (%d, %d) " % (door.x, door.y, self.doorx, self.doory))
 
         self.ClearPathfindingLst()
 
@@ -491,8 +488,6 @@ class GlobalState(State):
 
         # 检查时间过去了
         if time.time() - self.latesttime > 0.5:
-            # 刷新障碍物 TODO
-            player.NewMapCache()
 
             curx, cury = GetMenXY()
 
@@ -500,6 +495,8 @@ class GlobalState(State):
                 # 去下一个门的情况下.坐标判断宽松些
                 if WithInRange(curx, cury, self.beginx, self.beginy, 30):
                     self.Reset()
+                    # 刷新障碍物
+                    player.NewMapCache()
                     player.ChangeState(DoorStuckGoToPrev())
                     logger.info("进门的时候卡死了, 回退一些再进门")
                 else:
@@ -507,6 +504,8 @@ class GlobalState(State):
 
             elif math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
                 self.Reset()
+                # 刷新障碍物
+                player.NewMapCache()
                 player.ChangeState(StandState())
                 logger.info("卡死了, 重置状态")
             else:
@@ -682,8 +681,8 @@ class SeekAndAttackMonster(State):
                 player.curskill.IsV_WTOOClose(men.x, obj.x):
             seekx, seeky = player.curskill.GetSeekXY(men.x, men.y, obj.x, obj.y)
             logger.info("目标太接近,无法攻击,选择合适位置: men:(%d,%d) obj:(%d,%d) seek(%d,%d), 技能%s 太靠近垂直水平(%d,%d)" %
-                (men.x, men.y, obj.x, obj.y, seekx, seeky, player.curskill.name,
-                 player.curskill.skilldata.too_close_v_w, player.curskill.skilldata.h_w))
+                        (men.x, men.y, obj.x, obj.y, seekx, seeky, player.curskill.name,
+                         player.curskill.skilldata.too_close_v_w, player.curskill.skilldata.h_w))
 
             # 后跳解决问题
             player.UpLatestKey()
@@ -700,7 +699,7 @@ class SeekAndAttackMonster(State):
         if player.curskill.IsH_WInRange(men.y, obj.y) and \
                 player.curskill.isV_WInRange(men.x, obj.x):
             logger.info("目标在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
-                (player.curskill.name, player.curskill.skilldata.v_w, player.curskill.skilldata.h_w))
+                        (player.curskill.name, player.curskill.skilldata.v_w, player.curskill.skilldata.h_w))
             player.UpLatestKey()
             player.ClearPathfindingLst()
             player.ChaoxiangFangxiang(men.x, obj.x)
@@ -730,7 +729,7 @@ class FuckDuonierState(State):
         if simpleAttackSkill.IsH_WInRange(men.y, obj.y) and \
                 simpleAttackSkill.isV_WInRange(men.x, obj.x):
             logger.info("肉瘤在技能:%s 的攻击范围之内, 垂直水平: (%d,%d)" %
-                (simpleAttackSkill.name, simpleAttackSkill.skilldata.v_w, simpleAttackSkill.skilldata.h_w))
+                        (simpleAttackSkill.name, simpleAttackSkill.skilldata.v_w, simpleAttackSkill.skilldata.h_w))
             player.UpLatestKey()
             player.ClearPathfindingLst()
             player.ChaoxiangFangxiang(men.x, obj.x)
@@ -800,6 +799,8 @@ class PickBuf(State):
 class DoorOpenGotoNext(State):
     def Execute(self, player):
         # 进到新的地图
+        if IsCurrentInBossFangjian():
+            player.ChangeState(StandState())
         if not IsNextDoorOpen():
             if IsCurrentInBossFangjian():
                 logger.info("进到了boss房间")

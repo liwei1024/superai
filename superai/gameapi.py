@@ -243,7 +243,7 @@ class ObstacleObj(Structure):
             self.x, self.y, self.w, self.h, self.flag))
 
     def CanBeAttack(self):
-        if self.code in [109006910, 109006911, 226, 228, 19134, 19135]:
+        if self.code in [109006910, 109006911, 226, 228, 19134, 19135, 18020]:
             return False
 
         if self.hp > 0 and self.flag == 2:
@@ -1413,6 +1413,9 @@ skillSettingMap = {
 
     # 吸怪,蓄力
     "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),
+
+    # 帕拉丁
+    "信仰之念": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 }
 
 # 普通攻击
