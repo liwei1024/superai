@@ -253,31 +253,32 @@ def FlushImg():
     global gConfirmTop
     global gFlushExit
 
-    try:
-        while not gFlushExit:
-            # 是否有动画
-            if cartoonScene.Match():
-                gCartoonTop = True
-            else:
-                gCartoonTop = False
+    # try:
+        # while not gFlushExit:
+        #     # 是否有动画
+        #     if cartoonScene.Match():
+        #         gCartoonTop = True
+        #     else:
+        #         gCartoonTop = False
+        #
+        #     # 是否有视频
+        #     if videoScene.Match():
+        #         gVideoTop = True
+        #     else:
+        #         gVideoTop = False
+        #
+        #     # 是否有确认按钮
+        #     if confirm.Match():
+        #         gConfirmTop = True
+        #     else:
+        #         gConfirmTop = False
+        #
+        #     time.sleep(0.3)
+        # time.sleep(1000)
 
-            # 是否有视频
-            if videoScene.Match():
-                gVideoTop = True
-            else:
-                gVideoTop = False
-
-            # 是否有确认按钮
-            if confirm.Match():
-                gConfirmTop = True
-            else:
-                gConfirmTop = False
-
-            time.sleep(0.3)
-
-    except Exception as e:
-        Log("flushimg thread error " + e)
-        sys.exit()
+    # except Exception as e:
+    #     Log("flushimg thread error " + e)
+    #     sys.exit()
 
 
 def main():

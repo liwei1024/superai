@@ -9,8 +9,8 @@ import math
 import random
 import time
 
-from superai.astarpath import Obstacle, BfsNextDoorWrapCorrect, GetPaths
-from superai.astartdemo import idxTohw
+from superai.astarpath import Obstacle, BfsNextDoorWrapCorrect, GetPaths, GetCorrectDoorXY
+from superai.astartdemo import idxTohw, idxToXY
 from superai.obstacle import GetGameObstacleData
 
 from superai.flannfind import FlushImg, IsCartoonTop, IsVideoTop, SetThreadExit, \
@@ -32,7 +32,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     BIG_RENT, CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
-    PATH_PLANING_RANGE, GetObstacle
+    PATH_PLANING_RANGE, GetObstacle, WithInRange
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -222,13 +222,14 @@ class Player:
 
         if quad == Quardant.CHONGDIE:
             # 已经重叠了, 调用者(靠近怪物, 捡物, 过门 应该不会再次调用seek了). 频繁发生就说明写错了
-            # self.UpLates tKey()
+            # self.UpLatestKey()
             Log("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 重叠 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
-            # RanSleep(0.025)
+            # RanSleep(0.02)
             return
 
         if jizou and not IsManJipao():
+            Log("开始疾跑")
             self.UpLatestKey()
             self.KeyJiPao(GetFangxiang(menx, destx))
 
@@ -242,10 +243,10 @@ class Player:
                 if keydown not in currentDecompose:
                     QuadKeyUpMap[keydown]()
 
-        self.DownKey(quad)
-        RanSleep(0.02)
         Log("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 前行 %s" % (
             menx, meny, objname, destx, desty, quad.name, jizoustr))
+        self.DownKey(quad)
+        RanSleep(0.02)
 
     # 靠近(带寻路)
     def SeekWithPathfinding(self, destx, desty, obj=None, dummy=None):
@@ -266,10 +267,18 @@ class Player:
         # 1个点就说明规划了路径,往下一个路径走
         if len(self.pathfindinglst) > 0:
             curpoint = self.pathfindinglst[0]  # 往下一个点走
-            curpoint = idxTohw(curpoint, self.d.mapw // 10)
-            curpoint[0], curpoint[1] = curpoint[0] * 10, curpoint[1] * 10
+            curpoint = idxToXY(curpoint, self.d.mapw)
+
             if IsClosedTo(menx, meny, curpoint[0], curpoint[1]):
                 del self.pathfindinglst[0]
+                Log("到达了规划点 (%d, %d) 剩余 %d" % (destx, desty, len(self.pathfindinglst)))
+
+                # 到达了规划的终点
+                if len(self.pathfindinglst) < 1:
+                    return
+
+                # 还没没走到的点
+                self.SeekWithPathfinding(destx, desty, obj, dummy)
                 return
             else:
                 dummy = "" if dummy is None else dummy
@@ -282,14 +291,14 @@ class Player:
         l, r, t, d = menx - PATH_PLANING_RANGE // 2, menx + PATH_PLANING_RANGE // 2, meny - PATH_PLANING_RANGE // 2, meny + PATH_PLANING_RANGE // 2
         if self.ob.RangesHaveTrouble(l, r, t, d):
             Log("前往目的地有障碍物, 开始规划(%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
-            lst = GetPaths(self.d, self.ob, [menx, meny], [destx, desty])
+            lst, err = GetPaths(self.d, self.ob, [menx, meny], [destx, desty])
 
             # 如果没有点,a*规划错了. 点必然最少也是2个以上,起始点和终点
-            if len(lst) in [0, 1]:
-                # raise NotImplemented()
+            if err is not None:
                 # 把当前所有缓存刷新下
-                Log("规划错误,刷新地图缓存")
+                Log("规划错误,刷新地图缓存 (%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
                 self.NewMapCache()
+                self.SeekWithPathfinding(destx, desty, obj, dummy)
                 return
 
             # 把起点弹出
@@ -301,12 +310,19 @@ class Player:
                 self.Seek(destx, desty, obj, dummy)
                 return
             else:
-                Log("路径规划一共%d 个路程点" % len(lst))
+
+                s = ""
+                for v in lst:
+                    curpoint = idxToXY(v, self.d.mapw)
+                    s += "(%d, %d) " % (curpoint[0], curpoint[1])
+
+                Log("路径规划一共%d 个路程点 %s" % (len(lst), s))
                 self.pathfindinglst = lst
+                self.SeekWithPathfinding(destx, desty, obj, dummy)
                 return
 
         else:
-            Log("没有障碍物直接过去")
+            Log("没有障碍物直接过去 (%d, %d)" % (destx, desty))
             self.Seek(destx, desty, obj, dummy)
             return
 
@@ -322,9 +338,7 @@ class Player:
 
         if not IsCurrentInBossFangjian():
             door = GetNextDoorWrap()
-            bfsdoor = BfsNextDoorWrapCorrect(self.d.mapw, self.d.maph, door, self.ob)
-            doorcellx, doorcelly = bfsdoor.bfs()
-            self.doorx, self.doory = doorcellx * 10, doorcelly * 10
+            self.doorx, self.doory = GetCorrectDoorXY(self.d.mapw, self.d.maph, door, self.ob)
             print("下一个门的坐标: (%d, %d) ->修正 (%d, %d) " % (door.x, door.y, self.doorx, self.doory))
 
         self.ClearPathfindingLst()
@@ -461,15 +475,20 @@ class GlobalState(State):
             # player.NewMapCache()
 
             curx, cury = GetMenXY()
-            if math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
-                if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
+
+            if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
+                # 去下一个门的情况下.坐标判断宽松些
+                if WithInRange(curx, cury, self.beginx, self.beginy, 20):
                     self.Reset()
                     player.ChangeState(DoorStuckGoToPrev())
                     Log("进门的时候卡死了, 回退一些再进门")
                 else:
                     self.Reset()
-                    player.ChangeState(StandState())
-                    Log("卡死了, 重置状态")
+
+            elif math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
+                self.Reset()
+                player.ChangeState(StandState())
+                Log("卡死了, 重置状态")
             else:
                 self.Reset()
 
@@ -765,7 +784,7 @@ class DoorOpenGotoNext(State):
             if IsCurrentInBossFangjian():
                 Log("进到了boss房间")
             # 进入到了新的门
-            RanSleep(0.03)
+            RanSleep(0.05)
             player.NewMapCache()
             player.ChangeState(StandState())
         else:
@@ -780,7 +799,7 @@ class DoorStuckGoToPrev(State):
         if not IsNextDoorOpen():
             if IsCurrentInBossFangjian():
                 Log("进到了boss房间")
-            RanSleep(0.03)
+            RanSleep(0.05)
             player.NewMapCache()
             player.ChangeState(StandState())
         elif IsClosedTo(menx, meny, door.prevcx, door.prevcy):

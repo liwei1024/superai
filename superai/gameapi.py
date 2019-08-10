@@ -236,7 +236,7 @@ class ObstacleObj(Structure):
             self.x, self.y, self.w, self.h, self.flag))
 
     def CanBeAttack(self):
-        if self.code in [109006910, 109006911, 226, 228]:
+        if self.code in [109006910, 109006911, 226, 228, 19134, 19135]:
             return False
 
         if self.hp > 0 and self.flag == 2:
@@ -383,7 +383,7 @@ SMALL_RENT = 2
 
 # 慢走矩形
 MANZOU_V_WIDTH = 150 / 2
-MANZOU_H_WIDTH = 1500 / 2
+MANZOU_H_WIDTH = 1000 / 2
 
 # 拾取矩形
 PICKUP_V_WIDTH = 45 / 2
@@ -477,6 +477,13 @@ def WithInManzou(x1, y1, x2, y2):
     V_WIDTH = abs(x2 - x1)
     H_WIDTH = abs(y2 - y1)
     return V_WIDTH < MANZOU_V_WIDTH and H_WIDTH < MANZOU_H_WIDTH
+
+
+# 是否在范围内
+def WithInRange(x1, y1, x2, y2, range):
+    V_WIDTH = abs(x2 - x1)
+    H_WIDTH = abs(y2 - y1)
+    return V_WIDTH < range and H_WIDTH < range
 
 
 # 获取对象在右边还是左边
@@ -740,7 +747,7 @@ def PrintTaskObj():
 
 def PrintNextMen():
     menzuobiao = GetNextDoor()
-    Log(menzuobiao)
+    Log("下一个门坐标: %s" % menzuobiao)
 
 
 def PrintSceneInfo():
@@ -764,6 +771,11 @@ def PrintSceneInfo():
 
     print("场景宽高")
     print(wh)
+
+
+def PrintWH():
+    dixinglst, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
+    Log("场景宽高 %s" % wh)
 
 
 # === 2次包装
@@ -1427,6 +1439,7 @@ def main():
     PrintSkillObj()
     PrintTaskObj()
     PrintNextMen()
+    PrintWH()
 
     # PrintSceneInfo()
     # SpeedTest()

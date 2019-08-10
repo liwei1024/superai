@@ -533,6 +533,13 @@ class BfsNextDoorWrapCorrect:
         return idxTohw(self.s, self.manCellWLen)
 
 
+# 获取门坐标
+def GetCorrectDoorXY(MAPW, MAPH, door, ob):
+    bfsdoor = BfsNextDoorWrapCorrect(MAPW, MAPH, door, ob)
+    doorcellx, doorcelly = bfsdoor.bfs()
+    return doorcellx * 10, doorcelly * 10
+
+
 img = None
 
 
@@ -553,16 +560,21 @@ def GetPaths(d, ob, beginpos, endpos):
         lst = [begincellidx, endcellidx]
     elif begincellidx != endcellidx:
         # 起点终点不同 就规划下
-        astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
+
+        try:
+            astar = AStartPaths(d.mapw, d.maph, ob, begincellidx, endcellidx)
+        except IndexError:
+            return [], IndexError
 
         try:
             lst = astar.PathToSmoothLst(endcellidx)
         except AttributeError:
-            lst = []
+            return [], AttributeError
     else:
         # 可能起点终点相同
         lst = [begincellidx, endcellidx]
-    return lst
+
+    return lst, None
 
 
 # 画任意路径寻路
@@ -579,7 +591,11 @@ def DrawAnyPath(beginx, beginy, endx, endy):
     img[np.where(img == [0])] = [255]
     drawWithOutDoor(img, d)
 
-    lst = GetPaths(d, ob, [beginx, beginy], [endx, endy])
+    lst, err = GetPaths(d, ob, [beginx, beginy], [endx, endy])
+
+    if err:
+        print("GetPaths err occur")
+        return
 
     for ele in lst:
         # 画路径点
@@ -615,7 +631,11 @@ def DrawNextDoorPath():
     bfsdoor = BfsNextDoorWrapCorrect(d.mapw, d.maph, door, ob)
     (cellx, celly) = bfsdoor.bfs()
 
-    lst = GetPaths(d, ob, [meninfo.x, meninfo.y], [cellx * 10, celly * 10])
+    lst, err = GetPaths(d, ob, [meninfo.x, meninfo.y], [cellx * 10, celly * 10])
+
+    if err:
+        print("GetPaths err occur")
+        return
 
     for ele in lst:
         # 画路径点
@@ -641,7 +661,7 @@ def main():
     FlushPid()
 
     # DrawNextDoorPath()
-    DrawAnyPath(979, 245, 848, 230)
+    DrawAnyPath(862, 472, 645, 395)
 
 
 if __name__ == '__main__':

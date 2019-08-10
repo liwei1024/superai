@@ -12,6 +12,11 @@ def hwToidx(x: int, y: int, weight: int):
 def idxTohw(idx, weight: int):
     return [idx % weight, idx // weight]
 
+# 10x10 cell idx 到 [x,y]
+def idxToXY(idx, weight: int):
+    curpoint = idxTohw(idx, weight // 10)
+    curpoint[0], curpoint[1] = curpoint[0] * 10, curpoint[1] * 10
+    return curpoint
 
 # 有向图
 class Graph:
