@@ -592,8 +592,8 @@ def CanbeMovTest():
 # 初次进图,加buff
 class FirstInMap(State):
     def Execute(self, player):
-        if player.skills.HaveBuffCanBeUse():
 
+        if player.skills.HaveBuffCanBeUse():
             if not CanbeMovTest():
                 logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机")
                 time.sleep(0.5)
@@ -609,6 +609,8 @@ class FirstInMap(State):
                 logger.info("使用buff: %s" % skill.name)
                 skill.Use()
                 player.skills.Update()
+        else:
+            logger.info("没有buffer可以使用")
 
         player.skills.Update()
 

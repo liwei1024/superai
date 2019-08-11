@@ -1248,11 +1248,11 @@ class Skills:
         objs = GetSkillObj()
         for obj in objs:
             self.skilllst[obj.idx].exist = True
-            self.skilllst[obj.idx].name = obj.canbeused
+            self.skilllst[obj.idx].name = obj.name
             self.skilllst[obj.idx].SetKey(obj.idx)
-            self.skilllst[obj.idx].Init()
             self.skilllst[obj.idx].canbeused = obj.canbeused
-
+            self.skilllst[obj.idx].Init()
+            
         # 先强制刷新一波全部不存在
         for skillobj in self.skilllst:
             skillobj.exist = False
