@@ -32,11 +32,13 @@ class MenInfo(Structure):
         ("x", c_float),
         ("y", c_float),
         ("z", c_float),
-        ("money", c_wchar * 100),
+        ("money", c_uint32),
         ("fuzhongcur", c_uint32),
         ("fuzhongmax", c_uint32),
         ("object", c_uint32),
         ("name", c_wchar * 100),
+        ("zhuanzhihou", c_wchar * 30),
+        ("zhuanzhiqian", c_wchar * 30),
         ("level", c_uint32),
         ("hp", c_uint64),
         ("mp", c_uint32),
@@ -58,11 +60,10 @@ class MenInfo(Structure):
         retstr += "obj: 0x%08X 名称: %s 等级: %d hp: %d mp: %d 疲劳: %d/%d 状态: %s 方向: %d 疾跑: %d \n" % (
             self.object, self.name, self.level, self.hp, self.mp,
             self.maxpilao - self.curpilao, self.maxpilao, self.statestr, self.fangxiang, self.jipao)
-        retstr += "人物坐标 (%.f,%.f,%.f)\n" % (self.x, self.y, self.z)
-        retstr += "负重 (%d,%d)\n" % (self.fuzhongcur, self.fuzhongmax)
-        retstr += "弹出 %d\n" % self.tanchu
-        retstr += "esc %d\n" % self.esc
-        retstr += "w h %d %d\n" % (self.w, self.h)
+        retstr += " 转职前: %s 转职后: %s\n" % (self.zhuanzhiqian, self.zhuanzhihou)
+        retstr += "人物坐标 (%.f,%.f,%.f) w h %d %d\n" % (self.x, self.y, self.z, self.w, self.h)
+        retstr += "负重 (%d,%d) 金币: %d\n" % (self.fuzhongcur, self.fuzhongmax, self.money)
+        retstr += "弹出 %d esc %d\n" % (self.tanchu, self.esc)
         return retstr
 
 
@@ -1252,7 +1253,7 @@ class Skills:
             self.skilllst[obj.idx].SetKey(obj.idx)
             self.skilllst[obj.idx].canbeused = obj.canbeused
             self.skilllst[obj.idx].Init()
-            
+
         # 先强制刷新一波全部不存在
         for skillobj in self.skilllst:
             skillobj.exist = False
