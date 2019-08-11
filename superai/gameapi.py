@@ -1,15 +1,12 @@
 import os
 import sys
 
-
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.common import InitLog
 import logging
 
 logger = logging.getLogger(__name__)
-
 
 import copy
 import time
@@ -169,8 +166,8 @@ class SkillObj(Structure):
 
     def __str__(self):
         return (
-                "[%d] 对象: 0x%08X 名称: %s 冷却时间: %d 截止时间: %d " % (
-            self.idx, self.object, self.name, self.cooling, self.sendtime))
+                "[%d] 对象: 0x%08X 名称: %s 冷却时间: %d 截止时间: %d 能否使用: %d" % (
+            self.idx, self.object, self.name, self.cooling, self.sendtime, self.canbeused))
 
 
 class TaskObj(Structure):
@@ -243,7 +240,7 @@ class ObstacleObj(Structure):
             self.x, self.y, self.w, self.h, self.flag))
 
     def CanBeAttack(self):
-        if self.code in [109006910, 109006911, 226, 228, 19134, 19135, 18020]:
+        if self.code in [109006910, 109006911, 226, 228, 19134, 19135, 18020, 109000583, 109000576, 57522]:
             return False
 
         if self.hp > 0 and self.flag == 2:
@@ -1143,6 +1140,7 @@ class SkillData:
 
         # 攻击垂直宽度
         self.v_w = ATTACK_V_WIDTH
+
         # 攻击水平宽度
         self.h_w = ATTACK_H_WIDTH
 
@@ -1174,16 +1172,12 @@ class Skill:
     def __init__(self, **kw):
         # 是否存在
         self.exist = False
-        # 内存读出来的冷却时间
-        self.cooding = 0
         # 名称
         self.name = ""
-        # 内存上次使用时间
-        self.gamelatestusedtime = 0
         # 快捷键
         self.key = None
-        # python内部记录 实际上次使用时间
-        self.lastusedtime = 0
+        # 是否能使用
+        self.canbeused = False
         # python对技能的配置
         self.skilldata = SkillData(type=SkillType.Gongji)
 
@@ -1223,29 +1217,11 @@ class Skill:
         # 是否存在
         if not self.exist:
             return False
-
-        # 是否从未使用
-        if self.cooding == 0 and self.gamelatestusedtime == 0:
-            return True
-
-        # 使用过,并且 当且时间减去过去时间 大于冷却时间
-        escaped = (int(time.time()) - self.lastusedtime) * 1000
-        if escaped > self.cooding:
-            return True
-
-        return False
+        return self.canbeused
 
     # 设置按键
     def SetKey(self, idx):
         self.key = idxkeymap[idx]
-
-    # 更新python内部使用时间
-    def UpdateUsedTime(self):
-        self.lastusedtime = int(time.time())
-
-    # python内部使用时间清零
-    def ResetUsedTime(self):
-        self.lastusedtime = 0
 
     # 初始化技能在内存中的设置
     def Init(self):
@@ -1272,30 +1248,18 @@ class Skills:
         objs = GetSkillObj()
         for obj in objs:
             self.skilllst[obj.idx].exist = True
-            self.skilllst[obj.idx].cooding = obj.cooling
-            self.skilllst[obj.idx].name = obj.name
-
-            if obj.sendtime == 0:
-                self.skilllst[obj.idx].ResetUsedTime()
-            elif self.skilllst[obj.idx].gamelatestusedtime != obj.sendtime:
-                self.skilllst[obj.idx].UpdateUsedTime()
-
-            self.skilllst[obj.idx].gamelatestusedtime = obj.sendtime
+            self.skilllst[obj.idx].name = obj.canbeused
             self.skilllst[obj.idx].SetKey(obj.idx)
-
             self.skilllst[obj.idx].Init()
+            self.skilllst[obj.idx].canbeused = obj.canbeused
 
-        # 技能对象是否存在
+        # 先强制刷新一波全部不存在
         for skillobj in self.skilllst:
             skillobj.exist = False
 
+        # 再刷新的列表,改变为存在
         for obj in objs:
             self.skilllst[obj.idx].exist = True
-
-    # 刷新所有冷却时间 (python内部)
-    def FlushAllTime(self):
-        for skill in self.skilllst:
-            skill.lastusedtime = 0
 
     # 获取可以使用的技能列表
     def GetCanBeUsedAttackSkills(self):
@@ -1329,15 +1293,6 @@ class Skills:
     def HaveBuffCanBeUse(self):
         skills = self.GetCanBeUseBuffSkills()
         return len(skills) > 0
-
-    # 某个技能是否被释放过(比如修罗的技能
-    def DidSkillHavebeenUsed(self, skillname):
-        objs = GetSkillObj()
-        for obj in objs:
-            if obj.name == skillname:
-                if obj.sendtime != 0:
-                    return True
-        return False
 
 
 # 初始化技能配置. 因为内存中读取不到

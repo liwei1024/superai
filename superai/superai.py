@@ -871,7 +871,6 @@ def main():
     player.SetGlobalState(GlobalState())
 
     player.skills.Update()
-    player.skills.FlushAllTime()
 
     try:
         while True:
