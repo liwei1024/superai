@@ -4,6 +4,8 @@ import sys
 
 import logging
 
+from superai.common import InitLog
+
 logger = logging.getLogger(__name__)
 
 # 2维到1维
@@ -166,6 +168,8 @@ class AStarPaths:
 
 
 def main():
+    InitLog()
+
     # 0,1,2,3,4 ... 一共12个顶点. width=6,height=4
     graph = Graph(24, 6)
 

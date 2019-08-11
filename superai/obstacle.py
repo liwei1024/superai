@@ -5,8 +5,11 @@ import time
 import cv2
 import numpy as np
 
+
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+from superai.common import InitLog
 import logging
 logger = logging.getLogger(__name__)
 
@@ -144,6 +147,8 @@ def loop():
 
 
 def main():
+    InitLog()
+
     if GameApiInit():
         print("Init helpdll-xxiii.dll ok")
     else:

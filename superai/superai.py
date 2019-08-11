@@ -1,17 +1,9 @@
+import logging
 import os
 import sys
 
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
-
-import coloredlogs, logging
-
-coloredlogs.DEFAULT_FIELD_STYLES['filename'] = {'color': 'blue'}
-coloredlogs.DEFAULT_FIELD_STYLES['lineno'] = {'color': 'blue'}
-coloredlogs.DEFAULT_FIELD_STYLES['levelname'] = {'color': 'magenta'}
-
-fmt = '%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s'
-datefmt = '%Y-%m-%d:%H:%M:%S'
-coloredlogs.install(fmt=fmt, datefmt=datefmt, level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +12,8 @@ import win32gui
 import math
 import random
 import time
+
+from superai.common import InitLog
 
 from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, CoordToManIdx, SafeGetDAndOb
 from superai.astartdemo import idxToXY
@@ -41,7 +35,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
-    PATH_PLANING_RANGE, GetObstacle, WithInRange
+    GetObstacle, WithInRange
 
 QuadKeyDownMap = {
     Quardant.ZUO: DownZUO,
@@ -286,7 +280,7 @@ class Player:
 
         if len(self.pathfindinglst) == 0:
             # 范围内有麻烦就路径规划一下
-            # l, r, t, d = menx - PATH_PLANING_RANGE // 2, menx + PATH_PLANING_RANGE // 2, meny - PATH_PLANING_RANGE // 2, meny + PATH_PLANING_RANGE // 2
+
             if self.ob.ManQuadHasTrouble(quad, menx, meny):
                 logger.warning("前往目的地有障碍物, 开始规划(%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
                 lst, err = GetPaths(self.d, self.ob, [menx, meny], [destx, desty])
@@ -299,11 +293,8 @@ class Player:
                     self.SeekWithPathfinding(destx, desty, obj, dummy)
                     return
 
-                # 把起点弹出
-                lst.pop(0)
-
-                if len(lst) == 1:
-                    logger.info("路径规划点为一个, 直接过去: (%d, %d)" % (destx, desty))
+                if len(lst) == 2:
+                    logger.info("路径规划点为2个(起点,终点), 直接过去: (%d, %d)" % (destx, desty))
                     self.Seek(destx, desty, obj, dummy)
                     return
                 else:
@@ -357,6 +348,7 @@ class Player:
 
     # 每次进图缓存一下当前的 1. 地形 2. 障碍 3. 门位置.
     def NewMapCache(self):
+        t1 = time.time()
         meninfo = GetMenInfo()
         self.d, self.ob = SafeGetDAndOb(meninfo.w, meninfo.h)
 
@@ -366,14 +358,15 @@ class Player:
             logger.info("下一个门的坐标: (%d, %d) ->修正 (%d, %d) " % (door.x, door.y, self.doorx, self.doory))
 
         self.ClearPathfindingLst()
+        t2 = time.time()
 
-        logger.info("获取了地图地形,障碍物数据 ")
+        logger.info("获取了地图地形,障碍物数据 共花费: %f", t2 - t1)
 
     # 切换到新的图
     def CheckInToNewMap(self):
         self.UpLatestKey()
         RanSleep(0.1)
-        logger.info("进了新的门")
+        logger.info("进了新的房间")
         self.NewMapCache()
         self.ChangeState(StandState())
 
@@ -841,7 +834,11 @@ class DoorStuckGoToPrev(State):
             player.SeekWithPathfinding(door.prevcx, door.prevcy, dummy="靠近门前")
 
 
+
 def main():
+
+    InitLog()
+
     if GameApiInit():
         logger.info("Init helpdll-xxiii.dll ok")
     else:

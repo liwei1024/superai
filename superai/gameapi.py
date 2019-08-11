@@ -1,17 +1,20 @@
 import os
 import sys
 
+
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+from superai.common import InitLog
 import logging
 
 logger = logging.getLogger(__name__)
+
 
 import copy
 import time
 from enum import Enum
 import math
-
 
 from superai.yijianshu import PressSkill, PressKey
 from superai.vkcode import VK_CODE
@@ -409,9 +412,6 @@ ATTACK_H_WIDTH = 40 / 2
 # 攻击太靠近的垂直宽度
 ATTACK_TOO_CLOSE_V_WIDTH = 1.0 / 2
 
-# 路径规划范围
-PATH_PLANING_RANGE = 150
-
 
 # 坐标位置
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
@@ -725,47 +725,47 @@ def Autoshuntu():
 # === 调试打印
 def PrintMenInfo():
     menInfo = GetMenInfo()
-    logger.info(menInfo)
+    print(menInfo)
 
 
 def PrintMapInfo():
     mapInfo = GetMapInfo()
-    logger.info(mapInfo)
+    print(mapInfo)
 
 
 def PrintMapObj():
     outlst = GetMapObj()
     for obj in outlst:
-        logger.info(obj)
+        print(obj)
 
 
 def PrintBagObj():
     outlst = GetBagObj()
     for obj in outlst:
-        logger.info(obj)
+        print(obj)
 
 
 def PrintEquipObj():
     outlst = GetEquipObj()
     for obj in outlst:
-        logger.info(obj)
+        print(obj)
 
 
 def PrintSkillObj():
     outlst = GetSkillObj()
     for obj in outlst:
-        logger.info(obj)
+        print(obj)
 
 
 def PrintTaskObj():
     outlst = GetTaskObj()
     for obj in outlst:
-        logger.info(obj)
+        print(obj)
 
 
 def PrintNextMen():
     menzuobiao = GetNextDoor()
-    logger.info("下一个门坐标: %s" % menzuobiao)
+    print("下一个门坐标: %s" % menzuobiao)
 
 
 def PrintSceneInfo():
@@ -793,7 +793,7 @@ def PrintSceneInfo():
 
 def PrintWH():
     dixinglst, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
-    logger.info("场景宽高 %s" % wh)
+    print("场景宽高 %s" % wh)
 
 
 # === 2次包装
@@ -1444,6 +1444,8 @@ def SpeedTest():
 
 
 def main():
+    InitLog()
+
     if GameApiInit():
         logger.info("Init helpdll-xxiii.dll ok")
     else:

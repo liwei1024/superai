@@ -6,8 +6,10 @@ import time
 import cv2
 import numpy as np
 
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+from superai.common import InitLog
 import logging
 
 
@@ -115,8 +117,8 @@ def SafeGetDAndOb(menw, menh):
     try:
         ob = Obstacle(d, menw, menh)
     except IndexError:
-        time.sleep(0.5)
         logger.warning("获得地形和ob对象发生错误, 重新获取")
+        time.sleep(0.1)
         return SafeGetDAndOb(menw, menh)
 
     return d, ob
@@ -208,7 +210,7 @@ class Obstacle:
                     dixingcells.append((l + i, t + j))
         return dixingcells
 
-    # ** 范围内有障碍物或地形格子, 是否选择路径规划用. l,r,t,d 范围格子坐标极值. 返回True False
+    # ** (不直接使用)范围内有障碍物或地形格子, 是否选择路径规划用. l,r,t,d 范围格子坐标极值. 返回True False
     def RangesHaveTrouble(self, l, r, t, d):
         if len(self.RangesAllObstacle(l, r, t, d)) > 0:
             return True
@@ -249,7 +251,7 @@ class Obstacle:
 
     # 是否越界 TODO 写死了
     def OverStep(self, cellx, celly):
-        return cellx * 10 > self.mapCellWLen * 0x10 or celly * 10 > self.mapCellHLen * 0xc
+        return cellx * 10 >= self.mapCellWLen * 0x10 or celly * 10 >= self.mapCellHLen * 0xc
 
     # 是否触碰到地形或者障碍物或者越界. p[cellx,celly] 10 宽高相应cell位置
     def TouchedAnything(self, p):
@@ -337,7 +339,7 @@ class Obstacle:
                 return True
         return False
 
-    # ** 人物指定方向是否有障碍物或地形
+    # ** (直接使用)人物指定方向是否有障碍物或地形
     def ManQuadHasTrouble(self, quad, menx, meny):
         halfmenw, halfmenh = self.menw // 2, self.menh // 2
         composes = QuardantMap[quad]
@@ -702,6 +704,8 @@ def DrawNextDoorPath():
 
 
 def main():
+    InitLog()
+
     if GameApiInit():
         print("Init helpdll-xxiii.dll ok")
     else:
@@ -709,8 +713,8 @@ def main():
         exit(0)
     FlushPid()
 
-    # DrawNextDoorPath()
-    DrawAnyPath(1238, 468, 641, 617)
+    DrawNextDoorPath()
+    # DrawAnyPath(895, 373, 840, 270)
 
 
 if __name__ == '__main__':

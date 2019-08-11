@@ -2,7 +2,10 @@ import sys
 import os
 import time
 
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
+
+from superai.common import InitLog
 
 import logging
 
@@ -283,6 +286,8 @@ def FlushImg():
 
 
 def main():
+    InitLog()
+
     # while True:
     #     if IsCartoonTop():
     #         logger.info("1")
