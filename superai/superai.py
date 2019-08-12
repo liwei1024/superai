@@ -336,6 +336,7 @@ class Player:
             if flag:
                 del self.pathfindinglst[0]
                 logger.info("到达了规划点 (%d, %d) 剩余 %d" % (destx, desty, len(self.pathfindinglst)))
+                self.SeekWithPathfinding(destx, desty, obj, dummy)
                 return
             else:
                 dummy = "" if dummy is None else dummy
