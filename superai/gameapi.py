@@ -1,6 +1,8 @@
 import os
 import sys
 
+import win32gui
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.common import InitLog
@@ -1112,7 +1114,7 @@ def IsWindowTop():
         mapinfo = GetMapInfo()
         for ele in WindowTopFilter:
             if ele[0] in mapinfo.name and mapinfo.curx == ele[1] and mapinfo.cury == ele[2]:
-                PressKey(VK_CODE["spacebar"]) # 假装按下
+                PressKey(VK_CODE["spacebar"])  # 假装按下
                 return False
     return meninfo.tanchu
 

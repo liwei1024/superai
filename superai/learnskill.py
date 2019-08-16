@@ -1,16 +1,14 @@
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from superai.superai import GameWindowToTop
-from superai.yijianshu import PressKey, VK_CODE, MouseMoveTo, YijianshuInit, MouseLeftDown, MouseLeftDoubleClick, \
-    RanSleep, MouseLeftClick, MouseLeftUp, MouseLeftDownFor, MouseMoveR
-from superai.common import InitLog
-from superai.flannfind import Picture, GetImgDir
-from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj, idxkeymap
 
-import time
+from superai.yijianshu import PressKey, VK_CODE, MouseMoveTo, YijianshuInit, MouseLeftDown, RanSleep, MouseLeftClick, MouseLeftUp, MouseLeftDownFor, MouseMoveR
+from superai.common import InitLog, GameWindowToTop
+from superai.flannfind import Picture, GetImgDir
+from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -185,6 +183,7 @@ def main():
     oc.AddSkillPoints()
     oc.RemoveNotInStrategy()
     oc.EquipSkillInStrategy()
+    oc.CloseSkillScene()
 
 
 if __name__ == '__main__':

@@ -2,18 +2,17 @@ import logging
 import os
 import sys
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 logger = logging.getLogger(__name__)
 
 import threading
-import win32gui
 import math
 import random
 import time
 
-from superai.common import InitLog
+from superai.learnskill import Occupationkills
+from superai.common import InitLog, GameWindowToTop
 from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, CoordToManIdx, SafeGetDAndOb
 from superai.astartdemo import idxToXY
 
@@ -99,6 +98,9 @@ class Player:
 
         # 移动路径列表
         self.pathfindinglst = []
+
+        # 上一个等级 (用于判断是否需要加点)
+        self.latestlevel = 0
 
     # 更改当前状态机
     def ChangeState(self, state):
@@ -370,10 +372,25 @@ class Player:
         self.NewMapCache()
         self.ChangeState(StandState())
 
+    # 是否等级变化
+    def HasLevelChanged(self):
+        meninfo = GetMenInfo()
+        if self.latestlevel == 0:
+            # 刚初始化
+            self.latestlevel = meninfo.level
+            return True
+        elif self.latestlevel != meninfo.level:
+            # 变化了等级
+            self.latestlevel = meninfo.level
+            return True
+        else:
+            # 没有变化等级
+            return False
+
 
 class State:
     def Execute(self, player):
-        raise NotImplementedError()
+        pass
 
 
 FOR_DUIHUA = 0
@@ -417,7 +434,7 @@ class GlobalState(State):
         # 动画处理
         elif player.IsEmptyFor(FOR_CARTOON):
             logger.info("动画状态")
-            PressKey(VK_CODE["esc"]),  RanSleep(0.5)
+            PressKey(VK_CODE["esc"]), RanSleep(0.5)
             if not IsCartoonTop():
                 player.RestoreContext()
             return
@@ -445,7 +462,7 @@ class GlobalState(State):
                 if confirmPos != (0, 0):
                     logger.info("移动到: %d %d" % (confirmPos[0], confirmPos[1]))
                     MouseMoveTo(confirmPos[0], confirmPos[1]), RanSleep(0.3)
-                    MouseLeftClick(),  RanSleep(0.3)
+                    MouseLeftClick(), RanSleep(0.3)
             else:
                 logger.info("确认按钮没有置顶")
             RanSleep(0.5)
@@ -536,12 +553,31 @@ class Setup(State):
 # 城镇
 class InChengzhen(State):
     def Execute(self, player):
+        if player.HasLevelChanged():
+            player.ChangeState(SettingSkill())
+            RanSleep(0.2)
+            return
+
         if IsManInMap():
             player.ChangeState(FirstInMap())
             RanSleep(0.2)
             return
 
         RanSleep(0.2)
+
+
+# 技能加点,移除不需要的技能,放入需要的技能
+class SettingSkill(State):
+    def Execute(self, player):
+        logger.info("增加技能点")
+        # TODO 优化下?  不需要多少时间吧
+        oc = Occupationkills()
+        oc.AddSkillPoints()
+        oc.RemoveNotInStrategy()
+        oc.EquipSkillInStrategy()
+        oc.CloseSkillScene()
+        logger.info("加点完毕")
+        player.ChangeState(InChengzhen())
 
 
 # 副本结束, 尝试退出
@@ -556,7 +592,7 @@ class FubenOver(State):
             return
 
 
-# 测试计数器
+# 测试计数器 (无关大局)
 testi = 0
 
 
@@ -827,14 +863,6 @@ class DoorStuckGoToPrev(State):
             player.ChangeState(DoorOpenGotoNext())
         else:
             player.SeekWithPathfinding(door.prevcx, door.prevcy, dummy="靠近门前")
-
-
-# 置顶游戏窗口
-def GameWindowToTop():
-    hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
-    # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
-    #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
-    win32gui.SetForegroundWindow(hwnd)
 
 
 def main():
