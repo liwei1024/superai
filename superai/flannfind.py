@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 
 from superai.common import InitLog
-from superai.yijianshu import MouseMoveTo, YijianshuInit
+from superai.yijianshu import MouseMoveTo, YijianshuInit, RanSleep
 from superai.screenshots import WindowCaptureToMem
 
 logger = logging.getLogger(__name__)
@@ -300,7 +300,7 @@ def main():
     moqiangshi_ciji = Picture(basedir + "/moqiangshi/moqiangshi_ciji.png")
     pos = moqiangshi_ciji.Pos()
     print(pos)
-    MouseMoveTo(pos[0], pos[1])
+    MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
 
     # while True:
     #     if IsCartoonTop():

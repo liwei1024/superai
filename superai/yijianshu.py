@@ -331,7 +331,6 @@ def MouseMoveTo(x, y):
     relativex = centrex - curx
     relativey = centrey - cury
     lib.M_MoveR(h, int(relativex), int(relativey))
-    RanSleep(0.2)
 
 
 # 相对移动
@@ -369,10 +368,6 @@ def MouseLeftDown():
 def MouseLeftUp():
     lib.M_LeftUp(h)
 
-# 做完事件后随即sleep
-def RanSleep(foo, t):
-    foo()
-    RanSleep(5)
 
 def main():
     InitLog()

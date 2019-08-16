@@ -1112,7 +1112,7 @@ def IsWindowTop():
         mapinfo = GetMapInfo()
         for ele in WindowTopFilter:
             if ele[0] in mapinfo.name and mapinfo.curx == ele[1] and mapinfo.cury == ele[2]:
-                PressKey(VK_CODE["spacebar"])
+                PressKey(VK_CODE["spacebar"]) # 假装按下
                 return False
     return meninfo.tanchu
 

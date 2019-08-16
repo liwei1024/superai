@@ -410,31 +410,27 @@ class GlobalState(State):
         # 对话处理
         if player.IsEmptyFor(FOR_DUIHUA):
             logger.info("对话状态")
-            PressKey(VK_CODE["spacebar"])
-            RanSleep(0.2)
+            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
             if not IsWindowTop():
                 player.RestoreContext()
             return
         # 动画处理
         elif player.IsEmptyFor(FOR_CARTOON):
             logger.info("动画状态")
-            PressKey(VK_CODE["esc"])
-            RanSleep(0.5)
+            PressKey(VK_CODE["esc"]),  RanSleep(0.5)
             if not IsCartoonTop():
                 player.RestoreContext()
             return
         # 视频处理
         elif player.IsEmptyFor(FOR_VIDEO):
             logger.info("视频状态")
-            PressKey(VK_CODE["esc"])
-            RanSleep(0.5)
+            PressKey(VK_CODE["esc"]), RanSleep(0.5)
             if IsConfirmTop():
                 confirmPos = GetConfirmPos()
                 if confirmPos != (0, 0):
                     logger.info("移动到: %d %d" % (confirmPos[0], confirmPos[1]))
-                    MouseMoveTo(confirmPos[0], confirmPos[1])
-                    MouseLeftClick()
-                    RanSleep(0.2)
+                    MouseMoveTo(confirmPos[0], confirmPos[1]), RanSleep(0.3)
+                    MouseLeftClick(), RanSleep(0.3)
             else:
                 logger.info("确认按钮没有置顶")
             RanSleep(0.5)
@@ -448,9 +444,8 @@ class GlobalState(State):
                 confirmPos = GetConfirmPos()
                 if confirmPos != (0, 0):
                     logger.info("移动到: %d %d" % (confirmPos[0], confirmPos[1]))
-                    MouseMoveTo(confirmPos[0], confirmPos[1])
-                    MouseLeftClick()
-                    RanSleep(0.2)
+                    MouseMoveTo(confirmPos[0], confirmPos[1]), RanSleep(0.3)
+                    MouseLeftClick(),  RanSleep(0.3)
             else:
                 logger.info("确认按钮没有置顶")
             RanSleep(0.5)
@@ -552,13 +547,11 @@ class InChengzhen(State):
 # 副本结束, 尝试退出
 class FubenOver(State):
     def Execute(self, player):
-        PressKey(VK_CODE["esc"])
-        RanSleep(0.2)
-        PressKey(VK_CODE["F12"])
+        PressKey(VK_CODE["esc"]), RanSleep(0.2)
+        PressKey(VK_CODE["F12"]), RanSleep(0.2)
         if IsManInChengzhen():
             while IsEscTop():
-                PressKey(VK_CODE["esc"])
-                RanSleep(0.2)
+                PressKey(VK_CODE["esc"]), RanSleep(0.2)
             player.ChangeState(InChengzhen())
             return
 
@@ -652,11 +645,11 @@ class StandState(State):
         else:
             if IsCurrentInBossFangjian():
                 # 得不到怪物对象. 可能副本结束的瞬间 按esc吧!
-                PressKey(VK_CODE["esc"])
-                RanSleep(0.1)
+                PressKey(VK_CODE["esc"]), RanSleep(0.1)
+
                 # 把它再点掉,投机取巧
                 if IsEscTop():
-                    PressKey(VK_CODE["esc"])
+                    PressKey(VK_CODE["esc"]), RanSleep(0.1)
 
         RanSleep(0.3)
         logger.info("state can not switch")
