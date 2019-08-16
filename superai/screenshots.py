@@ -100,8 +100,10 @@ def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defe
     bitmap = win32ui.CreateBitmap()
     defer(lambda: (win32gui.DeleteObject(bitmap.GetHandle())))
 
-    if dw != 0 or dh != 0:
+    if dw != 0:
         w = dw
+
+    if dh != 0:
         h = dh
 
     bitmap.CreateCompatibleBitmap(imgDC, w, h)

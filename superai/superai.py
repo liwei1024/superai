@@ -14,7 +14,6 @@ import random
 import time
 
 from superai.common import InitLog
-
 from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, CoordToManIdx, SafeGetDAndOb
 from superai.astartdemo import idxToXY
 
@@ -837,30 +836,20 @@ class DoorStuckGoToPrev(State):
             player.SeekWithPathfinding(door.prevcx, door.prevcy, dummy="靠近门前")
 
 
-
-def main():
-
-    InitLog()
-
-    if GameApiInit():
-        logger.info("Init helpdll-xxiii.dll ok")
-    else:
-        logger.info("Init helpdll-xxiii.dll err")
-        exit(0)
-
-    if YijianshuInit():
-        logger.info("Init 易键鼠 ok")
-    else:
-        logger.info("Init 易键鼠 err")
-        exit(0)
-
-    FlushPid()
-    ReleaseAllKey()
-
+# 置顶游戏窗口
+def GameWindowToTop():
     hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
     # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     win32gui.SetForegroundWindow(hwnd)
+
+
+def main():
+    InitLog()
+    GameApiInit()
+    FlushPid()
+    YijianshuInit()
+    GameWindowToTop()
 
     time.sleep(1.2)
 

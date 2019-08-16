@@ -1,6 +1,8 @@
 import os
 import sys
 
+from superai.common import InitLog
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
@@ -145,13 +147,20 @@ x = None
 
 
 # 初始化函数
-def YijianshuInit() -> bool:
+def YijianshuInit():
     global h
     global x
 
     h = lib.M_Open_VidPid(0x612c, 0x1030)
     x = c_void_p(h)
-    return h != 0
+
+    if h != 0:
+        logger.info("Init 易键鼠 ok")
+    else:
+        logger.info("Init 易键鼠 err")
+        exit(0)
+
+    ReleaseAllKey()
 
 
 def ReleaseAllKey():
@@ -325,6 +334,11 @@ def MouseMoveTo(x, y):
     RanSleep(0.2)
 
 
+# 相对移动
+def MouseMoveR(x, y):
+    lib.M_MoveR(h, int(x), int(y))
+
+
 # 左键单击
 def MouseLeftClick():
     lib.M_LeftDown(h)
@@ -332,12 +346,37 @@ def MouseLeftClick():
     lib.M_LeftUp(h)
 
 
+# 左键持续按键
+def MouseLeftDownFor(t):
+    lib.M_LeftDown(h)
+    RanSleep(t)
+    lib.M_LeftUp(h)
+
+
+# 左键双击
+def MouseLeftDoubleClick():
+    MouseLeftClick()
+    RanSleep(0.1)
+    MouseLeftClick()
+
+
+# 左键按下
+def MouseLeftDown():
+    lib.M_LeftDown(h)
+
+
+# 左键弹出
+def MouseLeftUp():
+    lib.M_LeftUp(h)
+
+# 做完事件后随即sleep
+def RanSleep(foo, t):
+    foo()
+    RanSleep(5)
+
 def main():
-    if YijianshuInit():
-        logger.info("Init 易键鼠 ok")
-    else:
-        logger.info("Init 易键鼠 err")
-        exit(0)
+    InitLog()
+    YijianshuInit()
 
     global h
     global x

@@ -497,7 +497,11 @@ def GetFangxiang(x1, x2):
 
 # === help dll 基础
 def GameApiInit():
-    return lib.Init()
+    if lib.Init():
+        logger.info("Init helpdll-xxiii.dll ok")
+    else:
+        logger.info("Init helpdll-xxiii.dll err")
+        exit(0)
 
 
 def FlushPid():
@@ -1228,6 +1232,8 @@ class Skill:
     def Init(self):
         if self.name in skillSettingMap:
             self.skilldata = skillSettingMap[self.name]
+        else:
+            self.skilldata = SkillData(type=SkillType.Gongji)
 
     # 使用
     def Use(self):
@@ -1401,12 +1407,7 @@ def SpeedTest():
 
 def main():
     InitLog()
-
-    if GameApiInit():
-        logger.info("Init helpdll-xxiii.dll ok")
-    else:
-        logger.info("Init helpdll-xxiii.dll err")
-
+    GameApiInit()
     FlushPid()
 
     # while True:

@@ -148,12 +148,7 @@ def loop():
 
 def main():
     InitLog()
-
-    if GameApiInit():
-        print("Init helpdll-xxiii.dll ok")
-    else:
-        print("Init helpdll-xxiii.dll err")
-        exit(0)
+    GameApiInit()
     FlushPid()
 
     try:

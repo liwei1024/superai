@@ -2,23 +2,19 @@ import sys
 import os
 import time
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from superai.common import InitLog
-
 import logging
+import cv2
+import numpy as np
+
+from superai.common import InitLog
+from superai.yijianshu import MouseMoveTo, YijianshuInit
+from superai.screenshots import WindowCaptureToMem
 
 logger = logging.getLogger(__name__)
 
-import cv2
-import numpy as np
-from datetime import datetime
-from superai.screenshots import WindowCaptureToMem
-
 MIN_MATCH_COUNT = 10
-
-
 
 FLANN_INDEX_KDTREE = 1  # bug: flann enums are missing
 FLANN_INDEX_LSH = 6
@@ -206,16 +202,28 @@ def FindPicturePos(img1, img2):
     return 0, 0
 
 
-if os.path.exists("c:/win/superimg/"):
-    basedir = "c:/win/superimg/"
-elif os.path.exists("D:/win/superimg/"):
-    basedir = "D:/win/superimg/"
-else:
-    basedir = "D:/win/studio/dxf/picture/superimg/"
+basedir = None
 
-cartoonScene = Picture(basedir + "/cartoon-scene.png", 12, 549, 66, 38)
-videoScene = Picture(basedir + "/video-scene.png", 663, 554, 121, 18)
-confirm = Picture(basedir + "/confirm.png", 245, 126, 324, 378)
+
+def GetImgDir():
+    global basedir
+
+    if basedir is not None:
+        return basedir
+
+    if os.path.exists("c:/win/superimg/"):
+        basedir = "c:/win/superimg/"
+    elif os.path.exists("D:/win/superimg/"):
+        basedir = "D:/win/superimg/"
+    else:
+        basedir = "D:/win/studio/dxf/picture/superimg/"
+
+    return basedir
+
+
+cartoonScene = Picture(GetImgDir() + "/cartoon-scene.png", 12, 549, 66, 38)
+videoScene = Picture(GetImgDir() + "/video-scene.png", 663, 554, 121, 18)
+confirm = Picture(GetImgDir() + "/confirm.png", 245, 126, 324, 378)
 
 gCartoonTop = False
 gVideoTop = False
@@ -258,27 +266,27 @@ def FlushImg():
     global gFlushExit
 
     # try:
-        # while not gFlushExit:
-        #     # 是否有动画
-        #     if cartoonScene.Match():
-        #         gCartoonTop = True
-        #     else:
-        #         gCartoonTop = False
-        #
-        #     # 是否有视频
-        #     if videoScene.Match():
-        #         gVideoTop = True
-        #     else:
-        #         gVideoTop = False
-        #
-        #     # 是否有确认按钮
-        #     if confirm.Match():
-        #         gConfirmTop = True
-        #     else:
-        #         gConfirmTop = False
-        #
-        #     time.sleep(0.3)
-        # time.sleep(1000)
+    # while not gFlushExit:
+    #     # 是否有动画
+    #     if cartoonScene.Match():
+    #         gCartoonTop = True
+    #     else:
+    #         gCartoonTop = False
+    #
+    #     # 是否有视频
+    #     if videoScene.Match():
+    #         gVideoTop = True
+    #     else:
+    #         gVideoTop = False
+    #
+    #     # 是否有确认按钮
+    #     if confirm.Match():
+    #         gConfirmTop = True
+    #     else:
+    #         gConfirmTop = False
+    #
+    #     time.sleep(0.3)
+    # time.sleep(1000)
 
     # except Exception as e:
     #     logger.info("flushimg thread error " + e)
@@ -287,6 +295,12 @@ def FlushImg():
 
 def main():
     InitLog()
+    YijianshuInit()
+
+    moqiangshi_ciji = Picture(basedir + "/moqiangshi/moqiangshi_ciji.png")
+    pos = moqiangshi_ciji.Pos()
+    print(pos)
+    MouseMoveTo(pos[0], pos[1])
 
     # while True:
     #     if IsCartoonTop():
@@ -294,9 +308,7 @@ def main():
     #     time.sleep(0.5)
 
     # sifttest()
-
-    templatefindtest()
-    pass
+    # templatefindtest()
 
 
 if __name__ == "__main__":
