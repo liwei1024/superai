@@ -68,7 +68,9 @@ class Occupationkills:
 
     # 暗枪 (转职后)
     def anqiangInit(self):
-        pass
+        meninfo = GetMenInfo()
+        if meninfo.level >= 15:
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "侵蚀之矛", "anqiang_qinshizhimao"))
 
     # 加技能点
     def AddSkillPoints(self):

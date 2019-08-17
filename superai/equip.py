@@ -119,6 +119,8 @@ class Equips:
 
     # 如果是身上穿的,判断下是甲类是否吻合
     def IsJiaTypeLegal(self, equip):
+        if self.bodystragy == ANYStrategy:
+            return True
         # 不是身上穿的不判断了
         if equip.bodypos not in BODYPOS:
             return True
