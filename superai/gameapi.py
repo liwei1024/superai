@@ -147,14 +147,81 @@ class BagObj(Structure):
         ("idx", c_uint32),
         ("object", c_uint32),
         ("num", c_uint32),
-        ("color", c_uint32),
+        ("color", c_uint32),  # 0普通 蓝1 紫2 粉3  勇者5 传说6
         ("name", c_wchar * 100),
+        ("type", c_uint32),  # 装备2
+        ("jiatype", c_uint32),  # 布甲0,皮甲1,轻甲2,重甲3,板甲4
+        ("bodypos", c_uint32),  # 12武器, 14上衣,15头肩,16下装,17鞋,18腰带
+        ("canbeusedlevel", c_uint32)  # 可使用等级
     ]
 
+    def FormatColor(self):
+        if self.type == 2:
+            m = {
+                0: "普通",
+                1: "蓝",
+                2: "紫",
+                3: "粉",
+                5: "勇者",
+                6: " 传说"
+            }
+            if self.color in m:
+                return m[self.color]
+            else:
+                return "%d" % self.color
+        else:
+            return "%d" % self.color
+
+    def FormatJiatype(self):
+        if self.type == 2 and self.bodypos in [14, 15, 16, 17, 18]:
+            m = {
+                0: "布甲",
+                1: "皮甲",
+                2: "轻甲",
+                3: "重甲",
+                4: "板甲"
+            }
+
+            if self.jiatype in m:
+                return m[self.jiatype]
+            else:
+                return "%d" % self.jiatype
+        else:
+            return "%d" % self.jiatype
+
+    def FormatBodyPos(self):
+        if self.type == 2:
+            m = {
+                12: "武器",
+                13: "称号",
+                14: "布甲",
+                15: "头肩",
+                16: "下装",
+                17: "鞋",
+                18: "腰带",
+                19: "项链",
+                20: "护腕",
+                21: "戒指"
+            }
+
+            if self.bodypos in m:
+                return m[self.bodypos]
+            else:
+                return "%d" % self.bodypos
+        else:
+            return "%d" % self.bodypos
+
     def __str__(self):
-        return (
-                "[%d] 对象: 0x%08X 名称: %s 数量: %d 颜色: %d" % (
-            self.idx, self.object, self.name, self.num, self.color))
+
+        if self.type != 2:
+            return (
+                    "[%d] 对象: 0x%08X 名称: %s 数量: %d 颜色: %s" % (
+                self.idx, self.object, self.name, self.num, self.FormatColor()))
+        else:
+            return (
+                    "[%d] 对象: 0x%08X 名称: %s 数量: %d 颜色: %s 位置:%s  甲类型: %s 可使用等级 %d" % (
+                self.idx, self.object, self.name, self.num, self.FormatColor(), self.FormatBodyPos(),
+                self.FormatJiatype(), self.canbeusedlevel))
 
 
 class SkillObj(Structure):
