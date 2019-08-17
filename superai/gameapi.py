@@ -1,20 +1,17 @@
 import os
 import sys
 
-import win32gui
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from superai.common import InitLog
-import logging
 
+import logging
 logger = logging.getLogger(__name__)
 
 import copy
-import time
 from enum import Enum
 import math
 
+from superai.common import InitLog
 from superai.yijianshu import PressSkill, PressKey
 from superai.vkcode import VK_CODE
 from superai.defer import defer
@@ -54,6 +51,8 @@ class MenInfo(Structure):
         ("esc", c_bool),
         ("w", c_uint32),
         ("h", c_uint32),
+        ("chengzhenx", c_float),
+        ("chengzheny", c_float),
     ]
 
     def __str__(self):
@@ -142,6 +141,30 @@ class MapObj(Structure):
             self.code, self.w, self.h, self.obstacletype))
 
 
+BODYPOS = [14, 15, 16, 17, 18]
+
+POSMAP = {
+    12: "武器",
+    13: "称号",
+    14: "上衣",
+    15: "头肩",
+    16: "下装",
+    17: "鞋",
+    18: "腰带",
+    19: "项链",
+    20: "手镯",
+    21: "戒指"
+}
+
+TYPEMAP = {
+    0: "布甲",
+    1: "皮甲",
+    2: "轻甲",
+    3: "重甲",
+    4: "板甲"
+}
+
+
 class BagObj(Structure):
     _fields_ = [
         ("idx", c_uint32),
@@ -152,7 +175,9 @@ class BagObj(Structure):
         ("type", c_uint32),  # 装备2
         ("jiatype", c_uint32),  # 布甲0,皮甲1,轻甲2,重甲3,板甲4
         ("bodypos", c_uint32),  # 12武器, 14上衣,15头肩,16下装,17鞋,18腰带
-        ("canbeusedlevel", c_uint32)  # 可使用等级
+        ("canbeusedlevel", c_uint32),  # 可使用等级
+        ("curnaijiu", c_uint32),
+        ("maxnaijiu", c_uint32),
     ]
 
     def FormatColor(self):
@@ -174,16 +199,8 @@ class BagObj(Structure):
 
     def FormatJiatype(self):
         if self.type == 2 and self.bodypos in [14, 15, 16, 17, 18]:
-            m = {
-                0: "布甲",
-                1: "皮甲",
-                2: "轻甲",
-                3: "重甲",
-                4: "板甲"
-            }
-
-            if self.jiatype in m:
-                return m[self.jiatype]
+            if self.jiatype in TYPEMAP:
+                return TYPEMAP[self.jiatype]
             else:
                 return "%d" % self.jiatype
         else:
@@ -191,21 +208,8 @@ class BagObj(Structure):
 
     def FormatBodyPos(self):
         if self.type == 2:
-            m = {
-                12: "武器",
-                13: "称号",
-                14: "布甲",
-                15: "头肩",
-                16: "下装",
-                17: "鞋",
-                18: "腰带",
-                19: "项链",
-                20: "护腕",
-                21: "戒指"
-            }
-
-            if self.bodypos in m:
-                return m[self.bodypos]
+            if self.bodypos in POSMAP:
+                return POSMAP[self.bodypos]
             else:
                 return "%d" % self.bodypos
         else:
@@ -219,9 +223,9 @@ class BagObj(Structure):
                 self.idx, self.object, self.name, self.num, self.FormatColor()))
         else:
             return (
-                    "[%d] 对象: 0x%08X 名称: %s 数量: %d 颜色: %s 位置:%s  甲类型: %s 可使用等级 %d" % (
+                    "[%d] 对象: 0x%08X 名称: %s 数量: %d 颜色: %s 位置:%s  甲类型: %s 可使用等级 %d 耐久: %d/%d" % (
                 self.idx, self.object, self.name, self.num, self.FormatColor(), self.FormatBodyPos(),
-                self.FormatJiatype(), self.canbeusedlevel))
+                self.FormatJiatype(), self.canbeusedlevel, self.curnaijiu, self.maxnaijiu))
 
 
 class SkillObj(Structure):
@@ -358,6 +362,8 @@ lib.ExGetMapYinghuo.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
 lib.ExGetMapObstacle.argtypes = [POINTER(POINTER(MapObj)), POINTER(c_int)]
 
 lib.ExGetBagObj.argtypes = [POINTER(POINTER(BagObj)), POINTER(c_int)]
+
+lib.ExGetBagEquipObj.argtypes = [POINTER(POINTER(BagObj)), POINTER(c_int)]
 
 lib.ExGetGetEquipObj.argtypes = [POINTER(POINTER(BagObj)), POINTER(c_int)]
 
@@ -678,6 +684,18 @@ def GetBagObj():
     return outlst
 
 
+# 背包装备数组
+def GetBagEquipObj():
+    objs = POINTER(BagObj)()
+    count = c_int(0)
+    lib.ExGetBagEquipObj(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst = []
+    for i in range(count.value):
+        outlst.append(copy.deepcopy(objs[i]))
+    return outlst
+
+
 # 装备数组
 def GetEquipObj():
     objs = POINTER(BagObj)()
@@ -796,50 +814,76 @@ def Autoshuntu():
 # === 调试打印
 def PrintMenInfo():
     menInfo = GetMenInfo()
+    print("[人物信息]")
     print(menInfo)
+    print("===========")
 
 
 def PrintMapInfo():
+    print("[地图信息]")
     mapInfo = GetMapInfo()
     print(mapInfo)
+    print("===========")
 
 
 def PrintMapObj():
+    print("[地图对象]")
     outlst = GetMapObj()
     for obj in outlst:
         print(obj)
+    print("===========")
 
 
 def PrintBagObj():
+    print("[背包对象]")
     outlst = GetBagObj()
     for obj in outlst:
         print(obj)
+    print("===========")
+
+
+def PrintBagEquipObj():
+    print("[背包装备对象]")
+    outlst = GetBagEquipObj()
+    for obj in outlst:
+        print(obj)
+    print("===========")
 
 
 def PrintEquipObj():
+    print("[装备对象]")
     outlst = GetEquipObj()
     for obj in outlst:
         print(obj)
+    print("===========")
 
 
 def PrintSkillObj():
+    print("[技能对象]")
     outlst = GetSkillObj()
     for obj in outlst:
         print(obj)
+    print("===========")
 
 
 def PrintTaskObj():
+    print("[任务对象]")
     outlst = GetTaskObj()
     for obj in outlst:
         print(obj)
+    print("===========")
 
 
 def PrintNextMen():
+    print("[下一个门位置]")
     menzuobiao = GetNextDoor()
     print("下一个门坐标: %s" % menzuobiao)
+    print("===========")
 
 
 def PrintSceneInfo():
+    print("[场景信息]")
+
     dixinglst, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
 
     print("地形链表")
@@ -861,10 +905,14 @@ def PrintSceneInfo():
     print("场景宽高")
     print(wh)
 
+    print("===========")
+
 
 def PrintWH():
+    print("[场景宽高]")
     dixinglst, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
     print("场景宽高 %s" % wh)
+    print("===========")
 
 
 # === 2次包装
@@ -1487,6 +1535,7 @@ def main():
     PrintMapInfo()
     PrintMapObj()
     PrintBagObj()
+    PrintBagEquipObj()
     PrintEquipObj()
     PrintSkillObj()
     PrintTaskObj()

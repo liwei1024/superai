@@ -92,7 +92,6 @@ class Occupationkills:
 
     # 打开技能栏
     def OpenSkillScene(self):
-        # 技能栏窗口打开,一致后才返回
         while not skillScene.Match():
             logger.info("技能栏没有打开")
             PressKey(VK_CODE["k"]), RanSleep(0.5)
@@ -101,11 +100,10 @@ class Occupationkills:
 
     # 关闭技能栏
     def CloseSkillScene(self):
-        # 技能栏窗口打开,一致后才返回
         while skillScene.Match():
             logger.info("技能栏打开")
             PressKey(VK_CODE["k"]), RanSleep(0.5)
-            if skillScene.Match():
+            if not skillScene.Match():
                 return True
 
     # 不在技能策略中
@@ -117,7 +115,7 @@ class Occupationkills:
 
     # 不是必备技能拖出去
     def RemoveNotInStrategy(self):
-        self.OpenSkillScene()
+        self.OpenSkillScene(), RanSleep(0.5)
 
         curskills = GetSkillObj()
         for v in curskills:
@@ -155,7 +153,7 @@ class Occupationkills:
 
     # 是必备技能找个空位置拖进来
     def EquipSkillInStrategy(self):
-        self.OpenSkillScene()
+        self.OpenSkillScene(), RanSleep(0.5)
 
         for v in self.learnstrategy:
             if not self.HasEquipSkill(v.name):
