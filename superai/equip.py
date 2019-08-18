@@ -79,18 +79,14 @@ class Equips:
     # 打开装备栏
     def OpenBagScene(self):
         while not bagScene.Match():
-            logger.info("装备栏没有打开")
+            logger.info("打开装备栏")
             PressKey(VK_CODE["i"]), RanSleep(0.5)
-            if bagScene.Match():
-                return True
 
     # 关闭装备栏
     def CloseBagScene(self):
         while bagScene.Match():
-            logger.info("装备栏已经打开")
+            logger.info("关闭装备栏")
             PressKey(VK_CODE["i"]), RanSleep(0.5)
-            if not bagScene.Match():
-                return True
 
     # 身上没有装备
     def BodyEquiped(self, IDX):
@@ -158,7 +154,7 @@ class Equips:
         pos = (firstpos[0] + cellw * cellx, firstpos[1] + cellh * celly)
         return pos
 
-    # 更换装备.
+    # 更换装备
     def ChangeEquip(self):
         self.OpenBagScene(), RanSleep(0.5)
         bagpos = bagScene.Pos()
@@ -171,6 +167,15 @@ class Equips:
                 MouseLeftDown(), RanSleep(0.3)
                 MouseMoveTo(bagpos[0], bagpos[1] + 100), RanSleep(0.3)
                 MouseLeftUp(), RanSleep(0.3)
+
+    # 背包内是否有有更好的装备
+    def DoesBagHaveBetterEquip(self):
+        for v in CheckReplices:
+            betterEquip = self.BagEquipBetter(v[0], v[1])
+            if betterEquip is not None:
+                return True
+
+        return False
 
 
 def main():

@@ -2,6 +2,9 @@ import logging
 import os
 import sys
 
+from superai.dealequip import DealEquip
+from superai.equip import Equips
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 logger = logging.getLogger(__name__)
@@ -21,10 +24,9 @@ from superai.flannfind import FlushImg, IsCartoonTop, IsVideoTop, SetThreadExit,
 
 from superai.vkcode import VK_CODE
 
-from superai.yijianshu import YijianshuInit, DownZUO, DownYOU, DownXIA, DownSHANG, DownZUOSHANG, DownZUOXIA, \
-    DownYOUSHANG, DownYOUXIA, PressRight, \
-    PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, UpZUO, UpYOU, UpSHANG, \
-    UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, PressKey, MouseMoveTo, MouseLeftClick, PressUp, PressDown
+from superai.yijianshu import YijianshuInit, PressRight, \
+    PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, PressKey, MouseMoveTo, MouseLeftClick, \
+    PressUp, PressDown
 
 from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, GetMenXY, GetQuadrant, Quardant, \
@@ -33,29 +35,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
-    GetObstacle, WithInRange
-
-QuadKeyDownMap = {
-    Quardant.ZUO: DownZUO,
-    Quardant.YOU: DownYOU,
-    Quardant.SHANG: DownSHANG,
-    Quardant.XIA: DownXIA,
-    Quardant.ZUOSHANG: DownZUOSHANG,
-    Quardant.ZUOXIA: DownZUOXIA,
-    Quardant.YOUSHANG: DownYOUSHANG,
-    Quardant.YOUXIA: DownYOUXIA
-}
-
-QuadKeyUpMap = {
-    Quardant.ZUO: UpZUO,
-    Quardant.YOU: UpYOU,
-    Quardant.SHANG: UpSHANG,
-    Quardant.XIA: UpXIA,
-    Quardant.ZUOSHANG: UpZUOSHANG,
-    Quardant.ZUOXIA: UpZUOXIA,
-    Quardant.YOUSHANG: UpYOUSHANG,
-    Quardant.YOUXIA: UpYOUXIA
-}
+    GetObstacle, WithInRange, QuadKeyDownMap, QuadKeyUpMap
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -558,6 +538,24 @@ class InChengzhen(State):
             RanSleep(0.2)
             return
 
+        eq = Equips()
+        if eq.DoesBagHaveBetterEquip():
+            player.ChangeState(ChangeEquip())
+            RanSleep(0.2)
+            return
+
+        meninfo = GetMenInfo()
+        if meninfo.fuzhongcur / meninfo.fuzhongmax < 0.2:
+            player.ChangeState(FenjieEquip())
+            RanSleep(0.2)
+            return
+
+        deal = DealEquip()
+        if deal.NeedRepair():
+            player.ChangeState(RepairEquip())
+            RanSleep(0.2)
+            return
+
         if IsManInMap():
             player.ChangeState(FirstInMap())
             RanSleep(0.2)
@@ -577,6 +575,36 @@ class SettingSkill(State):
         oc.EquipSkillInStrategy()
         oc.CloseSkillScene()
         logger.info("加点完毕")
+        player.ChangeState(InChengzhen())
+
+
+# 换装备
+class ChangeEquip(State):
+    def Execute(self, player):
+        logger.info("换装备")
+        eq = Equips()
+        eq.ChangeEquip()
+        logger.info("换装备完毕")
+        player.ChangeState(InChengzhen())
+
+
+# 分解装备
+class FenjieEquip(State):
+    def Execute(self, player):
+        logger.info("分解装备")
+        deal = DealEquip()
+        deal.FenjieAll()
+        logger.info("分解装备完毕")
+        player.ChangeState(InChengzhen())
+
+
+# 修理装备
+class RepairEquip(State):
+    def Execute(self, player):
+        logger.info("修理装备")
+        deal = DealEquip()
+        deal.RepairAll()
+        logger.info("修理装备")
         player.ChangeState(InChengzhen())
 
 

@@ -3,8 +3,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-
 import logging
+
 logger = logging.getLogger(__name__)
 
 import copy
@@ -12,7 +12,8 @@ from enum import Enum
 import math
 
 from superai.common import InitLog
-from superai.yijianshu import PressSkill, PressKey
+from superai.yijianshu import PressSkill, PressKey, DownZUO, DownYOU, DownSHANG, DownXIA, DownZUOSHANG, DownZUOXIA, \
+    DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA
 from superai.vkcode import VK_CODE
 from superai.defer import defer
 
@@ -338,6 +339,29 @@ class SceneInfo(Structure):
             self.w, self.h, self.len_c, self.len_extra_78))
 
 
+class SelectObj(Structure):
+    _fields_ = [
+        ("obj", c_uint32),
+        ("level", c_uint32),
+        ("name", c_wchar * 100),
+    ]
+
+    def __str__(self):
+        return (
+                "对象: 0x%08X 名字: %s 等级: %d " % (
+            self.obj, self.name, self.level))
+
+
+class CurSelectIdx(Structure):
+    _fields_ = [
+        ("menidx", c_uint32),
+        ("mapidx", c_uint32),
+    ]
+
+    def __str__(self):
+        return ("选中角色下标: %d 选中地图下标: %d" % (self.menidx, self.mapidx))
+
+
 lib.Init.argtypes = []
 lib.Init.restype = c_bool
 
@@ -383,6 +407,10 @@ lib.ExGetDixingObjExtra.argtypes = [POINTER(POINTER(DixingObj)), POINTER(c_int)]
 lib.ExGetObstacleVector.argtypes = [POINTER(POINTER(ObstacleObj)), POINTER(c_int)]
 
 lib.ExGetSceneInfo.argtypes = [POINTER(SceneInfo)]
+
+lib.ExGetSelectObj.argtypes = [POINTER(POINTER(SelectObj)), POINTER(c_int)]
+
+lib.ExGetCurSelectIdx.argtypes = [POINTER(CurSelectIdx)]
 
 lib.ExXiGuai.argtypes = []
 
@@ -485,6 +513,28 @@ ATTACK_H_WIDTH = 40 / 2
 
 # 攻击太靠近的垂直宽度
 ATTACK_TOO_CLOSE_V_WIDTH = 1.0 / 2
+
+QuadKeyDownMap = {
+    Quardant.ZUO: DownZUO,
+    Quardant.YOU: DownYOU,
+    Quardant.SHANG: DownSHANG,
+    Quardant.XIA: DownXIA,
+    Quardant.ZUOSHANG: DownZUOSHANG,
+    Quardant.ZUOXIA: DownZUOXIA,
+    Quardant.YOUSHANG: DownYOUSHANG,
+    Quardant.YOUXIA: DownYOUXIA
+}
+
+QuadKeyUpMap = {
+    Quardant.ZUO: UpZUO,
+    Quardant.YOU: UpYOU,
+    Quardant.SHANG: UpSHANG,
+    Quardant.XIA: UpXIA,
+    Quardant.ZUOSHANG: UpZUOSHANG,
+    Quardant.ZUOXIA: UpZUOXIA,
+    Quardant.YOUSHANG: UpYOUSHANG,
+    Quardant.YOUXIA: UpYOUXIA
+}
 
 
 # 坐标位置
@@ -792,6 +842,25 @@ def GetObstacle():
     return outlst
 
 
+# 获取角色列表
+def GetSelectObj():
+    objs = POINTER(SelectObj)()
+    count = c_int(0)
+    lib.ExGetSelectObj(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst = []
+    for i in range(count.value):
+        outlst.append(copy.deepcopy(objs[i]))
+    return outlst
+
+
+# 获取选中下标
+def GetCurSelectIdx():
+    curselectIdx = CurSelectIdx()
+    lib.ExGetCurSelectIdx(pointer(curselectIdx))
+    return curselectIdx
+
+
 # 吸怪
 def Xiguai():
     lib.ExXiGuai()
@@ -913,6 +982,21 @@ def PrintWH():
     print("[场景宽高]")
     dixinglst, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
     print("场景宽高 %s" % wh)
+    print("===========")
+
+
+def PrintSelectObj():
+    print("[角色列表对象]")
+    outlst = GetSelectObj()
+    for obj in outlst:
+        print(obj)
+    print("===========")
+
+
+def PrintSelectIdx():
+    print("[选择下标信息]")
+    selectidx = GetCurSelectIdx()
+    print(selectidx)
     print("===========")
 
 
@@ -1241,6 +1325,11 @@ def IsEscTop():
     return meninfo.esc
 
 
+# 当前选中的地图id
+def CurSelectId():
+    selectidx = GetCurSelectIdx()
+    return selectidx.mapidx
+
 # 技能对应的按键
 idxkeymap = {
     0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
@@ -1542,15 +1631,13 @@ def main():
     PrintTaskObj()
     PrintNextMen()
     PrintWH()
+    PrintSelectObj()
+    PrintSelectIdx()
 
-    # PrintSceneInfo()
-    # SpeedTest()
-    # PrintCanBeUsedSkill()
-    # print(IsCurrentInBossFangjian())
-    # print(GetNextDoor())
+    # PrintSceneInfo() # 数据太多
+    # SpeedTest() # 速度还可以
 
     # 变态功能
-
     # Xiguai()
     # XiWu()
     # Zuobiaoyidong(300, 200, 0)

@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from superai.common import InitLog, GameWindowToTop
-from superai.gameapi import GameApiInit, FlushPid, GetBagEquipObj
+from superai.gameapi import GameApiInit, FlushPid, GetBagEquipObj, GetMenInfo, BODYPOS
 
 from superai.flannfind import Picture, GetImgDir
 from superai.location import Location
@@ -21,7 +21,9 @@ fenjieButton = Picture(GetImgDir() + "fenjie_button.png")
 
 sellButton = Picture(GetImgDir() + "sellbt.png")
 
-bagScene = Picture(GetImgDir() + "/bagscene.png")
+bagScene = Picture(GetImgDir() + "bagscene.png")
+
+repairButton = Picture(GetImgDir() + "repair.png")
 
 
 class DealEquip:
@@ -108,14 +110,49 @@ class DealEquip:
 
         self.CloseSell()
 
+    # 修理 (身上5件 + 武器)
+    def RepairAll(self):
+        logger.info("修理所有")
+        lo = Location()
+        if lo.get() == "艾尔文防线":
+            pos = fenjieAierwenfangxian.Pos()
+            MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+            MouseLeftClick(), RanSleep(0.3)
+            MouseMoveR(56, 32), RanSleep(0.3)
+            MouseLeftClick(), RanSleep(0.3)
+
+            # 修理按钮
+            repairbtn = repairButton.Pos()
+            MouseMoveTo(repairbtn[0], repairbtn[1]), RanSleep(0.3)
+            MouseLeftClick(), RanSleep(0.3)
+            MouseLeftClick(), RanSleep(0.3)
+
+        else:
+            raise NotImplementedError()
+
+        self.CloseSell()
+
+    # 是否需要被修理
+    def NeedRepair(self):
+        equips = GetBagEquipObj()
+        for v in equips:
+            if v.bodypos in BODYPOS or v.bodypos == 12:
+                if v.curnaijiu / v.maxnaijiu <  0.2:
+                    return True
+
+        return False
+
+
     # 关闭分解机
     def CloseFenjie(self):
         while fenjieButton.Match():
+            logger.info("关闭分解机")
             PressKey(VK_CODE["esc"]), RanSleep(0.3)
 
     # 关闭卖物
     def CloseSell(self):
         while sellButton.Match():
+            logger.info("关闭卖物")
             PressKey(VK_CODE["esc"]), RanSleep(0.3)
 
 

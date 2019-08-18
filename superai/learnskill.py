@@ -3,8 +3,8 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-
-from superai.yijianshu import PressKey, VK_CODE, MouseMoveTo, YijianshuInit, MouseLeftDown, RanSleep, MouseLeftClick, MouseLeftUp, MouseLeftDownFor, MouseMoveR
+from superai.yijianshu import PressKey, VK_CODE, MouseMoveTo, YijianshuInit, MouseLeftDown, RanSleep, MouseLeftClick, \
+    MouseLeftUp, MouseLeftDownFor, MouseMoveR
 from superai.common import InitLog, GameWindowToTop
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj
@@ -13,7 +13,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-skillScene = Picture(GetImgDir() + "/skillscene.png")
+skillScene = Picture(GetImgDir() + "skillscene.png")
 skillSceneLearn = Picture(GetImgDir() + "skillscene_learn.png")
 
 # 技能对应的技能栏位置
@@ -82,6 +82,15 @@ class Occupationkills:
         for v in self.learnstrategy:
             logger.info("学习技能: %s" % v.name)
             pos = v.picutre.Pos()
+
+            w, h = 30, 25
+            halfw, halfh = w // 2, h // 2
+            cannotLearn = Picture(GetImgDir() + "cannotlearn.png", dx=pos[0] - halfw, dy=pos[1] - halfh, dw=w, dh=h)
+
+            if cannotLearn.Match():
+                logger.info("技能: %s 不能学习", v.name)
+                continue
+
             logger.info("移动到相对位置: (%d,%d)" % (pos[0], pos[1]))
             MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
             MouseLeftDownFor(1.0), RanSleep(0.3)
@@ -97,18 +106,14 @@ class Occupationkills:
     # 打开技能栏
     def OpenSkillScene(self):
         while not skillScene.Match():
-            logger.info("技能栏没有打开")
+            logger.info("打开技能栏")
             PressKey(VK_CODE["k"]), RanSleep(0.5)
-            if skillScene.Match():
-                return True
 
     # 关闭技能栏
     def CloseSkillScene(self):
         while skillScene.Match():
-            logger.info("技能栏打开")
+            logger.info("关闭技能栏")
             PressKey(VK_CODE["k"]), RanSleep(0.5)
-            if not skillScene.Match():
-                return True
 
     # 不在技能策略中
     def IsInLearnStrategy(self, name):
