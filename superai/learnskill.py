@@ -71,6 +71,8 @@ class Occupationkills:
         meninfo = GetMenInfo()
         if meninfo.level >= 15:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "侵蚀之矛", "anqiang_qinshizhimao"))
+        if meninfo.level >= 15:
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "双重投射", "anqiang_shuangchongtoushe"))
 
     # 加技能点
     def AddSkillPoints(self):

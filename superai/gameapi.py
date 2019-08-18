@@ -65,6 +65,7 @@ class MenInfo(Structure):
         retstr += "人物坐标 (%.f,%.f,%.f) w h %d %d\n" % (self.x, self.y, self.z, self.w, self.h)
         retstr += "负重 (%d,%d) 金币: %d\n" % (self.fuzhongcur, self.fuzhongmax, self.money)
         retstr += "弹出 %d esc %d\n" % (self.tanchu, self.esc)
+        retstr += "城镇坐标: (%d, %d)\n" % (self.chengzhenx, self.chengzheny)
         return retstr
 
 
