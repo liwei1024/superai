@@ -2,9 +2,6 @@ import logging
 import os
 import sys
 
-from superai.dealequip import DealEquip
-from superai.equip import Equips
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 logger = logging.getLogger(__name__)
@@ -14,12 +11,15 @@ import math
 import random
 import time
 
+from superai.dealequip import DealEquip
+from superai.equip import Equips
+from superai.plot import DoPlot, HasPlot
 from superai.learnskill import Occupationkills
 from superai.common import InitLog, GameWindowToTop
 from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, CoordToManIdx, SafeGetDAndOb
 from superai.astartdemo import idxToXY
 
-from superai.flannfind import FlushImg, IsCartoonTop, IsVideoTop, SetThreadExit, \
+from superai.flannfind import FlushImg, SetThreadExit, \
     IsConfirmTop, GetConfirmPos
 
 from superai.vkcode import VK_CODE
@@ -374,9 +374,7 @@ class State:
 
 
 FOR_DUIHUA = 0
-FOR_CARTOON = 1
-FOR_VIDEO = 2
-FOR_CONFIRM = 3
+FOR_CONFIRM = 1
 
 
 # 什么也不做的状态机. 一般是由于对话,动画或者视频才进入到这里,读取信息供外面恢复
@@ -411,38 +409,16 @@ class GlobalState(State):
             if not IsWindowTop():
                 player.RestoreContext()
             return
-        # 动画处理
-        elif player.IsEmptyFor(FOR_CARTOON):
-            logger.info("动画状态")
-            PressKey(VK_CODE["esc"]), RanSleep(0.5)
-            if not IsCartoonTop():
-                player.RestoreContext()
-            return
-        # 视频处理
-        elif player.IsEmptyFor(FOR_VIDEO):
-            logger.info("视频状态")
-            PressKey(VK_CODE["esc"]), RanSleep(0.5)
-            if IsConfirmTop():
-                confirmPos = GetConfirmPos()
-                if confirmPos != (0, 0):
-                    logger.info("移动到: %d %d" % (confirmPos[0], confirmPos[1]))
-                    MouseMoveTo(confirmPos[0], confirmPos[1]), RanSleep(0.3)
-                    MouseLeftClick(), RanSleep(0.3)
-            else:
-                logger.info("确认按钮没有置顶")
-            RanSleep(0.5)
-            if not IsVideoTop():
-                player.RestoreContext()
-            return
         # 确认处理
         elif player.IsEmptyFor(FOR_CONFIRM):
             logger.info("确认状态")
             if IsConfirmTop():
                 confirmPos = GetConfirmPos()
                 if confirmPos != (0, 0):
-                    logger.info("移动到: %d %d" % (confirmPos[0], confirmPos[1]))
                     MouseMoveTo(confirmPos[0], confirmPos[1]), RanSleep(0.3)
                     MouseLeftClick(), RanSleep(0.3)
+                else:
+                    logger.info("没有找到确认按钮位置")
             else:
                 logger.info("确认按钮没有置顶")
             RanSleep(0.5)
@@ -453,14 +429,6 @@ class GlobalState(State):
         # 对话判断
         if not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
             player.SaveAndChangeToEmpty(FOR_DUIHUA)
-        # 动画判断
-        elif not player.IsEmptyFor(FOR_CARTOON) and IsCartoonTop():
-            player.SaveAndChangeToEmpty(FOR_CARTOON)
-            return
-        # 视频判断
-        elif not player.IsEmptyFor(FOR_VIDEO) and IsVideoTop():
-            player.SaveAndChangeToEmpty(FOR_VIDEO)
-            return
         # 确认按钮
         elif not player.IsEmptyFor(FOR_CONFIRM) and IsConfirmTop():
             player.SaveAndChangeToEmpty(FOR_CONFIRM)
@@ -533,31 +501,42 @@ class Setup(State):
 # 城镇
 class InChengzhen(State):
     def Execute(self, player):
+
+        # 如果在图内,切换到图内
+        if IsManInMap():
+            player.ChangeState(FirstInMap())
+            RanSleep(0.2)
+            return
+
+        # 等级发生变化, 技能加点
         if player.HasLevelChanged():
             player.ChangeState(SettingSkill())
             RanSleep(0.2)
             return
 
+        # 背包有更好的装备,更换装备
         eq = Equips()
         if eq.DoesBagHaveBetterEquip():
             player.ChangeState(ChangeEquip())
             RanSleep(0.2)
             return
 
+        # 做剧情任务
+        if HasPlot():
+            DoPlot(player)
+            return
+
+        # 负重超过80%,分解 (需要先到副本外)
         meninfo = GetMenInfo()
-        if meninfo.fuzhongcur / meninfo.fuzhongmax < 0.2:
+        if meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65:
             player.ChangeState(FenjieEquip())
             RanSleep(0.2)
             return
 
+        # 耐久小于25%,修理 (需要先到副本外)
         deal = DealEquip()
         if deal.NeedRepair():
             player.ChangeState(RepairEquip())
-            RanSleep(0.2)
-            return
-
-        if IsManInMap():
-            player.ChangeState(FirstInMap())
             RanSleep(0.2)
             return
 
@@ -584,6 +563,7 @@ class ChangeEquip(State):
         logger.info("换装备")
         eq = Equips()
         eq.ChangeEquip()
+        eq.CloseBagScene()
         logger.info("换装备完毕")
         player.ChangeState(InChengzhen())
 
@@ -594,6 +574,7 @@ class FenjieEquip(State):
         logger.info("分解装备")
         deal = DealEquip()
         deal.FenjieAll()
+        deal.CloseFenjie()
         logger.info("分解装备完毕")
         player.ChangeState(InChengzhen())
 
@@ -604,8 +585,15 @@ class RepairEquip(State):
         logger.info("修理装备")
         deal = DealEquip()
         deal.RepairAll()
+        deal.CloseSell()
         logger.info("修理装备")
         player.ChangeState(InChengzhen())
+
+
+# 做剧情任务
+class PlotState(State):
+    def Execute(self, player):
+        DoPlot(player)
 
 
 # 副本结束, 尝试退出

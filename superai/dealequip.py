@@ -55,13 +55,13 @@ class DealEquip:
             MouseMoveTo(fenjiebt[0], fenjiebt[1]), RanSleep(0.3)
 
             # 检查 "稀有" "勇者" "包含我的职业装备" 是否勾选
-            xiyoucheck = (Picture(GetImgDir() + "fenjie_button.png", fenjiebt[0] + 71, fenjiebt[1] + 48, 12, 12),
+            xiyoucheck = (Picture(GetImgDir() + "checked.png", fenjiebt[0] + 71, fenjiebt[1] + 48, 12, 12),
                           (fenjiebt[0] + 71 + 6, fenjiebt[1] + 48 + 6))
 
-            yongzhecheck = (Picture(GetImgDir() + "fenjie_button.png", fenjiebt[0] + 71, fenjiebt[1] + 62, 12, 12),
+            yongzhecheck = (Picture(GetImgDir() + "checked.png", fenjiebt[0] + 71, fenjiebt[1] + 62, 12, 12),
                             (fenjiebt[0] + 71 + 6, fenjiebt[1] + 62 + 6))
 
-            zhiyecheck = (Picture(GetImgDir() + "fenjie_button.png", fenjiebt[0] + 71, fenjiebt[1] + 81, 12, 12),
+            zhiyecheck = (Picture(GetImgDir() + "checked.png", fenjiebt[0] + 71, fenjiebt[1] + 81, 12, 12),
                           (fenjiebt[0] + 71 + 6, fenjiebt[1] + 81 + 6))
 
             checks = [xiyoucheck, yongzhecheck, zhiyecheck]
@@ -73,6 +73,7 @@ class DealEquip:
 
             MouseMoveTo(fenjiebt[0], fenjiebt[1]), RanSleep(0.3)
             MouseLeftClick(), RanSleep(0.3)
+            MouseMoveR(-63, 0), RanSleep(0.3)
             MouseLeftClick(), RanSleep(3.0)
 
         else:
@@ -137,11 +138,10 @@ class DealEquip:
         equips = GetBagEquipObj()
         for v in equips:
             if v.bodypos in BODYPOS or v.bodypos == 12:
-                if v.curnaijiu / v.maxnaijiu <  0.2:
+                if v.curnaijiu / v.maxnaijiu < 0.25:
                     return True
 
         return False
-
 
     # 关闭分解机
     def CloseFenjie(self):

@@ -10,10 +10,14 @@ logger = logging.getLogger(__name__)
 
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
-    CurSelectId
+    CurSelectId, GetTaskObj, IsManInMap, IsEscTop
 from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick, DownZUO, DownYOU
 
 shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
+
+selectmen = Picture(GetImgDir() + "selectmen.png")
+
+gamebegin = Picture(GetImgDir() + "gamebegin.png")
 
 
 class MoveInfo:
@@ -35,11 +39,28 @@ class MoveInfo:
 
 
 MoveSetting = {
-    "格兰之森": MoveInfo(destpic=Picture(GetImgDir() + "ditu_gelanzhisen.png"), destcoord=(163, 288),
+    # 1. 目标场景截图 + 城镇坐标,判断是否到达
+    # 2. 世界地图特征 + 鼠标移动地图的的绝对坐标
+    "格兰之森": MoveInfo(destpic=Picture(GetImgDir() + "ditu_gelanzhisen.png"), destcoord=(161, 256),
                      shijiepic=Picture(GetImgDir() + "shijie_gelanzhisen.png"), mousecoord=(211, 423),
-                     desc="格兰之森")
+                     desc="格兰之森"),
+
+    "林纳斯": MoveInfo(destpic=Picture(GetImgDir() + "ditu_linnasi.png"), destcoord=(1234, 196),
+                    shijiepic=Picture(GetImgDir() + "shijie_gelanzhisen.png"), mousecoord=(362, 415),
+                    desc="林纳斯")
 
 }
+
+
+# 到赛利亚
+def MoveToSailiya():
+    while not IsEscTop():
+        PressKey(VK_CODE["esc"]), RanSleep(0.2)
+
+    while not gamebegin.Match():
+        pos = selectmen.Match()
+        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(1.5)
 
 
 # 打开世界地图
@@ -60,7 +81,7 @@ def CloseShijieDitu():
 def IsMoveToChengzhenPos(destpic, destcoord):
     if destpic.Match():
         meninfo = GetMenInfo()
-        if IsClosedTo(meninfo.x, meninfo.y, destcoord.x, destcoord.y):
+        if IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 50):
             return True
     return False
 
@@ -85,9 +106,9 @@ def MoveTo(moveinfo):
                                                                               moveinfo.destcoord[1],
                                                                               moveinfo.mousecoord[0],
                                                                               moveinfo.mousecoord[1]))
+
             t = time.time()
             CoordMoveTo(moveinfo.shijiepic, moveinfo.mousecoord)
-
         RanSleep(1.0)
 
 
@@ -99,11 +120,6 @@ def GoToSelect(quad: Quardant):
         QuadKeyUpMap[quad](), RanSleep(0.5)
 
 
-IdxMapMap = {
-    "幽暗密林": 0
-}
-
-
 # 选择地图
 def SelectMap(mapname):
     while CurSelectId() != IdxMapMap[mapname]:
@@ -111,16 +127,152 @@ def SelectMap(mapname):
         PressKey(VK_CODE["up_arrow"]), RanSleep(0.2)
 
 
-def linnasideqingqiu():
+# 进图
+def EnterMap(mapname, player):
+    SelectMap(mapname)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+
+    while not IsManInMap():
+        logger.info("等待进图...")
+        RanSleep(2)
+
+    from superai.superai import FirstInMap
+    player.ChangeState(FirstInMap())
+
+
+def 林纳斯的请求(player):
     moveinfo = MoveSetting["格兰之森"]
     MoveTo(moveinfo)
     GoToSelect(Quardant.ZUO)
-    SelectMap("幽暗密林")
+    EnterMap("幽暗密林", player)
 
+
+def 再访林纳斯(player):
+    moveinfo = MoveSetting["林纳斯"]
+    MoveTo(moveinfo)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    from superai.superai import Setup
+    player.ChangeState(Setup())
+
+
+def 传说中的白化变异哥布林(player):
+    moveinfo = MoveSetting["格兰之森"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.ZUO)
+    EnterMap("幽暗密林", player)
+
+
+def 毒泉的主人(player):
+    moveinfo = MoveSetting["格兰之森"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.ZUO)
+    EnterMap("猛毒雷鸣废墟", player)
+
+
+def 疯掉的魔法师克拉赫(player):
+    moveinfo = MoveSetting["格兰之森"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.ZUO)
+    EnterMap("冰霜幽暗密林", player)
+
+
+def 备战格拉卡(player):
+    moveinfo = MoveSetting["林纳斯"]
+    MoveTo(moveinfo)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    from superai.superai import Setup
+    player.ChangeState(Setup())
+
+
+def 营救赛丽亚(player):
+    moveinfo = MoveSetting["格兰之森"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.ZUO)
+    EnterMap("格拉卡", player)
+
+
+def 通向森林深处的道路(player):
+    moveinfo = MoveSetting["格兰之森"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.ZUO)
+    EnterMap("烈焰格拉卡", player)
+
+
+def 森林的黑暗(player):
+    moveinfo = MoveSetting["格兰之森"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.ZUO)
+    EnterMap("暗黑雷鸣废墟", player)
+
+
+def 大魔法阵是什么(player):
+    MoveToSailiya()
+    QuadKeyDownMap[Quardant.SHANG](), RanSleep(0.5)
+    QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    from superai.superai import Setup
+    player.ChangeState(Setup())
+
+
+def 前辈冒险家的建议(player):
+    moveinfo = MoveSetting["林纳斯"]
+    MoveTo(moveinfo)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    from superai.superai import Setup
+    player.ChangeState(Setup())
+
+
+def 守护森林的战斗(player):
+    pass
+
+
+IdxMapMap = {
+    # 1-16 格兰之森
+    "幽暗密林": 0,
+    "雷鸣废墟": 1,
+    "猛毒雷鸣废墟": 2,
+    "冰霜幽暗密林": 5,
+    "格拉卡": 3,
+    "烈焰格拉卡": 4,
+    "暗黑雷鸣废墟": 6,
+}
 
 plotMap = {
-    "林纳斯的请求": linnasideqingqiu
+    # 1-16 格兰之森
+    "林纳斯的请求": 林纳斯的请求,
+    "再访林纳斯": 再访林纳斯,
+    "传说中的白化变异哥布林": 传说中的白化变异哥布林,
+    "毒泉的主人": 毒泉的主人,
+    "疯掉的魔法师克拉赫": 疯掉的魔法师克拉赫,
+    "备战格拉卡": 备战格拉卡,
+    "营救赛丽亚": 营救赛丽亚,
+    "森林的黑暗": 森林的黑暗,
+    "大魔法阵是什么": 大魔法阵是什么,
+    "前辈冒险家的建议": 前辈冒险家的建议,
+    "守护森林的战斗": 守护森林的战斗
 }
+
+
+# 是否有剧情任务
+def HasPlot():
+    tasks = GetTaskObj()
+    for v in tasks:
+        if v.name in plotMap.keys():
+            return True
+    return False
+
+
+# 做剧情任务
+def DoPlot(player):
+    logger.info("开始做剧情任务")
+    tasks = GetTaskObj()
+    for v in tasks:
+        if v.name in plotMap.keys():
+            logger.info("剧情任务: %s" % v.name)
+            plotMap[v.name](player)
+
+    from superai.superai import Setup
+    player.ChangeState(Setup())
 
 
 def main():

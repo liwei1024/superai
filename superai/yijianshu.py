@@ -1,8 +1,6 @@
 import os
 import sys
 
-from superai.common import InitLog
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
@@ -14,6 +12,7 @@ import win32gui
 import random
 
 from ctypes import *
+from superai.common import InitLog
 
 from superai.vkcode import *
 
@@ -380,6 +379,8 @@ def main():
     # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     win32gui.SetForegroundWindow(hwnd)
+
+    MouseMoveTo(323, 410)
 
 
 if __name__ == "__main__":

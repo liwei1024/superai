@@ -12,7 +12,8 @@ from superai.flannfind import Picture, GetImgDir
 from superai.vkcode import VK_CODE
 from superai.yijianshu import PressKey, RanSleep, MouseMoveTo, MouseLeftDown, MouseLeftUp, YijianshuInit
 
-from superai.gameapi import GetMenInfo, GetEquipObj, GetBagEquipObj, GameApiInit, FlushPid, TYPEMAP, BODYPOS
+from superai.gameapi import GetMenInfo, GetEquipObj, GetBagEquipObj, GameApiInit, FlushPid, TYPEMAP, BODYPOS, WUQIPOS, \
+    SHIPINPOS
 
 # 任意策略
 ANYStrategy = -1
@@ -69,9 +70,11 @@ class Equips:
 
         if occupationafter in ["魔枪士"]:
             self.bodystragy = ANYStrategy
+            self.wuqistragy = ["长枪", "战戟", "光枪", "暗矛"]
 
         if occupationafter in ["暗枪士"]:
             self.bodystragy = PIJIA
+            self.wuqistragy = ["暗矛"]
 
         if self.bodystragy is None:
             raise NotImplementedError()
@@ -115,14 +118,30 @@ class Equips:
 
     # 如果是身上穿的,判断下是甲类是否吻合
     def IsJiaTypeLegal(self, equip):
-        if self.bodystragy == ANYStrategy:
-            return True
-        # 不是身上穿的不判断了
-        if equip.bodypos not in BODYPOS:
-            return True
-        if equip.jiatype != self.bodystragy:
-            return False
-        return True
+        meninfo = GetMenInfo()
+
+        # 等级判断
+        if equip.canbeusedlevel <= meninfo.level:
+
+            # 身体
+            if equip.bodypos in BODYPOS:
+                # 任意策略
+                if self.bodystragy == ANYStrategy:
+                    return True
+                # 指定策略
+                if equip.jiatype == self.bodystragy:
+                    return True
+            # 武器
+            elif equip.bodypos == WUQIPOS:
+                # 指定策略
+                if equip.wuqitype in self.wuqistragy:
+                    return True
+
+            # 手镯,项链,戒指
+            elif equip.bodypos in SHIPINPOS:
+                return True
+
+        return False
 
     # 背包中相应类型的装备比身上的好  IDX: 身上装备下标 TYPE: 装备类型 curWrap: 当前装备
     # ->  返回 None 没有更好的选择,  返回 背包IDX 有更好的选择
@@ -174,7 +193,6 @@ class Equips:
             betterEquip = self.BagEquipBetter(v[0], v[1])
             if betterEquip is not None:
                 return True
-
         return False
 
 

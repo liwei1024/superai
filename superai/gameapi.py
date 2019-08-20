@@ -144,6 +144,8 @@ class MapObj(Structure):
 
 
 BODYPOS = [14, 15, 16, 17, 18]
+WUQIPOS = 12
+SHIPINPOS = [19, 20 ,21]
 
 POSMAP = {
     12: "武器",
@@ -176,7 +178,8 @@ class BagObj(Structure):
         ("name", c_wchar * 100),
         ("type", c_uint32),  # 装备2
         ("jiatype", c_uint32),  # 布甲0,皮甲1,轻甲2,重甲3,板甲4
-        ("bodypos", c_uint32),  # 12武器, 14上衣,15头肩,16下装,17鞋,18腰带
+        ("bodypos", c_uint32),  # 12武器,14上衣,15头肩,16下装,17鞋,18腰带
+        ("wuqitype", c_wchar * 20),
         ("canbeusedlevel", c_uint32),  # 可使用等级
         ("curnaijiu", c_uint32),
         ("maxnaijiu", c_uint32),
@@ -217,6 +220,10 @@ class BagObj(Structure):
         else:
             return "%d" % self.bodypos
 
+    def FormatWuqiType(self):
+        if self.type == 2 and self.bodypos == 12:
+            return self.wuqitype
+
     def __str__(self):
 
         if self.type != 2:
@@ -225,9 +232,9 @@ class BagObj(Structure):
                 self.idx, self.object, self.name, self.num, self.FormatColor()))
         else:
             return (
-                    "[%d] 对象: 0x%08X 名称: %s 数量: %d 颜色: %s 位置:%s  甲类型: %s 可使用等级 %d 耐久: %d/%d" % (
+                    "[%d] 对象: 0x%08X 名称: %s 数量: %d 颜色: %s 位置:%s  甲类型: %s 武器类型: %s 可使用等级 %d 耐久: %d/%d" % (
                 self.idx, self.object, self.name, self.num, self.FormatColor(), self.FormatBodyPos(),
-                self.FormatJiatype(), self.canbeusedlevel, self.curnaijiu, self.maxnaijiu))
+                self.FormatJiatype(), self.FormatWuqiType(), self.canbeusedlevel, self.curnaijiu, self.maxnaijiu))
 
 
 class SkillObj(Structure):
@@ -571,9 +578,14 @@ def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
 
 
 # 判断两个位置是否靠近
-def IsClosedTo(x1, y1, x2, y2):
+def IsClosedTo(x1, y1, x2, y2, rang = None):
+    judge = MOVE_SMALL_V_WIDTH
+
+    if rang is not None:
+        judge = rang
+
     newx2, newy2 = x2 - x1, y2 - y1
-    return abs(newx2) < MOVE_SMALL_V_WIDTH and abs(newy2) < MOVE_SMALL_H_WIDTH
+    return abs(newx2) < judge and abs(newy2) < judge
 
 
 # 象限 (x1,y1,x2,y2) 是左上角开始算的坐标系
@@ -1041,10 +1053,7 @@ def NearestMonster():
                 monsters = filter(lambda mon: mon.name != "多尼尔", monsters)
                 monsters = list(monsters)
     elif "暗黑雷鸣废墟" in mapinfo.name:
-        monsters = filter(lambda mon: "领主" not in mon.name, monsters)
-        monsters = list(monsters)
-        if len(monsters) < 1:
-            monsters = GetMonsters()
+        pass
     elif "利库天井" in mapinfo.name:
         obstacles = GetMapObstacle()
         obstacles = filter(lambda ob: "哥布林投石车" in ob.name, obstacles)
@@ -1329,6 +1338,7 @@ def IsEscTop():
 def CurSelectId():
     selectidx = GetCurSelectIdx()
     return selectidx.mapidx
+
 
 # 技能对应的按键
 idxkeymap = {

@@ -83,12 +83,13 @@ class Occupationkills:
             logger.info("学习技能: %s" % v.name)
             pos = v.picutre.Pos()
 
-            w, h = 30, 25
+            # w, h = 30, 25
+            w, h = 50, 35
             halfw, halfh = w // 2, h // 2
             cannotLearn = Picture(GetImgDir() + "cannotlearn.png", dx=pos[0] - halfw, dy=pos[1] - halfh, dw=w, dh=h)
 
             if cannotLearn.Match():
-                logger.info("技能: %s 不能学习", v.name)
+                logger.info("技能: %s 不需要学习", v.name)
                 continue
 
             logger.info("移动到相对位置: (%d,%d)" % (pos[0], pos[1]))
@@ -168,9 +169,7 @@ class Occupationkills:
             if not self.HasEquipSkill(v.name):
                 idx = self.GetEmptyPosIdx()
                 destpos = idxposmap[idx]
-
                 logger.info("技能: %s 没有装备 位置: %d 有空位 (%d, %d)", v.name, idx, destpos[0], destpos[1])
-
                 srcpos = v.picutre.Pos()
                 MouseMoveTo(srcpos[0], srcpos[1]), RanSleep(0.3)
                 MouseLeftDown(), RanSleep(0.3)

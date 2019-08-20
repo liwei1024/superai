@@ -198,7 +198,7 @@ def FindPicturePos(img1, img2):
     threshold = 0.8
     loc = np.where(res >= threshold)
     for pt in zip(*loc[::-1]):
-        return pt[0] + w / 2.0, pt[1] + h / 2.0
+        return int(pt[0] + w / 2.0), int(pt[1] + h / 2.0)
     return 0, 0
 
 
@@ -221,25 +221,10 @@ def GetImgDir():
     return basedir
 
 
-cartoonScene = Picture(GetImgDir() + "/cartoon-scene.png", 12, 549, 66, 38)
-videoScene = Picture(GetImgDir() + "/video-scene.png", 663, 554, 121, 18)
-confirm = Picture(GetImgDir() + "/confirm.png", 245, 126, 324, 378)
+confirm = Picture(GetImgDir() + "/confirm.png")
 
-gCartoonTop = False
-gVideoTop = False
 gConfirmTop = False
-
 gFlushExit = False
-
-
-# 是否有动画置顶 (背景线程刷新)
-def IsCartoonTop():
-    return gCartoonTop
-
-
-# 是否有视频置顶 (背景线程刷新)
-def IsVideoTop():
-    return gVideoTop
 
 
 # 是否有确认键置顶 (背景线程刷新)
@@ -260,37 +245,20 @@ def SetThreadExit():
 
 # 不断截图把图片状态置到内存中
 def FlushImg():
-    global gCartoonTop
-    global gVideoTop
     global gConfirmTop
     global gFlushExit
 
-    # try:
-    # while not gFlushExit:
-    #     # 是否有动画
-    #     if cartoonScene.Match():
-    #         gCartoonTop = True
-    #     else:
-    #         gCartoonTop = False
-    #
-    #     # 是否有视频
-    #     if videoScene.Match():
-    #         gVideoTop = True
-    #     else:
-    #         gVideoTop = False
-    #
-    #     # 是否有确认按钮
-    #     if confirm.Match():
-    #         gConfirmTop = True
-    #     else:
-    #         gConfirmTop = False
-    #
-    #     time.sleep(0.3)
-    # time.sleep(1000)
-
-    # except Exception as e:
-    #     logger.info("flushimg thread error " + e)
-    #     sys.exit()
+    try:
+        while not gFlushExit:
+            # 是否有确认按钮
+            if confirm.Match():
+                gConfirmTop = True
+            else:
+                gConfirmTop = False
+            time.sleep(0.3)
+    except Exception as e:
+        logger.info("flushimg thread error " + e)
+        sys.exit()
 
 
 def main():
