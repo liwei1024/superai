@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
-    CurSelectId, GetTaskObj, IsManInMap, IsEscTop
+    CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop
 from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick, DownZUO, DownYOU
 
 shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
@@ -18,6 +18,14 @@ shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
 selectmen = Picture(GetImgDir() + "selectmen.png")
 
 gamebegin = Picture(GetImgDir() + "gamebegin.png")
+
+taskScene = Picture(GetImgDir() + "taskscene.png")
+
+taskShouhusenlin = Picture(GetImgDir() + "task_shouhusenlin.png")
+
+zhuanzhiAnqiangshi = Picture(GetImgDir() + "zhuanzhi_anqiangshi.png")
+
+zhuanzhiConfirm = Picture(GetImgDir() + "zhuanzhi_confirm.png")
 
 
 class MoveInfo:
@@ -222,8 +230,39 @@ def 前辈冒险家的建议(player):
     player.ChangeState(Setup())
 
 
+# 转职任务!!!!!
 def 守护森林的战斗(player):
-    pass
+    if not DidPlotAccept("守护森林的战斗"):
+        while not taskScene.Match():
+            PressKey(VK_CODE["F1"]), RanSleep(0.5)
+
+        while not taskShouhusenlin.Match():
+            RanSleep(0.5)
+        pos = taskShouhusenlin.Pos()
+        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(0.5)
+
+        while not zhuanzhiAnqiangshi.Match():
+            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+
+        pos = zhuanzhiAnqiangshi.Pos()
+        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(0.5)
+
+        while not zhuanzhiConfirm.Match():
+            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+
+        pos = zhuanzhiConfirm.Pos()
+        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(0.5)
+
+        while IsWindowTop():
+            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+
+        moveinfo = MoveSetting["格兰之森"]
+        MoveTo(moveinfo)
+        GoToSelect(Quardant.ZUO)
+        EnterMap("暗黑雷鸣废墟", player)
 
 
 IdxMapMap = {
@@ -258,6 +297,15 @@ def HasPlot():
     tasks = GetTaskObj()
     for v in tasks:
         if v.name in plotMap.keys():
+            return True
+    return False
+
+
+# 任务是否未接受
+def DidPlotAccept(name):
+    acceptedtasks = GetAccptedTaskObj()
+    for v in acceptedtasks:
+        if name == v.name:
             return True
     return False
 

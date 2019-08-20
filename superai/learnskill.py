@@ -84,7 +84,7 @@ class Occupationkills:
             pos = v.picutre.Pos()
 
             # w, h = 30, 25
-            w, h = 50, 35
+            w, h = 50, 45
             halfw, halfh = w // 2, h // 2
             cannotLearn = Picture(GetImgDir() + "cannotlearn.png", dx=pos[0] - halfw, dy=pos[1] - halfh, dw=w, dh=h)
 

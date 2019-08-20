@@ -145,7 +145,7 @@ class MapObj(Structure):
 
 BODYPOS = [14, 15, 16, 17, 18]
 WUQIPOS = 12
-SHIPINPOS = [19, 20 ,21]
+SHIPINPOS = [19, 20, 21]
 
 POSMAP = {
     12: "武器",
@@ -265,6 +265,21 @@ class TaskObj(Structure):
         return (
                 "[%d]对象: 0x%08X 名称: %s 类型: 0x%X  " % (
             self.idx, self.object, self.name, self.type))
+
+
+class AcceptedTaskObj(Structure):
+    _fields_ = [
+        ("idx", c_uint32),
+        ("object", c_uint32),
+        ("type", c_uint32),
+        ("name", c_wchar * 100),
+        ("needdo", c_uint32),  # 是否还需要做   0 做完了  1还需要做
+    ]
+
+    def __str__(self):
+        return (
+                "[%d]对象: 0x%08X 名称: %s 类型: 0x%X 还需要做: %d " % (
+            self.idx, self.object, self.name, self.type, self.needdo))
 
 
 class ExGuoToMenZuoBiao(Structure):
@@ -402,6 +417,8 @@ lib.ExGetGetEquipObj.argtypes = [POINTER(POINTER(BagObj)), POINTER(c_int)]
 lib.ExGetSkillObj.argtypes = [POINTER(POINTER(SkillObj)), POINTER(c_int)]
 
 lib.ExGetTaskObj.argtypes = [POINTER(POINTER(TaskObj)), POINTER(c_int)]
+
+lib.ExGetAccptedTaskObj.argtypes = [POINTER(POINTER(AcceptedTaskObj)), POINTER(c_int)]
 
 lib.ExNextDoor.argtypes = [POINTER(ExGuoToMenZuoBiao)]
 
@@ -578,7 +595,7 @@ def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
 
 
 # 判断两个位置是否靠近
-def IsClosedTo(x1, y1, x2, y2, rang = None):
+def IsClosedTo(x1, y1, x2, y2, rang=None):
     judge = MOVE_SMALL_V_WIDTH
 
     if rang is not None:
@@ -796,6 +813,18 @@ def GetTaskObj():
     return outlst
 
 
+# 任务数组(已接受)
+def GetAccptedTaskObj():
+    objs = POINTER(AcceptedTaskObj)()
+    count = c_int(0)
+    lib.ExGetAccptedTaskObj(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst = []
+    for i in range(count.value):
+        outlst.append(copy.deepcopy(objs[i]))
+    return outlst
+
+
 # 下一个门的坐标
 def GetNextDoor():
     menzuobiao = ExGuoToMenZuoBiao()
@@ -951,6 +980,14 @@ def PrintSkillObj():
 def PrintTaskObj():
     print("[任务对象]")
     outlst = GetTaskObj()
+    for obj in outlst:
+        print(obj)
+    print("===========")
+
+
+def PrintAccpetedTaskObj():
+    print("[已接受任务对象]")
+    outlst = GetAccptedTaskObj()
     for obj in outlst:
         print(obj)
     print("===========")
@@ -1639,6 +1676,7 @@ def main():
     PrintEquipObj()
     PrintSkillObj()
     PrintTaskObj()
+    PrintAccpetedTaskObj()
     PrintNextMen()
     PrintWH()
     PrintSelectObj()
