@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 from superai.flannfind import Picture, GetImgDir
 
-locationAierwenfangxian = Picture(GetImgDir() + "/location_aierwenfangxian.png")
-
+locationGelanzhisen = Picture(GetImgDir() + "ditu_gelanzhisen.png")
+locationTiankongzhichen = Picture(GetImgDir() + "ditu_tiankongzhicheng.png")
 
 # 分解,出售,修理 单独使用吧
 class Location:
@@ -18,8 +18,11 @@ class Location:
         pass
 
     def get(self):
-        if locationAierwenfangxian.Match():
-            return "艾尔文防线"
+        if locationGelanzhisen.Match():
+            return "格兰之森"
+
+        if locationTiankongzhichen.Match():
+            return "天空之城"
 
         return ""
 

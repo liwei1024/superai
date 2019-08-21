@@ -356,9 +356,9 @@ class Player:
     def HasLevelChanged(self):
         meninfo = GetMenInfo()
         if self.latestlevel == 0:
-            # 刚初始化
+            # 刚初始化 (不加)
             self.latestlevel = meninfo.level
-            return True
+            return False
         elif self.latestlevel != meninfo.level:
             # 变化了等级
             self.latestlevel = meninfo.level
@@ -521,23 +521,23 @@ class InChengzhen(State):
             RanSleep(0.2)
             return
 
-        # 做剧情任务
-        if HasPlot():
-            DoPlot(player)
-            return
-
         # 负重超过80%,分解 (需要先到副本外)
         meninfo = GetMenInfo()
-        if meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65:
+        deal = DealEquip()
+        if meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65 and deal.GetFenjieJiPos() is not None:
             player.ChangeState(FenjieEquip())
             RanSleep(0.2)
             return
 
         # 耐久小于25%,修理 (需要先到副本外)
-        deal = DealEquip()
-        if deal.NeedRepair():
+        if deal.NeedRepair() and deal.GetFenjieJiPos() is not None:
             player.ChangeState(RepairEquip())
             RanSleep(0.2)
+            return
+
+        # 做剧情任务
+        if HasPlot():
+            DoPlot(player)
             return
 
         RanSleep(0.2)

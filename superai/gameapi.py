@@ -338,7 +338,7 @@ class ObstacleObj(Structure):
             self.x, self.y, self.w, self.h, self.flag))
 
     def CanBeAttack(self):
-        if self.code in [109006910, 109006911, 226, 228, 19134, 19135, 18020, 109000583, 109000576, 57522]:
+        if self.code in [109006910, 109006911, 226, 228, 19134, 19135, 18020, 109000583, 109000576, 57522, 109006963]:
             return False
 
         if self.hp > 0 and self.flag == 2:
@@ -1156,7 +1156,7 @@ def NearestMonsterWrap():
     return obj
 
 
-UnuseFilterStr = "解密礼盒|无尽的永恒|风化的碎骨|破旧的皮革|最下级砥石|最下级硬化剂|生锈的铁片|碎布片|回旋镖|天界珍珠|朗姆酒|飞盘|魔力之花|卡勒特指令书|入门HP药剂|入门MP药剂|普通HP药剂|普通MP药剂|飞盘2|邪恶药剂|圣杯|肉干"
+UnuseFilterStr = "怒海霸主银币|解密礼盒|无尽的永恒|风化的碎骨|破旧的皮革|最下级砥石|最下级硬化剂|生锈的铁片|碎布片|回旋镖|天界珍珠|朗姆酒|飞盘|魔力之花|卡勒特指令书|入门HP药剂|入门MP药剂|普通HP药剂|普通MP药剂|飞盘2|邪恶药剂|圣杯|肉干"
 
 UnuseFilter = UnuseFilterStr.split("|")
 

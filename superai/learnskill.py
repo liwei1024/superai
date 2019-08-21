@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.yijianshu import PressKey, VK_CODE, MouseMoveTo, YijianshuInit, MouseLeftDown, RanSleep, MouseLeftClick, \
-    MouseLeftUp, MouseLeftDownFor, MouseMoveR
+    MouseLeftUp, MouseLeftDownFor, MouseMoveR, MouseWheel
 from superai.common import InitLog, GameWindowToTop
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj
@@ -25,12 +25,12 @@ idxposmap = {
 
 # 技能名称 + 对应的图片的包装
 class OccupationSkill:
-    def __init__(self, zhiye, name, nameEng):
+    def __init__(self, zhiye, name, nameEng, beidong=False):
         self.zhieye = zhiye
         self.name = name
         self.nameEng = nameEng
-        self.picutre = Picture("%s/%s/%s.png" % (GetImgDir(), zhiye, nameEng), dw=550)
-
+        self.picutre = Picture("%s/%s/%s" % (GetImgDir(), zhiye, nameEng), dw=550)
+        self.beidong = beidong
 
 # 职业对应的加点策略
 class Occupationkills:
@@ -60,24 +60,31 @@ class Occupationkills:
         self.learnstrategy = []
         meninfo = GetMenInfo()
         if meninfo.level >= 1:
-            self.learnstrategy.append(OccupationSkill("moqiangshi", "刺击", "moqiangshi_ciji"))
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "刺击", "moqiangshi_ciji.png"))
         if meninfo.level >= 10:
-            self.learnstrategy.append(OccupationSkill("moqiangshi", "横扫", "moqiangshi_hengsao"))
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "横扫", "moqiangshi_hengsao.png"))
         if meninfo.level >= 15:
-            self.learnstrategy.append(OccupationSkill("moqiangshi", "扫堂枪", "moqiangshi_saotangqiang"))
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "扫堂枪", "moqiangshi_saotangqiang.png"))
 
     # 暗枪 (转职后)
     def anqiangInit(self):
         meninfo = GetMenInfo()
         if meninfo.level >= 15:
-            self.learnstrategy.append(OccupationSkill("moqiangshi", "侵蚀之矛", "anqiang_qinshizhimao"))
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "侵蚀之矛", "anqiang_qinshizhimao.png"))
         if meninfo.level >= 15:
-            self.learnstrategy.append(OccupationSkill("moqiangshi", "双重投射", "anqiang_shuangchongtoushe"))
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "双重投射", "anqiang_shuangchongtoushe.png"))
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "暗蚀", "anqiang_anshi.png", beidong=True))
+        if meninfo.level >= 20:
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "暗矛投射", "anqiang_anmaotoushe.png"))
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "暗矛精通", "anqiang_anmaojingtong.png", beidong=True))
 
     # 加技能点
     def AddSkillPoints(self):
         self.OpenSkillScene()
         logger.info("技能栏已经打开")
+
+        MouseMoveTo(309, 280), RanSleep(0.3)
+        MouseWheel(30), RanSleep(0.3)
 
         for v in self.learnstrategy:
             logger.info("学习技能: %s" % v.name)
@@ -100,9 +107,9 @@ class Occupationkills:
 
         # 确认按钮
         learnpos = skillSceneLearn.Pos()
-        MouseMoveTo(learnpos[0], learnpos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.3)
+        MouseMoveTo(learnpos[0], learnpos[1]), RanSleep(0.2)
+        MouseLeftClick(), RanSleep(0.2)
+        MouseLeftClick(), RanSleep(0.2)
 
     # 打开技能栏
     def OpenSkillScene(self):
@@ -116,7 +123,7 @@ class Occupationkills:
             logger.info("关闭技能栏")
             PressKey(VK_CODE["k"]), RanSleep(0.5)
 
-    # 不在技能策略中
+    # 在技能策略中
     def IsInLearnStrategy(self, name):
         for v in self.learnstrategy:
             if v.name == name:
@@ -166,6 +173,9 @@ class Occupationkills:
         self.OpenSkillScene(), RanSleep(0.5)
 
         for v in self.learnstrategy:
+            if v.beidong:
+                continue
+
             if not self.HasEquipSkill(v.name):
                 idx = self.GetEmptyPosIdx()
                 destpos = idxposmap[idx]

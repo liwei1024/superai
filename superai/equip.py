@@ -10,7 +10,7 @@ from superai.common import InitLog, GameWindowToTop
 
 from superai.flannfind import Picture, GetImgDir
 from superai.vkcode import VK_CODE
-from superai.yijianshu import PressKey, RanSleep, MouseMoveTo, MouseLeftDown, MouseLeftUp, YijianshuInit
+from superai.yijianshu import PressKey, RanSleep, MouseMoveTo, MouseLeftDown, MouseLeftUp, YijianshuInit, MouseLeftClick
 
 from superai.gameapi import GetMenInfo, GetEquipObj, GetBagEquipObj, GameApiInit, FlushPid, TYPEMAP, BODYPOS, WUQIPOS, \
     SHIPINPOS
@@ -186,6 +186,7 @@ class Equips:
                 MouseLeftDown(), RanSleep(0.3)
                 MouseMoveTo(bagpos[0], bagpos[1] + 100), RanSleep(0.3)
                 MouseLeftUp(), RanSleep(0.3)
+                MouseLeftClick(), RanSleep(0.3)
 
     # 背包内是否有有更好的装备
     def DoesBagHaveBetterEquip(self):
@@ -195,6 +196,10 @@ class Equips:
                 return True
         return False
 
+
+    # 身上或者背包里是否有租的武器
+    def DoesHaveHireEquip(self):
+        pass
 
 def main():
     InitLog()

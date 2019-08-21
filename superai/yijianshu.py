@@ -127,6 +127,10 @@ lib.M_ResolutionUsed.restype = c_int
 lib.M_MoveTo3.argtypes = [c_void_p, c_int, c_int]
 lib.M_MoveTo3.restype = c_int
 
+# 滚轮 (向上正,向下负)
+lib.M_MouseWheel.argtypes = [c_void_p, c_int]
+lib.M_MouseWheel.restype = c_int
+
 
 # 随机时间sleep
 def RanSleep(t):
@@ -368,6 +372,11 @@ def MouseLeftUp():
     lib.M_LeftUp(h)
 
 
+# 滚轮
+def MouseWheel(v):
+    lib.M_MouseWheel(h, v)
+
+
 def main():
     InitLog()
     YijianshuInit()
@@ -380,7 +389,7 @@ def main():
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     win32gui.SetForegroundWindow(hwnd)
 
-    MouseMoveTo(323, 410)
+    MouseMoveTo(334, 234)
 
 
 if __name__ == "__main__":
