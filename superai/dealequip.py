@@ -14,7 +14,7 @@ from superai.flannfind import Picture, GetImgDir
 from superai.location import Location
 from superai.yijianshu import MouseMoveTo, RanSleep, MouseLeftClick, MouseMoveR, PressKey, VK_CODE, YijianshuInit
 
-fenjieGelanzhisen = Picture(GetImgDir() + "fenjie_gelanzhisen.png.png")
+fenjieGelanzhisen = Picture(GetImgDir() + "fenjie_gelanzhisen.png")
 fenjieTiankongzhicheng = Picture(GetImgDir() + "fenjie_tiankonghzicheng.png")
 fenjieTianzhuijushou = Picture(GetImgDir() + "fenjieTianzhuijushou.png")
 fenjieButton = Picture(GetImgDir() + "fenjie_button.png")

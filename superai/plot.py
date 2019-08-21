@@ -18,6 +18,8 @@ selectmen = Picture(GetImgDir() + "selectmen.png")
 gamebegin = Picture(GetImgDir() + "gamebegin.png")
 taskScene = Picture(GetImgDir() + "taskscene.png")
 taskShouhusenlin = Picture(GetImgDir() + "task_shouhusenlin.png")
+taskChaozhexindemaoxian = Picture(GetImgDir() + "task_chaozhexindemaoxian.png")
+taskHuodetongxinzhen = Picture(GetImgDir() + "task_huodetongxingzhen.png")
 zhuanzhiAnqiangshi = Picture(GetImgDir() + "zhuanzhi_anqiangshi.png")
 zhuanzhiConfirm = Picture(GetImgDir() + "zhuanzhi_confirm.png")
 dituHedunmaer = Picture(GetImgDir() + "ditu_hedunmaer.png")
@@ -46,7 +48,7 @@ MoveSetting = {
     # 1. 目标场景截图 + 城镇坐标,判断是否到达
     # 2. 世界地图特征 + 鼠标移动地图的的绝对坐标
     "格兰之森": MoveInfo(destpic=Picture(GetImgDir() + "ditu_gelanzhisen.png"), destcoord=(161, 256),
-                     shijiepic=Picture(GetImgDir() + "shijie_gelanzhisen.png"), mousecoord=(651, 241),
+                     shijiepic=Picture(GetImgDir() + "shijie_gelanzhisen.png"), mousecoord=(209, 424),
                      desc="格兰之森"),
 
     "林纳斯": MoveInfo(destpic=Picture(GetImgDir() + "ditu_linnasi.png"), destcoord=(1234, 196),
@@ -56,7 +58,7 @@ MoveSetting = {
                      shijiepic=Picture(GetImgDir() + "shijie_gelanzhisen.png"), mousecoord=(400, 504),
                      desc="艾尔文南"),
     "月光酒馆": MoveInfo(destpic=Picture(GetImgDir() + "ditu_yueguangjiuguan.png"), destcoord=(758, 216),
-                     shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(189, 214),
+                     shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(189, 219),
                      desc="月光酒馆"),
     "挡路帝国军队": MoveInfo(destpic=Picture(GetImgDir() + "ditu_dangludiguo.png"), destcoord=(2308, 319),
                        shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(612, 285),
@@ -109,9 +111,11 @@ def MoveToSailiya():
         PressKey(VK_CODE["esc"]), RanSleep(0.2)
 
     while not gamebegin.Match():
-        pos = selectmen.Match()
+        pos = selectmen.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(1.5)
+
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
 
 
 # 打开世界地图
@@ -132,7 +136,7 @@ def CloseShijieDitu():
 def IsMoveToChengzhenPos(destpic, destcoord):
     if destpic.Match():
         meninfo = GetMenInfo()
-        if IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 40):
+        if IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 100):
             return True
     return False
 
@@ -157,13 +161,11 @@ def MoveTo(moveinfo):
                                                                               moveinfo.destcoord[1],
                                                                               moveinfo.mousecoord[0],
                                                                               moveinfo.mousecoord[1]))
-
             t = time.time()
             CoordMoveTo(moveinfo.shijiepic, moveinfo.mousecoord)
 
-        while IsWindowTop():
-            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-        RanSleep(1.0)
+        # 写死吧
+        PressKey(VK_CODE["spacebar"]), RanSleep(0.5)
 
 
 # 到达选择角色页面
@@ -185,11 +187,9 @@ def SelectMap(mapname):
 def EnterMap(mapname, player):
     SelectMap(mapname)
     PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-
     while not IsManInMap():
         logger.info("等待进图...")
         RanSleep(2)
-
     from superai.superai import FirstInMap
     player.ChangeState(FirstInMap())
 
@@ -210,6 +210,11 @@ def 再访林纳斯(player):
 
 
 def 传说中的白化变异哥布林(player):
+    if DidPlotAccept("传说中的白化变异哥布林"):
+        moveinfo = MoveSetting["林纳斯"]
+        MoveTo(moveinfo)
+        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+
     moveinfo = MoveSetting["格兰之森"]
     MoveTo(moveinfo)
     GoToSelect(Quardant.ZUO)
@@ -263,7 +268,7 @@ def 森林的黑暗(player):
 
 def 大魔法阵是什么(player):
     MoveToSailiya()
-    QuadKeyDownMap[Quardant.SHANG](), RanSleep(0.5)
+    QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
     QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
     PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
     from superai.superai import Setup
@@ -293,7 +298,7 @@ def 守护森林的战斗(player):
         MouseLeftClick(), RanSleep(0.5)
 
         while not zhuanzhiAnqiangshi.Match():
-            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+            PressKey(VK_CODE["spacebar"]), RanSleep(1)
 
         pos = zhuanzhiAnqiangshi.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
@@ -336,6 +341,16 @@ def 赛丽亚的决心(player):
 
 
 def 朝着新的冒险(player):
+    if not DidPlotAccept("朝着新的冒险"):
+        while not taskScene.Match():
+            PressKey(VK_CODE["F1"]), RanSleep(0.5)
+
+        while not taskChaozhexindemaoxian.Match():
+            RanSleep(0.5)
+        pos = taskChaozhexindemaoxian.Pos()
+        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(0.5)
+
     moveinfo = MoveSetting["艾尔文南"]
     MoveTo(moveinfo)
     while IsWindowTop():
@@ -369,7 +384,7 @@ def 赫顿玛尔的骚乱(player):
 def 月光酒馆(player):
     moveinfo = MoveSetting["月光酒馆"]
     MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.5)
     while IsWindowTop():
         PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
     from superai.superai import Setup
@@ -440,6 +455,16 @@ def 调查赫顿玛尔市政厅(player):
 
 
 def 获得通行证(player):
+    if not DidPlotAccept("获得通行证"):
+        while not taskScene.Match():
+            PressKey(VK_CODE["F1"]), RanSleep(0.5)
+
+        while not taskHuodetongxinzhen.Match():
+            RanSleep(0.5)
+        pos = taskHuodetongxinzhen.Pos()
+        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(0.5)
+
     moveinfo = MoveSetting["罗杰"]
     MoveTo(moveinfo)
     PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
@@ -507,8 +532,8 @@ def 另一桩交易(player):
     player.ChangeState(Setup())
 
 
-def 占卜师爱丽丝(player):
-    moveinfo = MoveSetting["爱丽丝"]
+def 占卜师艾丽丝(player):
+    moveinfo = MoveSetting["艾丽丝"]
     MoveTo(moveinfo)
     PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
     while IsWindowTop():
@@ -798,7 +823,7 @@ IdxMapMap = {
     "幽暗密林": 0,
     "雷鸣废墟": 1,
     "猛毒雷鸣废墟": 2,
-    "冰霜幽暗密林": 5,
+    "冰霜幽暗密林": 3,
     "格拉卡": 3,
     "烈焰格拉卡": 4,
     "暗黑雷鸣废墟": 6,
@@ -828,6 +853,7 @@ plotMap = {
     "疯掉的魔法师克拉赫": 疯掉的魔法师克拉赫,
     "备战格拉卡": 备战格拉卡,
     "营救赛丽亚": 营救赛丽亚,
+    "通向森林深处的道路": 通向森林深处的道路,
     "森林的黑暗": 森林的黑暗,
     "大魔法阵是什么": 大魔法阵是什么,
     "前辈冒险家的建议": 前辈冒险家的建议,
@@ -839,7 +865,7 @@ plotMap = {
     # 17-24
     "赫顿玛尔的骚乱": 赫顿玛尔的骚乱,
     "月光酒馆": 月光酒馆,
-    "挡路帝国军队": 挡路的帝国军队,
+    "挡路的帝国军队": 挡路的帝国军队,
     "如何进入天空之城": 如何进入天空之城,
     "接受考验": 接受考验,
     "进入天空之城": 进入天空之城,
@@ -854,9 +880,9 @@ plotMap = {
     "巴恩的问候": 巴恩的问候,
     "向罗杰汇报": 向罗杰汇报,
     "另一桩交易": 另一桩交易,
-    "占卜师爱丽丝": 占卜师爱丽丝,
+    "占卜师艾丽丝": 占卜师艾丽丝,
     "艾丽丝的请求": 艾丽丝的请求,
-    "重返天空之城": 重返天空之城,
+    "重返 天空之城": 重返天空之城,
     "合作": 合作,
     "调查天空之城的人": 调查天空之城的人,
     "剑魂阿甘左": 剑魂阿甘左,

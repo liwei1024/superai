@@ -916,8 +916,8 @@ def main():
     time.sleep(1.2)
 
     # 截图线程
-    t = threading.Thread(target=FlushImg)
-    t.start()
+    # t = threading.Thread(target=FlushImg)
+    # t.start()
 
     # 状态机 主线程
     player = Player()

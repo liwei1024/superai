@@ -62,7 +62,7 @@ IDXNAMEMAP = {
 bagScene = Picture(GetImgDir() + "/bagscene.png")
 zupinScene = Picture(GetImgDir() + "/zupin_scene.png")
 xingyunxing = Picture(GetImgDir() + "/xingyunxing.png")
-zupinconfirm = Picture(GetImgDir() + "/zupin_confirm.png")
+zupinconfirm = Picture(GetImgDir() + "/zupin     _confirm.png")
 zupinconfirm2 = Picture(GetImgDir() + "/zupin_confirm2.png")
 
 levelNumMap = {
