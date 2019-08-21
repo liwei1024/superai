@@ -164,8 +164,8 @@ def MoveTo(moveinfo):
             t = time.time()
             CoordMoveTo(moveinfo.shijiepic, moveinfo.mousecoord)
 
-        # 写死吧
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.5)
+        # 写死吧  TODO
+        PressKey(VK_CODE["spacebar"]), RanSleep(1.0)
 
 
 # 到达选择角色页面
