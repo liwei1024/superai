@@ -91,6 +91,15 @@ MoveSetting = {
     "斯卡迪": MoveInfo(destpic=Picture(GetImgDir() + "ditu_sikadi.png"), destcoord=(440, 205),
                     shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(334, 234),
                     desc="斯卡迪"),
+    "奥菲利亚": MoveInfo(destpic=Picture(GetImgDir() + "ditu_aofeiliya.png"), destcoord=(861, 183),
+                     shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(533, 369),
+                     desc="奥菲利亚"),
+    "卡坤": MoveInfo(destpic=Picture(GetImgDir() + "ditu_kakun.png"), destcoord=(1077, 175),
+                   shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(543, 367),
+                   desc="卡坤"),
+    "天锥巨兽": MoveInfo(destpic=Picture(GetImgDir() + "ditu_tianzhuijushou.png"), destcoord=(712, 306),
+                     shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(647, 399),
+                     desc="天锥巨兽"),
 }
 
 
@@ -498,7 +507,7 @@ def 另一桩交易(player):
     player.ChangeState(Setup())
 
 
-def 忘记了(player):
+def 占卜师爱丽丝(player):
     moveinfo = MoveSetting["爱丽丝"]
     MoveTo(moveinfo)
     PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
@@ -635,6 +644,155 @@ def 从天而落之物(player):
     EnterMap("城主宫殿", player)
 
 
+def 向斯卡迪女王汇报(player):
+    moveinfo = MoveSetting["斯卡迪"]
+    MoveTo(moveinfo)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
+    while IsWindowTop():
+        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    from superai.superai import Setup
+    player.ChangeState(Setup())
+
+
+def 莎兰的建议(player):
+    moveinfo = MoveSetting["莎兰"]
+    MoveTo(moveinfo)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
+    while IsWindowTop():
+        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    from superai.superai import Setup
+    player.ChangeState(Setup())
+
+
+def 告别和另一段冒险(player):
+    moveinfo = MoveSetting["奥菲利亚"]
+    MoveTo(moveinfo)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
+    while IsWindowTop():
+        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    from superai.superai import Setup
+    player.ChangeState(Setup())
+
+
+def 长脚罗特斯(player):
+    moveinfo = MoveSetting["巴恩"]
+    MoveTo(moveinfo)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
+    while IsWindowTop():
+        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    from superai.superai import Setup
+    player.ChangeState(Setup())
+
+
+def 忘记了(player):
+    moveinfo = MoveSetting["卡坤"]
+    MoveTo(moveinfo)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
+    while IsWindowTop():
+        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    from superai.superai import Setup
+    player.ChangeState(Setup())
+
+
+def GBL教的神殿(player):
+    moveinfo = MoveSetting["天锥巨兽"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.YOU)
+    EnterMap("GBL教的神殿", player)
+
+
+def 被捉的信徒(player):
+    moveinfo = MoveSetting["天锥巨兽"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.YOU)
+    EnterMap("GBL教的神殿", player)
+
+
+def 探索丛林(player):
+    moveinfo = MoveSetting["天锥巨兽"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.YOU)
+    EnterMap("树精丛林", player)
+
+
+def 美神维纳斯(player):
+    moveinfo = MoveSetting["天锥巨兽"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.YOU)
+    EnterMap("树精丛林", player)
+
+
+def 可疑的幸存者(player):
+    moveinfo = MoveSetting["天锥巨兽"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.YOU)
+    EnterMap("炼狱", player)
+
+
+def 女神的诅咒(player):
+    moveinfo = MoveSetting["天锥巨兽"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.YOU)
+    EnterMap("炼狱", player)
+
+
+def 圣书(player):
+    moveinfo = MoveSetting["天锥巨兽"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.YOU)
+    EnterMap("极昼", player)
+
+
+def 在神殿之巅(player):
+    moveinfo = MoveSetting["天锥巨兽"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.YOU)
+    EnterMap("极昼", player)
+
+
+def 前往神殿中心(player):
+    moveinfo = MoveSetting["天锥巨兽"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.YOU)
+    EnterMap("第一脊椎", player)
+
+
+def 返回地面(player):
+    moveinfo = MoveSetting["天锥巨兽"]
+    MoveTo(moveinfo)
+    GoToSelect(Quardant.YOU)
+    EnterMap("第一脊椎", player)
+
+
+def 奥菲利亚的帮助(player):
+    moveinfo = MoveSetting["奥菲利亚"]
+    MoveTo(moveinfo)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
+    while IsWindowTop():
+        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    from superai.superai import Setup
+    player.ChangeState(Setup())
+
+
+def 骑士团参战(player):
+    moveinfo = MoveSetting["卡坤"]
+    MoveTo(moveinfo)
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
+    while IsWindowTop():
+        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    from superai.superai import Setup
+    player.ChangeState(Setup())
+
+
+def 艾丽丝的帮助(player):
+    while not taskScene.Match():
+        PressKey(VK_CODE["F1"]), RanSleep(0.5)
+
+    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
+    from superai.superai import Setup
+    player.ChangeState(Setup())
+
+
 IdxMapMap = {
     # 1-16 格兰之森
     "幽暗密林": 0,
@@ -645,13 +803,20 @@ IdxMapMap = {
     "烈焰格拉卡": 4,
     "暗黑雷鸣废墟": 6,
 
-    # 17:
+    # 17-24:
     "龙人之塔": 0,
     "人偶玄关": 1,
     "石巨人塔": 2,
     "黑暗悬廊": 3,
     "城主宫殿": 4,
-    "悬空城": 5
+    "悬空城": 5,
+
+    # 24:
+    "GBL教的神殿": 0,
+    "树精丛林": 1,
+    "炼狱": 2,
+    "极昼": 3,
+    "第一脊椎": 4
 }
 
 plotMap = {
@@ -671,7 +836,7 @@ plotMap = {
     "赛丽亚的决心": 赛丽亚的决心,
     "朝着新的冒险": 朝着新的冒险,
 
-    # 17 -
+    # 17-24
     "赫顿玛尔的骚乱": 赫顿玛尔的骚乱,
     "月光酒馆": 月光酒馆,
     "挡路帝国军队": 挡路的帝国军队,
@@ -689,7 +854,7 @@ plotMap = {
     "巴恩的问候": 巴恩的问候,
     "向罗杰汇报": 向罗杰汇报,
     "另一桩交易": 另一桩交易,
-    "忘记了": 忘记了,  ###
+    "占卜师爱丽丝": 占卜师爱丽丝,
     "艾丽丝的请求": 艾丽丝的请求,
     "重返天空之城": 重返天空之城,
     "合作": 合作,
@@ -704,7 +869,27 @@ plotMap = {
     "天空之城的邪恶魔力": 天空之城的邪恶魔力,
     "浮空之城": 浮空之城,
     "光之城主": 光之城主,
-    "从天而落之物": 从天而落之物
+    "从天而落之物": 从天而落之物,
+    "向斯卡迪女王汇报": 向斯卡迪女王汇报,
+    "莎兰的建议": 莎兰的建议,
+
+    # 24 -
+    "告别和另一段冒险": 告别和另一段冒险,
+    "长脚罗特斯": 长脚罗特斯,
+    "忘记了": 忘记了,
+    "GBL教的神殿": GBL教的神殿,
+    "被捉的信徒": 被捉的信徒,
+    "探索丛林": 探索丛林,
+    "美神维纳斯": 美神维纳斯,
+    "可疑的幸存者": 可疑的幸存者,
+    "女神的诅咒": 女神的诅咒,
+    "圣书": 圣书,
+    "在神殿之巅": 在神殿之巅,
+    "前往神殿中心": 前往神殿中心,
+    "返回地面": 返回地面,
+    "奥菲利亚的帮助": 奥菲利亚的帮助,
+    "骑士团参战": 骑士团参战,
+    "艾丽丝的帮助": 艾丽丝的帮助,
 }
 
 

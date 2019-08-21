@@ -16,6 +16,7 @@ from superai.yijianshu import MouseMoveTo, RanSleep, MouseLeftClick, MouseMoveR,
 
 fenjieGelanzhisen = Picture(GetImgDir() + "fenjie_gelanzhisen.png.png")
 fenjieTiankongzhicheng = Picture(GetImgDir() + "fenjie_tiankonghzicheng.png")
+fenjieTianzhuijushou = Picture(GetImgDir() + "fenjieTianzhuijushou.png")
 fenjieButton = Picture(GetImgDir() + "fenjie_button.png")
 sellButton = Picture(GetImgDir() + "sellbt.png")
 bagScene = Picture(GetImgDir() + "bagscene.png")
@@ -42,6 +43,9 @@ class DealEquip:
             pos = fenjieGelanzhisen.Pos()
         elif lo.get() == "天空之城":
             pos = fenjieTiankongzhicheng.Pos()
+        elif lo.get() == "天锥巨兽":
+            pos = fenjieTianzhuijushou.Pos()
+
         return pos
 
     # 分解
@@ -81,7 +85,6 @@ class DealEquip:
         MouseMoveR(-63, 0), RanSleep(0.3)
         MouseLeftClick(), RanSleep(3.0)
 
-        self.CloseFenjie()
 
     # 卖所有装备
     def SellAll(self):
@@ -126,7 +129,6 @@ class DealEquip:
         MouseLeftClick(), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.3)
 
-        self.CloseSell()
 
     # 是否需要被修理
     def NeedRepair(self):
@@ -147,7 +149,7 @@ class DealEquip:
     # 关闭卖物
     def CloseSell(self):
         while sellButton.Match():
-            logger.info("关闭卖物")
+            logger.info("关闭分解机")
             PressKey(VK_CODE["esc"]), RanSleep(0.3)
 
 

@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -13,7 +14,7 @@ from superai.vkcode import VK_CODE
 from superai.yijianshu import PressKey, RanSleep, MouseMoveTo, MouseLeftDown, MouseLeftUp, YijianshuInit, MouseLeftClick
 
 from superai.gameapi import GetMenInfo, GetEquipObj, GetBagEquipObj, GameApiInit, FlushPid, TYPEMAP, BODYPOS, WUQIPOS, \
-    SHIPINPOS
+    SHIPINPOS, IsEscTop, GetXingyunxing
 
 # 任意策略
 ANYStrategy = -1
@@ -59,6 +60,16 @@ IDXNAMEMAP = {
 }
 
 bagScene = Picture(GetImgDir() + "/bagscene.png")
+zupinScene = Picture(GetImgDir() + "/zupin_scene.png")
+xingyunxing = Picture(GetImgDir() + "/xingyunxing.png")
+zupinconfirm = Picture(GetImgDir() + "/zupin_confirm.png")
+zupinconfirm2 = Picture(GetImgDir() + "/zupin_confirm2.png")
+
+levelNumMap = {
+    10: 3,
+    20: 5,
+    30: 10,
+}
 
 
 class Equips:
@@ -72,9 +83,15 @@ class Equips:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["长枪", "战戟", "光枪", "暗矛"]
 
+            # 幸运武器租聘相对位置
+            self.xingyunwuqipos = (-31, 114)
+
         if occupationafter in ["暗枪士"]:
             self.bodystragy = PIJIA
             self.wuqistragy = ["暗矛"]
+
+            # 幸运武器租聘相对位置
+            self.xingyunwuqipos = (30, 111)
 
         if self.bodystragy is None:
             raise NotImplementedError()
@@ -149,7 +166,7 @@ class Equips:
         equips = GetBagEquipObj()
         tobeWrapedEquip = None
         for v in equips:
-            if v.bodypos == TYPE:
+            if v.bodypos == TYPE and v.color != 0:
                 # 不是自己穿的忽略了
                 if not self.IsJiaTypeLegal(v):
                     continue
@@ -158,10 +175,14 @@ class Equips:
                     if not self.BodyEquiped(IDX):
                         tobeWrapedEquip = v
                     else:
-                        if self.CompareEquip(v, self.GetBodyEquip(IDX)):
+                        if v.bodypos == WUQIPOS and self.DoesWuqiXingyunxing():
+                            pass
+                        elif self.CompareEquip(v, self.GetBodyEquip(IDX)):
                             tobeWrapedEquip = v
                 else:
-                    if self.CompareEquip(v, tobeWrapedEquip):
+                    if v.bodypos == WUQIPOS and self.DoesWuqiXingyunxing():
+                        pass
+                    elif self.CompareEquip(v, tobeWrapedEquip):
                         tobeWrapedEquip = v
         return tobeWrapedEquip
 
@@ -196,10 +217,77 @@ class Equips:
                 return True
         return False
 
-
     # 身上或者背包里是否有租的武器
     def DoesHaveHireEquip(self):
-        pass
+        meninfo = GetMenInfo()
+        suitlevel = (meninfo.level // 10) * 10
+        equips = GetBagEquipObj()
+        for v in equips:
+            if v.bodypos == WUQIPOS and v.canbeusedlevel == suitlevel and "幸运星" in v.name:
+                return True
+        equips = GetEquipObj()
+        for v in equips:
+            if v.bodypos == WUQIPOS and v.canbeusedlevel == suitlevel and "幸运星" in v.name:
+                return True
+        return False
+
+    # 武器是幸运星武器且符合等级
+    def DoesWuqiXingyunxing(self):
+        meninfo = GetMenInfo()
+        suitlevel = (meninfo.level // 10) * 10
+        equips = GetEquipObj()
+        for v in equips:
+            if v.bodypos == WUQIPOS and v.canbeusedlevel == suitlevel and "幸运星" in v.name:
+                return True
+        return False
+
+
+    # 获取幸运星数量
+    def GetXingyunxing(self):
+        self.OpenZupin()
+        return GetXingyunxing().num
+
+    # 租聘武器
+    def ZupinWuqi(self):
+        self.OpenZupin()
+        pos = zupinScene.Pos()
+        MouseMoveTo(pos[0] + self.xingyunwuqipos[0], pos[1] + self.xingyunwuqipos[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(0.3)
+        pos = zupinconfirm.Pos()
+        MouseMoveTo(pos[0], pos[1])
+        MouseLeftClick(), RanSleep(0.5)
+        pos = zupinconfirm2.Pos()
+        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(0.3)
+
+    # 是否足够的幸运星
+    def HaveEnoughXingyunxing(self):
+        num = self.GetXingyunxing()
+        meninfo = GetMenInfo()
+        requirenum = levelNumMap[(meninfo.level // 10) * 10]
+
+        if num >= requirenum:
+            return True
+
+    # 打开租聘界面
+    def OpenZupin(self):
+        t = None
+        while not zupinScene.Match():
+            while t is None or time.time() - t > 5.0:
+                logger.info("打开幸运星租聘界面")
+                t = time.time()
+                while not IsEscTop():
+                    PressKey(VK_CODE["esc"]), RanSleep(0.2)
+                pos = xingyunxing.Pos()
+                MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+                MouseLeftClick(), RanSleep(0.5)
+
+    # 关闭租聘界面
+    def CloseZupin(self):
+        while zupinScene.Match():
+            logger.info("关闭幸运星租聘界面")
+            PressKey(VK_CODE["esc"]), RanSleep(0.2)
+
 
 def main():
     InitLog()
@@ -208,8 +296,10 @@ def main():
     YijianshuInit()
     GameWindowToTop()
 
-    eq = Equips()
-    eq.ChangeEquip()
+    # eq = Equips()
+    # eq.ChangeEquip()
+
+    print( zupinScene.Match())
 
 
 if __name__ == '__main__':

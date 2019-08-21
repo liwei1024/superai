@@ -146,7 +146,7 @@ class Player:
 
     # 随机选择一种技能
     def SelectSkill(self):
-        if random.uniform(0, 1) < 0.1:
+        if random.uniform(0, 1) < 0.05:
             self.curskill = simpleAttackSkill
         else:
             self.curskill = self.skills.GetMaxLevelAttackSkill()
@@ -356,7 +356,7 @@ class Player:
     def HasLevelChanged(self):
         meninfo = GetMenInfo()
         if self.latestlevel == 0:
-            # 刚初始化 (不加)
+            # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
             return False
         elif self.latestlevel != meninfo.level:
@@ -472,6 +472,7 @@ class GlobalState(State):
                 else:
                     self.Reset()
 
+
             elif math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
                 self.Reset()
                 # 刷新障碍物
@@ -501,6 +502,14 @@ class Setup(State):
 # 城镇
 class InChengzhen(State):
     def Execute(self, player):
+        meninfo = GetMenInfo()
+        deal = DealEquip()
+        eq = Equips()
+
+        # 如果有分解关闭下吧 (TODO) 最好别写在这里
+        from superai.dealequip import fenjieButton
+        if fenjieButton.Match() :
+            PressKey(VK_CODE["esc"]), RanSleep(0.2)
 
         # 如果在图内,切换到图内
         if IsManInMap():
@@ -514,16 +523,20 @@ class InChengzhen(State):
             RanSleep(0.2)
             return
 
+        # 等级 >= 10, 身上,背包没有合适的幸运星武器
+        if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
+            player.ChangeState(HireEquip())
+            RanSleep(0.2)
+            return
+        eq.CloseZupin()
+
         # 背包有更好的装备,更换装备
-        eq = Equips()
         if eq.DoesBagHaveBetterEquip():
             player.ChangeState(ChangeEquip())
             RanSleep(0.2)
             return
 
         # 负重超过80%,分解 (需要先到副本外)
-        meninfo = GetMenInfo()
-        deal = DealEquip()
         if meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65 and deal.GetFenjieJiPos() is not None:
             player.ChangeState(FenjieEquip())
             RanSleep(0.2)
@@ -565,6 +578,18 @@ class ChangeEquip(State):
         eq.ChangeEquip()
         eq.CloseBagScene()
         logger.info("换装备完毕")
+        player.ChangeState(InChengzhen())
+
+
+# 租聘武器
+class HireEquip(State):
+    def Execute(self, player):
+        logger.info("租聘武器")
+        eq = Equips()
+        if eq.HaveEnoughXingyunxing():
+            eq.ZupinWuqi()
+            eq.CloseZupin()
+        logger.info("租聘武器完毕")
         player.ChangeState(InChengzhen())
 
 

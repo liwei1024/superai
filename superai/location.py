@@ -11,6 +11,7 @@ from superai.flannfind import Picture, GetImgDir
 
 locationGelanzhisen = Picture(GetImgDir() + "ditu_gelanzhisen.png")
 locationTiankongzhichen = Picture(GetImgDir() + "ditu_tiankongzhicheng.png")
+locationTianzhuijushou  = Picture(GetImgDir() + "ditu_tianzhuijushou.png")
 
 # 分解,出售,修理 单独使用吧
 class Location:
@@ -23,6 +24,9 @@ class Location:
 
         if locationTiankongzhichen.Match():
             return "天空之城"
+
+        if locationTianzhuijushou.Match():
+            return "天锥巨兽"
 
         return ""
 

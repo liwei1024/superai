@@ -32,6 +32,7 @@ class OccupationSkill:
         self.picutre = Picture("%s/%s/%s" % (GetImgDir(), zhiye, nameEng), dw=550)
         self.beidong = beidong
 
+
 # 职业对应的加点策略
 class Occupationkills:
     # 用转职后职业名称判断
@@ -77,6 +78,17 @@ class Occupationkills:
         if meninfo.level >= 20:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "暗矛投射", "anqiang_anmaotoushe.png"))
             self.learnstrategy.append(OccupationSkill("moqiangshi", "暗矛精通", "anqiang_anmaojingtong.png", beidong=True))
+        if meninfo.level >= 25:
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "黑暗枪雨", "anqiang_heianqiangyu.png"))
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "暗矛贯穿", "anqiangshi_anmaoguanchuan.png"))
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "黑暗化身", "anqiang_heianhuashen.png"))
+
+    # 找不到图片,滚轮用
+    def FindedPic(self, pic):
+        pos = pic.Pos()
+        if pos[0] == 0 and pos[1] == 0:
+            return False
+        return True
 
     # 加技能点
     def AddSkillPoints(self):
@@ -88,6 +100,15 @@ class Occupationkills:
 
         for v in self.learnstrategy:
             logger.info("学习技能: %s" % v.name)
+
+            n = 0
+            while not self.FindedPic(v.picutre):
+                if n >= 5:
+                    logger.warning("找不到技能: %s" % v.name)
+                    continue
+                MouseWheel(-5), RanSleep(0.3)
+                n += 1
+
             pos = v.picutre.Pos()
 
             # w, h = 30, 25

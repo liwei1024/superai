@@ -256,8 +256,8 @@ def FlushImg():
             else:
                 gConfirmTop = False
             time.sleep(0.3)
-    except Exception as e:
-        logger.info("flushimg thread error " + e)
+    except Exception:
+        logger.info("flushimg thread error ")
         sys.exit()
 
 

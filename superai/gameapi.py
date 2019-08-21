@@ -384,6 +384,15 @@ class CurSelectIdx(Structure):
         return ("选中角色下标: %d 选中地图下标: %d" % (self.menidx, self.mapidx))
 
 
+class Xingyunxing(Structure):
+    _fields_ = [
+        ("num", c_uint32)
+    ]
+
+    def __str__(self):
+        return ("幸运星数量: %d " % (self.num))
+
+
 lib.Init.argtypes = []
 lib.Init.restype = c_bool
 
@@ -435,6 +444,8 @@ lib.ExGetSceneInfo.argtypes = [POINTER(SceneInfo)]
 lib.ExGetSelectObj.argtypes = [POINTER(POINTER(SelectObj)), POINTER(c_int)]
 
 lib.ExGetCurSelectIdx.argtypes = [POINTER(CurSelectIdx)]
+
+lib.ExGetXingyunxing.argtypes = [POINTER(Xingyunxing)]
 
 lib.ExXiGuai.argtypes = []
 
@@ -902,6 +913,13 @@ def GetCurSelectIdx():
     return curselectIdx
 
 
+# 获取幸运星数量(要打开物品租聘)
+def GetXingyunxing():
+    xingyunxing = Xingyunxing()
+    lib.ExGetXingyunxing(pointer(xingyunxing))
+    return xingyunxing
+
+
 # 吸怪
 def Xiguai():
     lib.ExXiGuai()
@@ -1046,6 +1064,13 @@ def PrintSelectIdx():
     print("[选择下标信息]")
     selectidx = GetCurSelectIdx()
     print(selectidx)
+    print("===========")
+
+
+def PrintXingyunxing():
+    print("[幸运星信息]")
+    xingyunxing = GetXingyunxing()
+    print(xingyunxing)
     print("===========")
 
 
@@ -1681,6 +1706,7 @@ def main():
     PrintWH()
     PrintSelectObj()
     PrintSelectIdx()
+    # PrintXingyunxing()
 
     # PrintSceneInfo() # 数据太多
     # SpeedTest() # 速度还可以
