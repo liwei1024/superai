@@ -507,11 +507,6 @@ class InChengzhen(State):
         deal = DealEquip()
         eq = Equips()
 
-        # 如果有分解关闭下吧 (TODO) 最好别写在这里
-        from superai.dealequip import fenjieButton
-        if fenjieButton.Match() :
-            PressKey(VK_CODE["esc"]), RanSleep(0.2)
-
         # 如果在图内,切换到图内
         if IsManInMap():
             player.ChangeState(FirstInMap())
@@ -519,23 +514,23 @@ class InChengzhen(State):
             return
 
         # 等级发生变化, 技能加点
-        if player.HasLevelChanged():
-            player.ChangeState(SettingSkill())
-            RanSleep(0.2)
-            return
+        # if player.HasLevelChanged():
+        #     player.ChangeState(SettingSkill())
+        #     RanSleep(0.2)
+        #     return
 
         # 等级 >= 10, 身上,背包没有合适的幸运星武器
-        if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
-            player.ChangeState(HireEquip())
-            RanSleep(0.2)
-            return
-        eq.CloseZupin()
+        # if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
+        #     player.ChangeState(HireEquip())
+        #     RanSleep(0.2)
+        #     return
+        # eq.CloseZupin()
 
         # 背包有更好的装备,更换装备
-        if eq.DoesBagHaveBetterEquip():
-            player.ChangeState(ChangeEquip())
-            RanSleep(0.2)
-            return
+        # if eq.DoesBagHaveBetterEquip():
+        #     player.ChangeState(ChangeEquip())
+        #     RanSleep(0.2)
+        #     return
 
         # 负重超过80%,分解 (需要先到副本外)
         if meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65 and deal.GetFenjieJiPos() is not None:
@@ -550,9 +545,9 @@ class InChengzhen(State):
             return
 
         # 做剧情任务
-        if HasPlot():
-            DoPlot(player)
-            return
+        # if HasPlot():
+        #     DoPlot(player)
+        #     return
 
         RanSleep(0.2)
 
