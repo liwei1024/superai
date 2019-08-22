@@ -359,7 +359,7 @@ class Player:
         if self.latestlevel == 0:
             # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
-            return False
+            return True
         elif self.latestlevel != meninfo.level:
             # 变化了等级
             self.latestlevel = meninfo.level
@@ -545,9 +545,9 @@ class InChengzhen(State):
             return
 
         # 做剧情任务
-        if HasPlot():
-            DoPlot(player)
-            return
+        # if HasPlot():
+        #     DoPlot(player)
+        #     return
 
         RanSleep(0.2)
 

@@ -39,12 +39,12 @@ SHOUZHUOIDX, SHOUZHUOTYPE = 8, 20
 JIEZHIIDX, JIEZHITYPE = 9, 21
 
 # 检查替换
-CheckReplices = {
+CheckReplices = [
     (WUQIIDX, WUQITYPE),
     (SHANGYIIDX, SHANGYITYPE), (TOUJIANIDX, TOUJIANTYTPE), (XIAZHUANGIDX, XIAZHUANGTYPE), (XIEIDX, XIETYPE),
     (YAODAIIDX, YAODAITYPE),
     (XIANGLIANIDX, XIANGLIANGTYPE), (SHOUZHUOIDX, SHOUZHUOTYPE), (JIEZHIIDX, JIEZHITYPE)
-}
+]
 
 IDXNAMEMAP = {
     WUQIIDX: "武器",
@@ -62,7 +62,7 @@ IDXNAMEMAP = {
 bagScene = Picture(GetImgDir() + "/bagscene.png")
 zupinScene = Picture(GetImgDir() + "/zupin_scene.png")
 xingyunxing = Picture(GetImgDir() + "/xingyunxing.png")
-zupinconfirm = Picture(GetImgDir() + "/zupin     _confirm.png")
+zupinconfirm = Picture(GetImgDir() + "/zupin_confirm.png")
 zupinconfirm2 = Picture(GetImgDir() + "/zupin_confirm2.png")
 
 levelNumMap = {

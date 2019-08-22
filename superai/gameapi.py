@@ -223,6 +223,8 @@ class BagObj(Structure):
     def FormatWuqiType(self):
         if self.type == 2 and self.bodypos == 12:
             return self.wuqitype
+        else:
+            return ""
 
     def __str__(self):
 

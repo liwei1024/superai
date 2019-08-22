@@ -82,6 +82,9 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "黑暗枪雨", "anqiang_heianqiangyu.png"))
             self.learnstrategy.append(OccupationSkill("moqiangshi", "暗矛贯穿", "anqiangshi_anmaoguanchuan.png"))
             self.learnstrategy.append(OccupationSkill("moqiangshi", "黑暗化身", "anqiang_heianhuashen.png"))
+        if meninfo.level >= 30:
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "黑蚀葬礼", "anqiang_heishizangli.png"))
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "绝望枪", "anqiang_juewangqiang.png"))
 
     # 找不到图片,滚轮用
     def FindedPic(self, pic):
