@@ -254,6 +254,7 @@ class Player:
 
         if quad != Quardant.CHONGDIE:
             if self.ob.ManQuadHasObstacle(quad, menx, meny):
+                self.ChaoxiangFangxiang(menx, destx)
                 logger.info("方向上有障碍物, 攻击")
                 self.UpLatestKey()
                 PressX()

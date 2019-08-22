@@ -516,8 +516,8 @@ QuardantMap = {
 }
 
 # 大矩阵
-MOVE_BIG_V_WIDTH = 80 / 2
-MOVE_BIG_H_WIDTH = 80 / 2
+MOVE_BIG_V_WIDTH = 40 / 2
+MOVE_BIG_H_WIDTH = 40 / 2
 
 # 误差
 MOVE_SMALL_V_WIDTH = 20 / 2
@@ -1704,7 +1704,7 @@ def main():
     PrintAccpetedTaskObj()
     PrintNextMen()
     PrintWH()
-    PrintSelectObj()
+    # PrintSelectObj()
     PrintSelectIdx()
     # PrintXingyunxing()
 
