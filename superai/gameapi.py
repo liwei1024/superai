@@ -261,12 +261,18 @@ class TaskObj(Structure):
         ("object", c_uint32),
         ("type", c_uint32),
         ("name", c_wchar * 100),
+        ("id", c_uint32),
+        ("coindition", c_wchar * 20),
+        ("type2", c_uint32),
+        ("fubenid", c_uint32),
+        ("mainflag", c_uint32),
     ]
 
     def __str__(self):
         return (
-                "[%d]对象: 0x%08X 名称: %s 类型: 0x%X  " % (
-            self.idx, self.object, self.name, self.type))
+                "[%d]对象: 0x%08X 名称: %s 类型: 0x%X id: %d 条件: %s 类型2: 0x%X 副本id: %d 主线flag: 0x%X" % (
+            self.idx, self.object, self.name, self.type, self.id, self.coindition, self.type2, self.fubenid,
+            self.mainflag))
 
 
 class AcceptedTaskObj(Structure):
@@ -276,12 +282,18 @@ class AcceptedTaskObj(Structure):
         ("type", c_uint32),
         ("name", c_wchar * 100),
         ("needdo", c_uint32),  # 是否还需要做   0 做完了  1还需要做
+        ("id", c_uint32),
+        ("coindition", c_wchar * 20),
+        ("type2", c_uint32),
+        ("fubenid", c_uint32),
+        ("mainflag", c_uint32),
     ]
 
     def __str__(self):
         return (
-                "[%d]对象: 0x%08X 名称: %s 类型: 0x%X 还需要做: %d " % (
-            self.idx, self.object, self.name, self.type, self.needdo))
+                "[%d]对象: 0x%08X 名称: %s 类型: 0x%X 还需要做: %d id: %d 条件: %s 类型2: 0x%X 副本id: %d 主线flag: 0x%X " % (
+            self.idx, self.object, self.name, self.type, self.needdo, self.id, self.coindition, self.type2,
+            self.fubenid, self.mainflag))
 
 
 class ExGuoToMenZuoBiao(Structure):

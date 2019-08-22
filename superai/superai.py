@@ -6,20 +6,19 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 logger = logging.getLogger(__name__)
 
-import threading
 import math
 import random
 import time
 
 from superai.dealequip import DealEquip
 from superai.equip import Equips
-from superai.plot import DoPlot, HasPlot
+from superai.plot import DoPlot
 from superai.learnskill import Occupationkills
 from superai.common import InitLog, GameWindowToTop
 from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, CoordToManIdx, SafeGetDAndOb
 from superai.astartdemo import idxToXY
 
-from superai.flannfind import FlushImg, SetThreadExit, \
+from superai.flannfind import SetThreadExit, \
     IsConfirmTop, GetConfirmPos
 
 from superai.vkcode import VK_CODE

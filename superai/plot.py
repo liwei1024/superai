@@ -164,9 +164,6 @@ def MoveTo(moveinfo):
             t = time.time()
             CoordMoveTo(moveinfo.shijiepic, moveinfo.mousecoord)
 
-        # 写死吧  TODO
-        PressKey(VK_CODE["spacebar"]), RanSleep(1.0)
-
 
 # 到达选择角色页面
 def GoToSelect(quad: Quardant):
@@ -194,95 +191,47 @@ def EnterMap(mapname, player):
     player.ChangeState(FirstInMap())
 
 
-def 林纳斯的请求(player):
-    moveinfo = MoveSetting["格兰之森"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.ZUO)
-    EnterMap("幽暗密林", player)
+fubenMap = {
+    "格兰之森": ["幽暗密林", "猛毒雷鸣废墟", "冰霜幽暗密林", "格拉卡", "烈焰格拉卡", "烈焰格拉卡", "暗黑雷鸣废墟"],
+    "天空之城": ["龙人之塔", "人偶玄关", "石巨人塔", "黑暗悬廊", "城主宫殿", "悬空城"],
+    "天锥巨兽": ["GBL教的神殿", "树精丛林", "炼狱", "极昼", "第一脊椎"]
+}
 
 
-def 再访林纳斯(player):
-    moveinfo = MoveSetting["林纳斯"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
+# 返回一个打指定地图的函数
+def AttacktaskFoo(fubenname):
+    dituname = ""
+    for k, v in fubenMap:
+        if fubenname in v:
+            dituname = k
 
-
-def 传说中的白化变异哥布林(player):
-    if DidPlotAccept("传说中的白化变异哥布林"):
-        moveinfo = MoveSetting["林纳斯"]
+    def foo(player, dituname=dituname, fubenname=fubenname):
+        moveinfo = MoveSetting[dituname]
         MoveTo(moveinfo)
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+        GoToSelect(Quardant.ZUO)
+        EnterMap(fubenname, player)
 
-    moveinfo = MoveSetting["格兰之森"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.ZUO)
-    EnterMap("幽暗密林", player)
+    return foo
 
 
-def 毒泉的主人(player):
-    moveinfo = MoveSetting["格兰之森"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.ZUO)
-    EnterMap("猛毒雷鸣废墟", player)
+# 返回一个访问指定对象的函数
+def MeetNpcFoo(npcname):
+    def foo(player, npcname=npcname):
+        if npcname == "赛利亚":
+            MoveToSailiya()
+            QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
+            QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
+            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+            from superai.superai import Setup
+            player.ChangeState(Setup())
+        else:
+            moveinfo = MoveSetting[npcname]
+            MoveTo(moveinfo)
+            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+            from superai.superai import Setup
+            player.ChangeState(Setup())
 
-
-def 疯掉的魔法师克拉赫(player):
-    moveinfo = MoveSetting["格兰之森"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.ZUO)
-    EnterMap("冰霜幽暗密林", player)
-
-
-def 备战格拉卡(player):
-    moveinfo = MoveSetting["林纳斯"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 营救赛丽亚(player):
-    moveinfo = MoveSetting["格兰之森"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.ZUO)
-    EnterMap("格拉卡", player)
-
-
-def 通向森林深处的道路(player):
-    moveinfo = MoveSetting["格兰之森"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.ZUO)
-    EnterMap("烈焰格拉卡", player)
-
-
-def 森林的黑暗(player):
-    moveinfo = MoveSetting["格兰之森"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.ZUO)
-    EnterMap("暗黑雷鸣废墟", player)
-
-
-def 大魔法阵是什么(player):
-    MoveToSailiya()
-    QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
-    QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 前辈冒险家的建议(player):
-    moveinfo = MoveSetting["林纳斯"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
+    return foo
 
 
 # 转职任务!!!!!
@@ -318,26 +267,6 @@ def 守护森林的战斗(player):
     MoveTo(moveinfo)
     GoToSelect(Quardant.ZUO)
     EnterMap("暗黑雷鸣废墟", player)
-
-
-def 转职祝贺(player):
-    moveinfo = MoveSetting["林纳斯"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 赛丽亚的决心(player):
-    moveinfo = MoveSetting["林纳斯"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
 
 
 def 朝着新的冒险(player):
@@ -381,79 +310,6 @@ def 赫顿玛尔的骚乱(player):
     player.ChangeState(Setup())
 
 
-def 月光酒馆(player):
-    moveinfo = MoveSetting["月光酒馆"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.5)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 挡路的帝国军队(player):
-    moveinfo = MoveSetting["挡路帝国军队"]
-    MoveTo(moveinfo)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 如何进入天空之城(player):
-    moveinfo = MoveSetting["罗杰"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 接受考验(player):
-    moveinfo = MoveSetting["诺顿"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 进入天空之城(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("龙人之塔", player)
-
-
-def 探索天空之城(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("龙人之塔", player)
-
-
-def 汇报结果(player):
-    moveinfo = MoveSetting["罗杰"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 调查赫顿玛尔市政厅(player):
-    moveinfo = MoveSetting["洛巴赫"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
 def 获得通行证(player):
     if not DidPlotAccept("获得通行证"):
         while not taskScene.Match():
@@ -474,337 +330,11 @@ def 获得通行证(player):
     player.ChangeState(Setup())
 
 
-def 天空之城的神秘(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("人偶玄关", player)
-
-
-def 救助(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("人偶玄关", player)
-
-
-def 帝国骑士(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("石巨人塔", player)
-
-
-def 寻找帝国公主(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("石巨人塔", player)
-
-
-def 巴恩的问候(player):
-    moveinfo = MoveSetting["巴恩"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 向罗杰汇报(player):
-    moveinfo = MoveSetting["罗杰"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 另一桩交易(player):
-    moveinfo = MoveSetting["莎兰"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 占卜师艾丽丝(player):
-    moveinfo = MoveSetting["艾丽丝"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 艾丽丝的请求(player):
-    moveinfo = MoveSetting["罗杰"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 重返天空之城(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("黑暗悬廊", player)
-
-
-def 合作(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("黑暗悬廊", player)
-
-
-def 调查天空之城的人(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("黑暗悬廊", player)
-
-
-def 剑魂阿甘左(player):
-    moveinfo = MoveSetting["巴恩"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 月光酒馆的索西雅(player):
-    moveinfo = MoveSetting["索西雅"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
 def 水晶净化(player):
     while not taskScene.Match():
         PressKey(VK_CODE["F1"]), RanSleep(0.5)
 
     PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 来自天界的女人(player):
-    moveinfo = MoveSetting["凯丽"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 关于使徒巴卡尔(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 去见公国女王(player):
-    moveinfo = MoveSetting["洛巴赫"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 贝尔玛尔公国女王斯卡迪(player):
-    moveinfo = MoveSetting["斯卡迪"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 天空之城的邪恶魔力(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("城主宫殿", player)
-
-
-def 浮空之城(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("悬空城", player)
-
-
-def 光之城主(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("城主宫殿", player)
-
-
-def 从天而落之物(player):
-    moveinfo = MoveSetting["天空之城"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("城主宫殿", player)
-
-
-def 向斯卡迪女王汇报(player):
-    moveinfo = MoveSetting["斯卡迪"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 莎兰的建议(player):
-    moveinfo = MoveSetting["莎兰"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 告别和另一段冒险(player):
-    moveinfo = MoveSetting["奥菲利亚"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 长脚罗特斯(player):
-    moveinfo = MoveSetting["巴恩"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 忘记了(player):
-    moveinfo = MoveSetting["卡坤"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def GBL教的神殿(player):
-    moveinfo = MoveSetting["天锥巨兽"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("GBL教的神殿", player)
-
-
-def 被捉的信徒(player):
-    moveinfo = MoveSetting["天锥巨兽"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("GBL教的神殿", player)
-
-
-def 探索丛林(player):
-    moveinfo = MoveSetting["天锥巨兽"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("树精丛林", player)
-
-
-def 美神维纳斯(player):
-    moveinfo = MoveSetting["天锥巨兽"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("树精丛林", player)
-
-
-def 可疑的幸存者(player):
-    moveinfo = MoveSetting["天锥巨兽"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("炼狱", player)
-
-
-def 女神的诅咒(player):
-    moveinfo = MoveSetting["天锥巨兽"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("炼狱", player)
-
-
-def 圣书(player):
-    moveinfo = MoveSetting["天锥巨兽"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("极昼", player)
-
-
-def 在神殿之巅(player):
-    moveinfo = MoveSetting["天锥巨兽"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("极昼", player)
-
-
-def 前往神殿中心(player):
-    moveinfo = MoveSetting["天锥巨兽"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("第一脊椎", player)
-
-
-def 返回地面(player):
-    moveinfo = MoveSetting["天锥巨兽"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.YOU)
-    EnterMap("第一脊椎", player)
-
-
-def 奥菲利亚的帮助(player):
-    moveinfo = MoveSetting["奥菲利亚"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 骑士团参战(player):
-    moveinfo = MoveSetting["卡坤"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
     from superai.superai import Setup
     player.ChangeState(Setup())
 
@@ -846,75 +376,75 @@ IdxMapMap = {
 
 plotMap = {
     # 1-16 格兰之森
-    "林纳斯的请求": 林纳斯的请求,
-    "再访林纳斯": 再访林纳斯,
-    "传说中的白化变异哥布林": 传说中的白化变异哥布林,
-    "毒泉的主人": 毒泉的主人,
-    "疯掉的魔法师克拉赫": 疯掉的魔法师克拉赫,
-    "备战格拉卡": 备战格拉卡,
-    "营救赛丽亚": 营救赛丽亚,
-    "通向森林深处的道路": 通向森林深处的道路,
-    "森林的黑暗": 森林的黑暗,
-    "大魔法阵是什么": 大魔法阵是什么,
-    "前辈冒险家的建议": 前辈冒险家的建议,
+    "林纳斯的请求": AttacktaskFoo("幽暗密林"),
+    "再访林纳斯": MeetNpcFoo("林纳斯"),
+    "传说中的白化变异哥布林": AttacktaskFoo("幽暗密林"),
+    "毒泉的主人": AttacktaskFoo("猛毒雷鸣废墟"),
+    "疯掉的魔法师克拉赫": AttacktaskFoo("冰霜幽暗密林"),
+    "备战格拉卡": MeetNpcFoo("林纳斯"),
+    "营救赛丽亚": AttacktaskFoo("格拉卡"),
+    "通向森林深处的道路": AttacktaskFoo("烈焰格拉卡"),
+    "森林的黑暗": AttacktaskFoo("暗黑雷鸣废墟"),
+    "大魔法阵是什么": MeetNpcFoo("赛利亚"),
+    "前辈冒险家的建议": MeetNpcFoo("林纳斯"),
     "守护森林的战斗": 守护森林的战斗,
-    "转职祝贺": 转职祝贺,
-    "赛丽亚的决心": 赛丽亚的决心,
+    "转职祝贺": MeetNpcFoo("林纳斯"),
+    "赛丽亚的决心": MeetNpcFoo("林纳斯"),
     "朝着新的冒险": 朝着新的冒险,
 
     # 17-24
     "赫顿玛尔的骚乱": 赫顿玛尔的骚乱,
-    "月光酒馆": 月光酒馆,
-    "挡路的帝国军队": 挡路的帝国军队,
-    "如何进入天空之城": 如何进入天空之城,
-    "接受考验": 接受考验,
-    "进入天空之城": 进入天空之城,
-    "探索天空之城": 探索天空之城,
-    "汇报结果": 汇报结果,
-    "调查赫顿玛尔市政厅": 调查赫顿玛尔市政厅,
+    "月光酒馆": MeetNpcFoo("月光酒馆"),
+    "挡路的帝国军队": MeetNpcFoo("挡路的帝国军队"),
+    "如何进入天空之城": MeetNpcFoo("罗杰"),
+    "接受考验": MeetNpcFoo("诺顿"),
+    "进入天空之城": AttacktaskFoo("龙人之塔"),
+    "探索天空之城": AttacktaskFoo("龙人之塔"),
+    "汇报结果": MeetNpcFoo("罗杰"),
+    "调查赫顿玛尔市政厅": MeetNpcFoo("洛巴赫"),
     "获得通行证": 获得通行证,
-    "天空之城的神秘": 天空之城的神秘,
-    "救助": 救助,
-    "帝国骑士——巴恩·巴休特": 帝国骑士,
-    "寻找帝国公主": 寻找帝国公主,
-    "巴恩的问候": 巴恩的问候,
-    "向罗杰汇报": 向罗杰汇报,
-    "另一桩交易": 另一桩交易,
-    "占卜师艾丽丝": 占卜师艾丽丝,
-    "艾丽丝的请求": 艾丽丝的请求,
-    "重返 天空之城": 重返天空之城,
-    "合作": 合作,
-    "调查天空之城的人": 调查天空之城的人,
-    "剑魂阿甘左": 剑魂阿甘左,
-    "月光酒馆的索西雅": 月光酒馆的索西雅,
+    "天空之城的神秘": AttacktaskFoo("人偶玄关"),
+    "救助": AttacktaskFoo("人偶玄关"),
+    "帝国骑士——巴恩·巴休特": AttacktaskFoo("石巨人塔"),
+    "寻找帝国公主": AttacktaskFoo("石巨人塔"),
+    "巴恩的问候": MeetNpcFoo("巴恩"),
+    "向罗杰汇报": MeetNpcFoo("罗杰"),
+    "另一桩交易": MeetNpcFoo("莎兰"),
+    "占卜师艾丽丝": MeetNpcFoo("艾丽丝"),
+    "艾丽丝的请求": MeetNpcFoo("罗杰"),
+    "重返 天空之城": AttacktaskFoo("黑暗悬廊"),
+    "合作": AttacktaskFoo("黑暗悬廊"),
+    "调查天空之城的人": AttacktaskFoo("黑暗悬廊"),
+    "剑魂阿甘左": MeetNpcFoo("巴恩"),
+    "月光酒馆的索西雅": MeetNpcFoo("索西雅"),
     "水晶净化": 水晶净化,
-    "来自天界的女人": 来自天界的女人,
-    "关于使徒巴卡尔": 关于使徒巴卡尔,
-    "去见公国女王": 去见公国女王,
-    "贝尔玛尔公国女王——斯卡迪": 贝尔玛尔公国女王斯卡迪,
-    "天空之城的邪恶魔力": 天空之城的邪恶魔力,
-    "浮空之城": 浮空之城,
-    "光之城主": 光之城主,
-    "从天而落之物": 从天而落之物,
-    "向斯卡迪女王汇报": 向斯卡迪女王汇报,
-    "莎兰的建议": 莎兰的建议,
+    "来自天界的女人": MeetNpcFoo("凯丽"),
+    "关于使徒巴卡尔": MeetNpcFoo("天空之城"),
+    "去见公国女王": MeetNpcFoo("洛巴赫"),
+    "贝尔玛尔公国女王——斯卡迪": MeetNpcFoo("斯卡迪"),
+    "天空之城的邪恶魔力": AttacktaskFoo("城主宫殿"),
+    "浮空之城": AttacktaskFoo("悬空城"),
+    "光之城主": AttacktaskFoo("城主宫殿"),
+    "从天而落之物": AttacktaskFoo("城主宫殿"),
+    "向斯卡迪女王汇报": MeetNpcFoo("斯卡迪"),
+    "莎兰的建议": MeetNpcFoo("莎兰"),
 
     # 24 -
-    "告别和另一段冒险": 告别和另一段冒险,
-    "长脚罗特斯": 长脚罗特斯,
-    "忘记了": 忘记了,
-    "GBL教的神殿": GBL教的神殿,
-    "被捉的信徒": 被捉的信徒,
-    "探索丛林": 探索丛林,
-    "美神维纳斯": 美神维纳斯,
-    "可疑的幸存者": 可疑的幸存者,
-    "女神的诅咒": 女神的诅咒,
-    "圣书": 圣书,
-    "在神殿之巅": 在神殿之巅,
-    "前往神殿中心": 前往神殿中心,
-    "返回地面": 返回地面,
-    "奥菲利亚的帮助": 奥菲利亚的帮助,
-    "骑士团参战": 骑士团参战,
+    "告别和另一段冒险": MeetNpcFoo("奥菲利亚"),
+    "长脚罗特斯": MeetNpcFoo("巴恩"),
+    "忘记了": MeetNpcFoo("卡坤"),
+    "GBL教的神殿": AttacktaskFoo("GBL教的神殿"),
+    "被捉的信徒": AttacktaskFoo("GBL教的神殿"),
+    "探索丛林": AttacktaskFoo("树精丛林"),
+    "美神维纳斯": AttacktaskFoo("树精丛林"),
+    "可疑的幸存者": AttacktaskFoo("炼狱"),
+    "女神的诅咒": AttacktaskFoo("炼狱"),
+    "圣书": AttacktaskFoo("极昼"),
+    "在神殿之巅": AttacktaskFoo("极昼"),
+    "前往神殿中心": AttacktaskFoo("第一脊椎"),
+    "返回地面": AttacktaskFoo("第一脊椎"),
+    "奥菲利亚的帮助": MeetNpcFoo("奥菲利亚"),
+    "骑士团参战": MeetNpcFoo("卡坤"),
     "艾丽丝的帮助": 艾丽丝的帮助,
 }
 
