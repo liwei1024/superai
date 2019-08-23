@@ -7,7 +7,7 @@ from superai.yijianshu import PressKey, VK_CODE, MouseMoveTo, YijianshuInit, Mou
     MouseLeftUp, MouseLeftDownFor, MouseMoveR, MouseWheel
 from superai.common import InitLog, GameWindowToTop
 from superai.flannfind import Picture, GetImgDir
-from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj
+from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj, Clear
 
 import logging
 
@@ -137,6 +137,8 @@ class Occupationkills:
 
     # 打开技能栏
     def OpenSkillScene(self):
+        Clear()
+
         while not skillScene.Match():
             logger.info("打开技能栏")
             PressKey(VK_CODE["k"]), RanSleep(0.5)

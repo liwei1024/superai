@@ -254,6 +254,7 @@ class Player:
 
         if quad == Quardant.CHONGDIE:
             logger.info("寻路 重叠了")
+            RanSleep(0.1)
             return
 
         if quad != Quardant.CHONGDIE:
@@ -360,6 +361,12 @@ class Player:
     # 是否等级变化
     def HasLevelChanged(self):
         meninfo = GetMenInfo()
+
+        # 角色等级1,处理一下
+        if meninfo.level == 1 and self.latestlevel == 0:
+            self.latestlevel = meninfo.level
+            return True
+
         if self.latestlevel == 0:
             # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
@@ -410,6 +417,7 @@ class GlobalState(State):
         # 对话处理
         if player.IsEmptyFor(FOR_DUIHUA):
             logger.info("对话状态")
+            # PressKey(VK_CODE["esc"]), RanSleep(0.2)
             PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
             if not IsWindowTop():
                 player.RestoreContext()
@@ -606,12 +614,6 @@ class RepairEquip(State):
         deal.CloseSell()
         logger.info("修理装备")
         player.ChangeState(InChengzhen())
-
-
-# 做剧情任务
-class PlotState(State):
-    def Execute(self, player):
-        DoPlot(player)
 
 
 # 副本结束, 尝试退出

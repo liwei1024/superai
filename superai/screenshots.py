@@ -102,10 +102,10 @@ def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defe
     left, top, right, bot = win32gui.GetWindowRect(hwnd)
     w, h = right - left, bot - top
 
-    windowDC = win32gui.GetWindowDC(hwnd)
+    hdc = win32gui.GetWindowDC(hwnd)
     # defer(lambda: (win32gui.ReleaseDC(hwnd, windowDC)))
 
-    imgDC = win32ui.CreateDCFromHandle(windowDC)
+    imgDC = win32ui.CreateDCFromHandle(hdc)
     # defer(lambda: (imgDC.DeleteDC()))
 
     memDC = imgDC.CreateCompatibleDC()
@@ -137,7 +137,7 @@ def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defe
     win32gui.DeleteObject(bitmap.GetHandle())
     memDC.DeleteDC()
     imgDC.DeleteDC()
-    win32gui.ReleaseDC(hwnd, windowDC)
+    win32gui.ReleaseDC(hwnd, hdc)
     return img
 
 

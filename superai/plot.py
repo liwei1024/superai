@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
-    CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop
+    CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear
 from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick
 
 shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
@@ -21,6 +21,7 @@ taskShouhusenlin = Picture(GetImgDir() + "task_shouhusenlin.png")
 taskChaozhexindemaoxian = Picture(GetImgDir() + "task_chaozhexindemaoxian.png")
 taskHuodetongxinzhen = Picture(GetImgDir() + "task_huodetongxingzhen.png")
 taskkzhuxian = Picture(GetImgDir() + "task_zhuxian.png")
+taskok = Picture(GetImgDir() + "taskok.png")
 zhuanzhiAnqiangshi = Picture(GetImgDir() + "zhuanzhi_anqiangshi.png")
 zhuanzhiConfirm = Picture(GetImgDir() + "zhuanzhi_confirm.png")
 dituHedunmaer = Picture(GetImgDir() + "ditu_hedunmaer.png")
@@ -113,14 +114,6 @@ class TaskCtx:
 
     def Clear(self):
         self.latestmovpoint = None
-
-
-# 清空当前
-def Clear():
-    PressKey(VK_CODE["esc"]), RanSleep(0.2)
-    if GetMenInfo().esc:
-        logger.info("关闭esc")
-        PressKey(VK_CODE["esc"]), RanSleep(0.2)
 
 
 # 到赛利亚
@@ -252,7 +245,20 @@ def DidPlotAccept(name):
 def IsTaskaccept():
     acceptedtasks = GetAccptedTaskObj()
     for v in acceptedtasks:
+        if "守护森林的战斗" in v.name:
+            return True
+
         if v.name in plotMap:
+            return True
+
+    return False
+
+
+# 任务是否完成
+def TaskOk():
+    acceptedtasks = GetAccptedTaskObj()
+    for v in acceptedtasks:
+        if not v.needdo:
             return True
     return False
 
@@ -275,8 +281,31 @@ def AcceptMain():
 
     pos = taskkzhuxian.Pos()
     MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-    MouseLeftClick(), RanSleep(0.5)
+    MouseLeftClick(), RanSleep(0.3)
 
+
+# 完成任务
+def SubmitTask():
+    if not taskScene.Match():
+        Clear()
+
+        logger.info("F1打开任务")
+        PressKey(VK_CODE["F1"]), RanSleep(0.3)
+
+        if not taskScene.Match():
+            logger.warning("按F1了没出现任务框")
+            return
+
+    if not taskok.Match():
+        logger.warning("没有完成的主线任务")
+        return
+
+    pos = taskok.Pos()
+    MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+    MouseLeftClick(), RanSleep(0.3)
+
+    while IsWindowTop():
+        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
 
 # 返回一个打指定地图的函数
 def AttacktaskFoo(fubenname):
@@ -290,6 +319,11 @@ def AttacktaskFoo(fubenname):
         if not IsTaskaccept():
             logger.info("没有主线任务被接受")
             AcceptMain()
+            return
+
+        if TaskOk():
+            logger.info("任务直接可完成")
+            SubmitTask()
             return
 
         moveinfo = MoveSetting[dituname]
@@ -317,6 +351,11 @@ def MeetNpcFoo(npcname):
         if not IsTaskaccept():
             logger.info("没有主线任务被接受")
             AcceptMain()
+            return
+
+        if TaskOk():
+            logger.info("任务直接可完成")
+            SubmitTask()
             return
 
         if npcname == "":
@@ -481,7 +520,7 @@ plotMap = {
     # 24 -
     "告别和另一段冒险": MeetNpcFoo("奥菲利亚"),
     "长脚罗特斯": MeetNpcFoo("巴恩"),
-    "忘记了": MeetNpcFoo("卡坤"),
+    "前往天帷巨兽": MeetNpcFoo("卡坤"),
     "GBL教的神殿": AttacktaskFoo("GBL教的神殿"),
     "被捉的信徒": AttacktaskFoo("GBL教的神殿"),
     "探索丛林": AttacktaskFoo("树精丛林"),

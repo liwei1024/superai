@@ -15,7 +15,7 @@ from superai.yijianshu import PressKey, RanSleep, MouseMoveTo, MouseLeftDown, Mo
     MouseLeftClick, MouseMoveR
 
 from superai.gameapi import GetMenInfo, GetEquipObj, GetBagEquipObj, GameApiInit, FlushPid, TYPEMAP, BODYPOS, WUQIPOS, \
-    SHIPINPOS, IsEscTop, GetXingyunxing
+    SHIPINPOS, IsEscTop, GetXingyunxing, Clear
 
 # 任意策略
 ANYStrategy = -1
@@ -99,6 +99,8 @@ class Equips:
 
     # 打开装备栏
     def OpenBagScene(self):
+        Clear()
+
         while not bagScene.Match():
             logger.info("打开装备栏")
             PressKey(VK_CODE["i"]), RanSleep(0.5)
@@ -271,6 +273,8 @@ class Equips:
 
     # 打开租聘界面
     def OpenZupin(self):
+        Clear()
+
         t = None
         while not zupinScene.Match():
             while t is None or time.time() - t > 5.0:

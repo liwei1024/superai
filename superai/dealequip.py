@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from superai.common import InitLog, GameWindowToTop
-from superai.gameapi import GameApiInit, FlushPid, GetBagEquipObj, GetMenInfo, BODYPOS
+from superai.gameapi import GameApiInit, FlushPid, GetBagEquipObj, GetMenInfo, BODYPOS, Clear
 
 from superai.flannfind import Picture, GetImgDir
 from superai.location import Location
@@ -52,6 +52,8 @@ class DealEquip:
 
     # 分解
     def FenjieAll(self):
+        Clear()
+
         logger.info("分解所有")
 
         pos = self.GetFenjieJiPos()
@@ -95,6 +97,8 @@ class DealEquip:
 
     # 卖所有装备
     def SellAll(self):
+        Clear()
+
         logger.info("出售所有")
         pos = self.GetFenjieJiPos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
@@ -120,6 +124,8 @@ class DealEquip:
 
     # 修理 (身上5件 + 武器)
     def RepairAll(self):
+        Clear()
+
         logger.info("修理所有")
         pos = self.GetFenjieJiPos()
 

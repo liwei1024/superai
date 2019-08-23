@@ -1,7 +1,6 @@
 import os
 import sys
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
@@ -12,11 +11,9 @@ import copy
 from enum import Enum
 import math
 
-from superai.flannfind import IsSpaceTop
-
 from superai.common import InitLog
 from superai.yijianshu import PressSkill, PressKey, DownZUO, DownYOU, DownSHANG, DownXIA, DownZUOSHANG, DownZUOXIA, \
-    DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA
+    DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, RanSleep
 from superai.vkcode import VK_CODE
 from superai.defer import defer
 
@@ -668,9 +665,7 @@ def WithInManzou(x1, y1, x2, y2):
 
 # 是否在范围内
 def WithInRange(x1, y1, x2, y2, range):
-    V_WIDTH = abs(x2 - x1)
-    H_WIDTH = abs(y2 - y1)
-    return V_WIDTH < range and H_WIDTH < range
+    return distance(x1, y2, x2, y2) < range
 
 
 # 获取对象在右边还是左边
@@ -1396,9 +1391,6 @@ WindowTopFilter = [
 
 # 是否有空格键确认的窗口置顶
 def IsWindowTop():
-    if IsSpaceTop():
-        return True
-
     meninfo = GetMenInfo()
     if meninfo.tanchu:
         # 某些地图不管
@@ -1679,6 +1671,14 @@ skillSettingMap = {
 # 普通攻击
 simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击")
 simpleAttackSkill.skilldata.delaytime = 1.0
+
+
+# 清空当前
+def Clear():
+    PressKey(VK_CODE["esc"]), RanSleep(0.2)
+    if GetMenInfo().esc:
+        logger.info("关闭esc")
+        PressKey(VK_CODE["esc"]), RanSleep(0.2)
 
 
 # 读写速度测试
