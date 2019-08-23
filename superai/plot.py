@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
     CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop
-from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick, DownZUO, DownYOU
+from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick
 
 shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
 selectmen = Picture(GetImgDir() + "selectmen.png")
@@ -20,6 +20,7 @@ taskScene = Picture(GetImgDir() + "taskscene.png")
 taskShouhusenlin = Picture(GetImgDir() + "task_shouhusenlin.png")
 taskChaozhexindemaoxian = Picture(GetImgDir() + "task_chaozhexindemaoxian.png")
 taskHuodetongxinzhen = Picture(GetImgDir() + "task_huodetongxingzhen.png")
+taskkzhuxian = Picture(GetImgDir() + "task_zhuxian.png")
 zhuanzhiAnqiangshi = Picture(GetImgDir() + "zhuanzhi_anqiangshi.png")
 zhuanzhiConfirm = Picture(GetImgDir() + "zhuanzhi_confirm.png")
 dituHedunmaer = Picture(GetImgDir() + "ditu_hedunmaer.png")
@@ -60,10 +61,10 @@ MoveSetting = {
     "月光酒馆": MoveInfo(destpic=Picture(GetImgDir() + "ditu_yueguangjiuguan.png"), destcoord=(758, 216),
                      shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(189, 219),
                      desc="月光酒馆"),
-    "挡路帝国军队": MoveInfo(destpic=Picture(GetImgDir() + "ditu_dangludiguo.png"), destcoord=(2308, 319),
-                       shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(612, 285),
-                       desc="挡路帝国军队"),
-    "罗杰": MoveInfo(destpic=Picture(GetImgDir() + "ditu_luojie.png"), destcoord=(1203, 183),
+    "挡路的帝国军队": MoveInfo(destpic=Picture(GetImgDir() + "ditu_dangludiguo.png"), destcoord=(2308, 319),
+                        shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(612, 285),
+                        desc="挡路的帝国军队"),
+    "罗杰": MoveInfo(destpic=Picture(GetImgDir() + "ditu_luojie.png"), destcoord=(1190, 183),
                    shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(560, 263),
                    desc="罗杰"),
     "诺顿": MoveInfo(destpic=Picture(GetImgDir() + "ditu_tiankongzhicheng.png"), destcoord=(331, 161),
@@ -105,12 +106,32 @@ MoveSetting = {
 }
 
 
+class TaskCtx:
+    def __init__(self):
+        # 上一次小地图按键的时间点(对话NPC)
+        self.latestmovpoint = None
+
+    def Clear(self):
+        self.latestmovpoint = None
+
+
+# 清空当前
+def Clear():
+    PressKey(VK_CODE["esc"]), RanSleep(0.2)
+    if GetMenInfo().esc:
+        logger.info("关闭esc")
+        PressKey(VK_CODE["esc"]), RanSleep(0.2)
+
+
 # 到赛利亚
-def MoveToSailiya():
+def BackAndEnter():
     while not IsEscTop():
+        logger.info("打开esc")
         PressKey(VK_CODE["esc"]), RanSleep(0.2)
 
     while not gamebegin.Match():
+        logger.info("寻找游戏开始按钮")
+
         pos = selectmen.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(1.5)
@@ -120,9 +141,11 @@ def MoveToSailiya():
 
 # 打开世界地图
 def OpenShijieDitu():
-    while not shijiedituScene.Match():
-        logger.info("打开世界地图")
-        PressKey(VK_CODE["n"]), RanSleep(0.5)
+    Clear()
+
+    logger.info("打开世界地图")
+    PressKey(VK_CODE["n"]), RanSleep(0.5)
+    return shijiedituScene.Match()
 
 
 # 关闭世界地图
@@ -143,26 +166,29 @@ def IsMoveToChengzhenPos(destpic, destcoord):
 
 # 移动到目的位置
 def CoordMoveTo(shijitpic, mousecoord):
-    OpenShijieDitu()
-    if not shijitpic.Match():
-        raise NotImplementedError()
-    MouseMoveTo(mousecoord[0], mousecoord[1]), RanSleep(0.3)
-    MouseLeftClick(), RanSleep(0.3)
-    CloseShijieDitu()
+    if OpenShijieDitu():
+        if not shijitpic.Match():
+            raise NotImplementedError()
+        MouseMoveTo(mousecoord[0], mousecoord[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(0.3)
+        CloseShijieDitu()
 
 
-# 移动到目的位置 (幂等,最终)
-def MoveTo(moveinfo):
-    logger.info("目标位置 %s" % moveinfo.desc)
-    t = None
-    while not IsMoveToChengzhenPos(moveinfo.destpic, moveinfo.destcoord):
-        if t is None or time.time() - t > 10.0:
-            logger.info("目标: %s 城镇位置: (%d,%d)  没有到达, 开始移动. 鼠标指向到 (%d, %d)" % (moveinfo.desc, moveinfo.destcoord[0],
-                                                                              moveinfo.destcoord[1],
-                                                                              moveinfo.mousecoord[0],
-                                                                              moveinfo.mousecoord[1]))
-            t = time.time()
-            CoordMoveTo(moveinfo.shijiepic, moveinfo.mousecoord)
+# 移动到目的位置
+def MoveTo(npcname, player):
+    moveinfo = MoveSetting[npcname]
+    if player.taskctx.latestmovpoint is None or time.time() > player.taskctx.latestmovpoint + 10.0:
+        # 没有移动过或者超时
+
+        logger.info("目标: %s 城镇位置: (%d,%d)  没有到达, 开始移动. 鼠标指向到 (%d, %d)" % (
+            moveinfo.desc, moveinfo.destcoord[0],
+            moveinfo.destcoord[1], moveinfo.mousecoord[0],
+            moveinfo.mousecoord[1]))
+
+        CoordMoveTo(moveinfo.shijiepic, moveinfo.mousecoord)
+        player.taskctx.latestmovpoint = time.time()
+    else:
+        logger.info("时间没有到,继续等待移动")
 
 
 # 到达选择角色页面
@@ -186,7 +212,7 @@ def EnterMap(mapname, player):
     PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
     while not IsManInMap():
         logger.info("等待进图...")
-        RanSleep(2)
+        RanSleep(1)
     from superai.superai import FirstInMap
     player.ChangeState(FirstInMap())
 
@@ -197,39 +223,118 @@ fubenMap = {
     "天锥巨兽": ["GBL教的神殿", "树精丛林", "炼狱", "极昼", "第一脊椎"]
 }
 
+quadMap = {
+    "格兰之森": Quardant.ZUO,
+    "天空之城": Quardant.YOU,
+    "天锥巨兽": Quardant.YOU,
+}
+
+
+# 是否有剧情任务
+def HasPlot():
+    tasks = GetTaskObj()
+    for v in tasks:
+        if v.name in plotMap.keys():
+            return True
+    return False
+
+
+# 任务是否未接受
+def DidPlotAccept(name):
+    acceptedtasks = GetAccptedTaskObj()
+    for v in acceptedtasks:
+        if name in v.name:
+            return True
+    return False
+
+
+# 保证任务已经被接受. (接受任务列表里有主线剧情)
+def IsTaskaccept():
+    acceptedtasks = GetAccptedTaskObj()
+    for v in acceptedtasks:
+        if v.name in plotMap:
+            return True
+    return False
+
+
+# 领取主线任务
+def AcceptMain():
+    if not taskScene.Match():
+        Clear()
+
+        logger.info("F1打开任务")
+        PressKey(VK_CODE["F1"]), RanSleep(0.3)
+
+        if not taskScene.Match():
+            logger.warning("按F1了没出现任务框")
+            return
+
+    if not taskkzhuxian.Match():
+        logger.warning("没有主线任务")
+        return
+
+    pos = taskkzhuxian.Pos()
+    MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+    MouseLeftClick(), RanSleep(0.5)
+
 
 # 返回一个打指定地图的函数
 def AttacktaskFoo(fubenname):
+    # 获取地图名称
     dituname = ""
-    for k, v in fubenMap:
+    for k, v in fubenMap.items():
         if fubenname in v:
             dituname = k
 
     def foo(player, dituname=dituname, fubenname=fubenname):
+        if not IsTaskaccept():
+            logger.info("没有主线任务被接受")
+            AcceptMain()
+            return
+
         moveinfo = MoveSetting[dituname]
-        MoveTo(moveinfo)
-        GoToSelect(Quardant.ZUO)
-        EnterMap(fubenname, player)
+        if IsMoveToChengzhenPos(moveinfo.destpic, moveinfo.destcoord):
+            # 左右调整进入地图选择界面
+            GoToSelect(quadMap[dituname])
+            # 进入地图
+            EnterMap(fubenname, player)
+        else:
+            # 移动到指定位置
+            MoveTo(dituname, player)
 
     return foo
+
+
+# 是否移动到
+def HasMoveTo(npcname):
+    moveinfo = MoveSetting[npcname]
+    return IsMoveToChengzhenPos(moveinfo.destpic, moveinfo.destcoord)
 
 
 # 返回一个访问指定对象的函数
 def MeetNpcFoo(npcname):
     def foo(player, npcname=npcname):
+        if not IsTaskaccept():
+            logger.info("没有主线任务被接受")
+            AcceptMain()
+            return
+
+        if npcname == "":
+            logger.info("空任务")
+            return
+
         if npcname == "赛利亚":
-            MoveToSailiya()
+            # 返回角色再进入
+            BackAndEnter()
             QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
             QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
             PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-            from superai.superai import Setup
-            player.ChangeState(Setup())
         else:
-            moveinfo = MoveSetting[npcname]
-            MoveTo(moveinfo)
-            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-            from superai.superai import Setup
-            player.ChangeState(Setup())
+            if HasMoveTo(npcname):
+                logger.info("到达了指定位置,按space键")
+                PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+            else:
+                MoveTo(npcname, player)
 
     return foo
 
@@ -237,115 +342,59 @@ def MeetNpcFoo(npcname):
 # 转职任务!!!!!
 def 守护森林的战斗(player):
     if not DidPlotAccept("守护森林的战斗"):
+        logger.info("任务没有接受, 接受任务")
+        # 接受任务
         while not taskScene.Match():
+            logger.info("F1打开任务")
             PressKey(VK_CODE["F1"]), RanSleep(0.5)
 
         while not taskShouhusenlin.Match():
+            logger.info("寻找守护森林任务")
             RanSleep(0.5)
+
         pos = taskShouhusenlin.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.5)
 
+        # 转职按钮
         while not zhuanzhiAnqiangshi.Match():
+            logger.info("寻找转职按钮")
             PressKey(VK_CODE["spacebar"]), RanSleep(1)
 
+        # TODO  目前写死暗枪. 要搞个全局变量
         pos = zhuanzhiAnqiangshi.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.5)
 
         while not zhuanzhiConfirm.Match():
+            logger.info("寻找转职确认按钮")
             PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
 
+        # 确认
         pos = zhuanzhiConfirm.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.5)
-
-        while IsWindowTop():
-            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-
-    moveinfo = MoveSetting["格兰之森"]
-    MoveTo(moveinfo)
-    GoToSelect(Quardant.ZUO)
-    EnterMap("暗黑雷鸣废墟", player)
+    else:
+        AttacktaskFoo("暗黑雷鸣废墟")(player)
 
 
-def 朝着新的冒险(player):
-    if not DidPlotAccept("朝着新的冒险"):
-        while not taskScene.Match():
-            PressKey(VK_CODE["F1"]), RanSleep(0.5)
-
-        while not taskChaozhexindemaoxian.Match():
-            RanSleep(0.5)
-        pos = taskChaozhexindemaoxian.Pos()
-        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.5)
-
-    moveinfo = MoveSetting["艾尔文南"]
-    MoveTo(moveinfo)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
+# 需要到指定位置
 def 赫顿玛尔的骚乱(player):
-    moveinfo = MoveSetting["艾尔文南"]
-    MoveTo(moveinfo)
+    if HasMoveTo("艾尔文南"):
+        logger.info("没有移动到艾尔文南")
+        while not dituHedunmaer.Match():
+            logger.info("按键前往赫顿玛尔")
+            QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
+            QuadKeyUpMap[Quardant.XIA](), RanSleep(0.5)
 
-    while not dituHedunmaer.Match():
-        QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
-        QuadKeyUpMap[Quardant.XIA](), RanSleep(0.5)
-
-    while not taskScene.Match():
-        PressKey(VK_CODE["F1"]), RanSleep(0.5)
-
-    pos = taskdone.Pos()
-    MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-    MouseLeftClick(), RanSleep(1.5)
-
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 获得通行证(player):
-    if not DidPlotAccept("获得通行证"):
         while not taskScene.Match():
+            logger.info("F1打开任务列表")
             PressKey(VK_CODE["F1"]), RanSleep(0.5)
-
-        while not taskHuodetongxinzhen.Match():
-            RanSleep(0.5)
-        pos = taskHuodetongxinzhen.Pos()
+        pos = taskdone.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.5)
-
-    moveinfo = MoveSetting["罗杰"]
-    MoveTo(moveinfo)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 水晶净化(player):
-    while not taskScene.Match():
-        PressKey(VK_CODE["F1"]), RanSleep(0.5)
-
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
-
-
-def 艾丽丝的帮助(player):
-    while not taskScene.Match():
-        PressKey(VK_CODE["F1"]), RanSleep(0.5)
-
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
-    from superai.superai import Setup
-    player.ChangeState(Setup())
+        MouseLeftClick(), RanSleep(1.5)
+    else:
+        MoveTo("艾尔文南", player)
 
 
 IdxMapMap = {
@@ -390,7 +439,7 @@ plotMap = {
     "守护森林的战斗": 守护森林的战斗,
     "转职祝贺": MeetNpcFoo("林纳斯"),
     "赛丽亚的决心": MeetNpcFoo("林纳斯"),
-    "朝着新的冒险": 朝着新的冒险,
+    "朝着新的冒险": MeetNpcFoo("艾尔文南"),
 
     # 17-24
     "赫顿玛尔的骚乱": 赫顿玛尔的骚乱,
@@ -402,7 +451,7 @@ plotMap = {
     "探索天空之城": AttacktaskFoo("龙人之塔"),
     "汇报结果": MeetNpcFoo("罗杰"),
     "调查赫顿玛尔市政厅": MeetNpcFoo("洛巴赫"),
-    "获得通行证": 获得通行证,
+    "获得通行证": MeetNpcFoo("罗杰"),
     "天空之城的神秘": AttacktaskFoo("人偶玄关"),
     "救助": AttacktaskFoo("人偶玄关"),
     "帝国骑士——巴恩·巴休特": AttacktaskFoo("石巨人塔"),
@@ -412,12 +461,12 @@ plotMap = {
     "另一桩交易": MeetNpcFoo("莎兰"),
     "占卜师艾丽丝": MeetNpcFoo("艾丽丝"),
     "艾丽丝的请求": MeetNpcFoo("罗杰"),
-    "重返 天空之城": AttacktaskFoo("黑暗悬廊"),
+    "重返天空之城": AttacktaskFoo("黑暗悬廊"),
     "合作": AttacktaskFoo("黑暗悬廊"),
     "调查天空之城的人": AttacktaskFoo("黑暗悬廊"),
     "剑魂阿甘左": MeetNpcFoo("巴恩"),
     "月光酒馆的索西雅": MeetNpcFoo("索西雅"),
-    "水晶净化": 水晶净化,
+    "水晶净化": MeetNpcFoo(""),
     "来自天界的女人": MeetNpcFoo("凯丽"),
     "关于使徒巴卡尔": MeetNpcFoo("天空之城"),
     "去见公国女王": MeetNpcFoo("洛巴赫"),
@@ -445,39 +494,8 @@ plotMap = {
     "返回地面": AttacktaskFoo("第一脊椎"),
     "奥菲利亚的帮助": MeetNpcFoo("奥菲利亚"),
     "骑士团参战": MeetNpcFoo("卡坤"),
-    "艾丽丝的帮助": 艾丽丝的帮助,
+    "艾丽丝的帮助": MeetNpcFoo(""),
 }
-
-
-# 是否有剧情任务
-def HasPlot():
-    tasks = GetTaskObj()
-    for v in tasks:
-        if v.name in plotMap.keys():
-            return True
-    return False
-
-
-# 任务是否未接受
-def DidPlotAccept(name):
-    acceptedtasks = GetAccptedTaskObj()
-    for v in acceptedtasks:
-        if name == v.name:
-            return True
-    return False
-
-
-# 做剧情任务
-def DoPlot(player):
-    logger.info("开始做剧情任务")
-    tasks = GetTaskObj()
-    for v in tasks:
-        if v.name in plotMap.keys():
-            logger.info("剧情任务: %s" % v.name)
-            plotMap[v.name](player)
-
-    from superai.superai import Setup
-    player.ChangeState(Setup())
 
 
 def main():

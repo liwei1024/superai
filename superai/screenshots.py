@@ -1,5 +1,6 @@
 import sys
 import os
+from threading import Lock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -81,6 +82,19 @@ def WindowCaptureToFile(windowClassName, windowName, captureDir, defer):
                           '{}/screenshot{}.bmp'.format(captureDir, datetime.datetime.now().strftime("%Y%m%d%H%M%S")))
 
 
+mutex = Lock()
+
+
+def Lock():
+    global mutex
+    mutex.acquire()
+
+
+def Unlock():
+    global mutex
+    mutex.release()
+
+
 # https://stackoverflow.com/questions/49511753/python-byte-image-to-numpy-array-using-opencv
 @defer
 def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defer=None):
@@ -89,16 +103,16 @@ def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defe
     w, h = right - left, bot - top
 
     windowDC = win32gui.GetWindowDC(hwnd)
-    defer(lambda: (win32gui.ReleaseDC(hwnd, windowDC)))
+    # defer(lambda: (win32gui.ReleaseDC(hwnd, windowDC)))
 
     imgDC = win32ui.CreateDCFromHandle(windowDC)
-    defer(lambda: (imgDC.DeleteDC()))
+    # defer(lambda: (imgDC.DeleteDC()))
 
     memDC = imgDC.CreateCompatibleDC()
-    defer(lambda: (memDC.DeleteDC()))
+    # defer(lambda: (memDC.DeleteDC()))
 
     bitmap = win32ui.CreateBitmap()
-    defer(lambda: (win32gui.DeleteObject(bitmap.GetHandle())))
+    # defer(lambda: (win32gui.DeleteObject(bitmap.GetHandle())))
 
     if dw != 0:
         w = dw
@@ -107,16 +121,23 @@ def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defe
         h = dh
 
     bitmap.CreateCompatibleBitmap(imgDC, w, h)
-    memDC.SelectObject(bitmap)
+    oldbmp = memDC.SelectObject(bitmap)
 
     # 从dx, dy 处拷贝 w,h 的位图,到申请的w,h大小的空间的0,0处开始拷贝
     memDC.BitBlt((0, 0), (w, h), imgDC, (dx, dy), win32con.SRCCOPY)
-
     npbytes = np.frombuffer(bitmap.GetBitmapBits(True), dtype='uint8')
+
+    # TODO 如果有效果 给其他添加上!!!
+    memDC.SelectObject(oldbmp)
+
     npbytes.shape = (h, w, 4)
 
     img = cv2.cvtColor(npbytes, cv2.COLOR_BGRA2BGR)
 
+    win32gui.DeleteObject(bitmap.GetHandle())
+    memDC.DeleteDC()
+    imgDC.DeleteDC()
+    win32gui.ReleaseDC(hwnd, windowDC)
     return img
 
 

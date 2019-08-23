@@ -1,6 +1,7 @@
 import os
 import sys
 
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
@@ -10,6 +11,8 @@ logger = logging.getLogger(__name__)
 import copy
 from enum import Enum
 import math
+
+from superai.flannfind import IsSpaceTop
 
 from superai.common import InitLog
 from superai.yijianshu import PressSkill, PressKey, DownZUO, DownYOU, DownSHANG, DownXIA, DownZUOSHANG, DownZUOXIA, \
@@ -1393,6 +1396,9 @@ WindowTopFilter = [
 
 # 是否有空格键确认的窗口置顶
 def IsWindowTop():
+    if IsSpaceTop():
+        return True
+
     meninfo = GetMenInfo()
     if meninfo.tanchu:
         # 某些地图不管

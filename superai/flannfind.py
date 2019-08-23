@@ -222,10 +222,11 @@ def GetImgDir():
 
 
 confirm = Picture(GetImgDir() + "/confirm.png")
+space = Picture(GetImgDir() + "/kongge.png")
 
 gConfirmTop = False
 gFlushExit = False
-
+gSpace = False
 
 # 是否有确认键置顶 (背景线程刷新)
 def IsConfirmTop():
@@ -236,6 +237,9 @@ def IsConfirmTop():
 def GetConfirmPos():
     return confirm.Pos()
 
+# 是否有空格需要点掉
+def IsSpaceTop():
+    return gSpace
 
 # 设置截屏线程退出
 def SetThreadExit():
@@ -246,15 +250,14 @@ def SetThreadExit():
 # 不断截图把图片状态置到内存中
 def FlushImg():
     global gConfirmTop
+    global gSpace
     global gFlushExit
 
     try:
         while not gFlushExit:
-            # 是否有确认按钮
-            if confirm.Match():
-                gConfirmTop = True
-            else:
-                gConfirmTop = False
+            gConfirmTop = True if confirm.Match() else False
+            gSpace = True if space.Match() else False
+
             time.sleep(0.3)
     except Exception:
         logger.info("flushimg thread error ")
@@ -265,7 +268,7 @@ def main():
     InitLog()
     YijianshuInit()
 
-    moqiangshi_ciji = Picture(basedir + "/moqiangshi/moqiangshi_ciji.png")
+    moqiangshi_ciji = Picture(basedir + "/kongge.png")
     pos = moqiangshi_ciji.Pos()
     print(pos)
     MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)

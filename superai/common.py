@@ -1,6 +1,7 @@
 import logging
 
 import coloredlogs
+import win32gui, win32com.client
 import win32gui
 
 
@@ -18,4 +19,7 @@ def GameWindowToTop():
     hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
     # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+
+    shell = win32com.client.Dispatch("WScript.Shell")
+    shell.SendKeys('%')
     win32gui.SetForegroundWindow(hwnd)

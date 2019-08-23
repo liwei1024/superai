@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import threading
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -12,14 +13,14 @@ import time
 
 from superai.dealequip import DealEquip
 from superai.equip import Equips
-from superai.plot import DoPlot
+from superai.plot import TaskCtx, HasPlot, plotMap
 from superai.learnskill import Occupationkills
 from superai.common import InitLog, GameWindowToTop
 from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, CoordToManIdx, SafeGetDAndOb
 from superai.astartdemo import idxToXY
 
 from superai.flannfind import SetThreadExit, \
-    IsConfirmTop, GetConfirmPos
+    IsConfirmTop, GetConfirmPos, FlushImg
 
 from superai.vkcode import VK_CODE
 
@@ -34,7 +35,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
-    GetObstacle, WithInRange, QuadKeyDownMap, QuadKeyUpMap
+    GetObstacle, WithInRange, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -81,10 +82,14 @@ class Player:
         # 上一个等级 (用于判断是否需要加点)
         self.latestlevel = 0
 
+        # 任务上下文
+        self.taskctx = TaskCtx()
+
     # 更改当前状态机
     def ChangeState(self, state):
         self.UpLatestKey()
         self.ClearPathfindingLst()
+        self.taskctx.Clear()
         self.stateMachine.ChangeState(state)
 
     # 更改全局状态机
@@ -358,7 +363,7 @@ class Player:
         if self.latestlevel == 0:
             # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
-            return True
+            return False
         elif self.latestlevel != meninfo.level:
             # 变化了等级
             self.latestlevel = meninfo.level
@@ -425,7 +430,6 @@ class GlobalState(State):
             if not IsConfirmTop():
                 player.RestoreContext()
             return
-
         # 对话判断
         if not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
             player.SaveAndChangeToEmpty(FOR_DUIHUA)
@@ -446,41 +450,36 @@ class GlobalState(State):
             return False
 
         if MapStateCheck(player.stateMachine.currentState):
-            pass
-        else:
-            self.Reset()
-            return
+            # 重置坐标
+            if self.latesttime is None:
+                self.latesttime = time.time()
+                self.beginx, self.beginy = GetMenXY()
 
-        # 重置坐标
-        if self.latesttime is None:
-            self.latesttime = time.time()
-            self.beginx, self.beginy = GetMenXY()
+            # 检查时间过去了
+            if time.time() - self.latesttime > 0.5:
 
-        # 检查时间过去了
-        if time.time() - self.latesttime > 0.5:
+                curx, cury = GetMenXY()
 
-            curx, cury = GetMenXY()
-
-            if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
-                # 去下一个门的情况下.坐标判断宽松些
-                if WithInRange(curx, cury, self.beginx, self.beginy, 30):
+                if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
+                    # 去下一个门的情况下.坐标判断宽松些
+                    if WithInRange(curx, cury, self.beginx, self.beginy, 10):
+                        self.Reset()
+                        # 刷新障碍物
+                        logger.warning("进门的时候卡死了, 回退一些再进门")
+                        player.NewMapCache()
+                        player.ChangeState(DoorStuckGoToPrev())
+                    else:
+                        self.Reset()
+                elif math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
                     self.Reset()
                     # 刷新障碍物
-                    logger.warning("进门的时候卡死了, 回退一些再进门")
+                    logger.warning("卡死了, 重置状态")
                     player.NewMapCache()
-                    player.ChangeState(DoorStuckGoToPrev())
+                    player.ChangeState(StandState())
                 else:
                     self.Reset()
-
-
-            elif math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
-                self.Reset()
-                # 刷新障碍物
-                logger.warning("卡死了, 重置状态")
-                player.NewMapCache()
-                player.ChangeState(StandState())
-            else:
-                self.Reset()
+        else:
+            self.Reset()
 
 
 # 初始化
@@ -523,7 +522,6 @@ class InChengzhen(State):
             player.ChangeState(HireEquip())
             RanSleep(0.2)
             return
-        eq.CloseZupin()
 
         # 背包有更好的装备,更换装备
         if eq.DoesBagHaveBetterEquip():
@@ -544,9 +542,10 @@ class InChengzhen(State):
             return
 
         # 做剧情任务
-        # if HasPlot():
-        #     DoPlot(player)
-        #     return
+        if HasPlot():
+            player.ChangeState(TaskState())
+            RanSleep(0.2)
+            return
 
         RanSleep(0.2)
 
@@ -555,7 +554,6 @@ class InChengzhen(State):
 class SettingSkill(State):
     def Execute(self, player):
         logger.info("增加技能点")
-        # TODO 优化下?  不需要多少时间吧
         oc = Occupationkills()
         oc.AddSkillPoints()
         oc.RemoveNotInStrategy()
@@ -901,6 +899,27 @@ class DoorStuckGoToPrev(State):
             player.SeekWithPathfinding(door.prevcx, door.prevcy, dummy="靠近门前")
 
 
+# 做任务状态机
+class TaskState(State):
+    def Execute(self, player):
+        if not HasPlot():
+            player.ChangeState(Setup())
+            RanSleep(0.2)
+            return
+
+        if IsManInMap():
+            player.ChangeState(FirstInMap())
+            RanSleep(0.2)
+            return
+
+        tasks = GetTaskObj()
+        for v in tasks:
+            if v.name in plotMap.keys():
+                plotMap[v.name](player)
+
+        RanSleep(0.2)
+
+
 def main():
     InitLog()
     GameApiInit()
@@ -911,8 +930,8 @@ def main():
     time.sleep(1.2)
 
     # 截图线程
-    # t = threading.Thread(target=FlushImg)
-    # t.start()
+    t = threading.Thread(target=FlushImg)
+    t.start()
 
     # 状态机 主线程
     player = Player()

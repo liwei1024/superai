@@ -18,6 +18,8 @@ fenjieGelanzhisen = Picture(GetImgDir() + "fenjie_gelanzhisen.png")
 fenjieTiankongzhicheng = Picture(GetImgDir() + "fenjie_tiankonghzicheng.png")
 fenjieTianzhuijushou = Picture(GetImgDir() + "fenjieTianzhuijushou.png")
 fenjieButton = Picture(GetImgDir() + "fenjie_button.png")
+fenjiexiulijiScene = Picture(GetImgDir() + "fenjiexiuliji_scene.png")
+fenjieConfirm =  Picture(GetImgDir() + "fenjie_confirm.png")
 sellButton = Picture(GetImgDir() + "sellbt.png")
 bagScene = Picture(GetImgDir() + "bagscene.png")
 repairButton = Picture(GetImgDir() + "repair.png")
@@ -63,15 +65,17 @@ class DealEquip:
         fenjiebt = fenjieButton.Pos()
         MouseMoveTo(fenjiebt[0], fenjiebt[1]), RanSleep(0.3)
 
+        print(fenjiebt)
+
         # 检查 "稀有" "勇者" "包含我的职业装备" 是否勾选
-        xiyoucheck = (Picture(GetImgDir() + "checked.png", fenjiebt[0] + 71, fenjiebt[1] + 48, 12, 12),
-                      (fenjiebt[0] + 71 + 6, fenjiebt[1] + 48 + 6))
+        xiyoucheck = (Picture(GetImgDir() + "checked.png", fenjiebt[0] + 67, fenjiebt[1] + 47, 12, 12),
+                      (fenjiebt[0] + 67 + 6, fenjiebt[1] + 47 + 6))
 
-        yongzhecheck = (Picture(GetImgDir() + "checked.png", fenjiebt[0] + 71, fenjiebt[1] + 62, 12, 12),
-                        (fenjiebt[0] + 71 + 6, fenjiebt[1] + 62 + 6))
+        yongzhecheck = (Picture(GetImgDir() + "checked.png", fenjiebt[0] + 67, fenjiebt[1] + 61, 12, 12),
+                        (fenjiebt[0] + 67 + 6, fenjiebt[1] + 61 + 6))
 
-        zhiyecheck = (Picture(GetImgDir() + "checked.png", fenjiebt[0] + 71, fenjiebt[1] + 81, 12, 12),
-                      (fenjiebt[0] + 71 + 6, fenjiebt[1] + 81 + 6))
+        zhiyecheck = (Picture(GetImgDir() + "checked.png", fenjiebt[0] + 67, fenjiebt[1] + 80, 12, 12),
+                      (fenjiebt[0] + 67 + 6, fenjiebt[1] + 80 + 6))
 
         checks = [xiyoucheck, yongzhecheck, zhiyecheck]
         for v in checks:
@@ -80,18 +84,19 @@ class DealEquip:
                 MouseLeftClick(), RanSleep(0.3)
                 MouseMoveTo(fenjiebt[0], fenjiebt[1]), RanSleep(0.3)
 
+        # 分解按钮
         MouseMoveTo(fenjiebt[0], fenjiebt[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.3)
-        MouseMoveR(-63, 0), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(3.0)
 
+        # 确认
+        pos = fenjieConfirm.Pos()
+        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(4.0)
 
     # 卖所有装备
     def SellAll(self):
         logger.info("出售所有")
-
         pos = self.GetFenjieJiPos()
-
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.3)
         MouseMoveR(56, 32), RanSleep(0.3)
@@ -129,7 +134,6 @@ class DealEquip:
         MouseLeftClick(), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.3)
 
-
     # 是否需要被修理
     def NeedRepair(self):
         equips = GetBagEquipObj()
@@ -142,7 +146,7 @@ class DealEquip:
 
     # 关闭分解机
     def CloseFenjie(self):
-        while fenjieButton.Match():
+        while fenjiexiulijiScene.Match():
             logger.info("关闭分解机")
             PressKey(VK_CODE["esc"]), RanSleep(0.3)
 
@@ -159,6 +163,9 @@ def main():
     FlushPid()
     YijianshuInit()
     GameWindowToTop()
+
+    dq = DealEquip()
+    dq.FenjieAll()
 
 
 if __name__ == '__main__':

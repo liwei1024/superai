@@ -11,7 +11,8 @@ from superai.common import InitLog, GameWindowToTop
 
 from superai.flannfind import Picture, GetImgDir
 from superai.vkcode import VK_CODE
-from superai.yijianshu import PressKey, RanSleep, MouseMoveTo, MouseLeftDown, MouseLeftUp, YijianshuInit, MouseLeftClick
+from superai.yijianshu import PressKey, RanSleep, MouseMoveTo, MouseLeftDown, MouseLeftUp, YijianshuInit, \
+    MouseLeftClick, MouseMoveR
 
 from superai.gameapi import GetMenInfo, GetEquipObj, GetBagEquipObj, GameApiInit, FlushPid, TYPEMAP, BODYPOS, WUQIPOS, \
     SHIPINPOS, IsEscTop, GetXingyunxing
@@ -253,8 +254,7 @@ class Equips:
         pos = zupinScene.Pos()
         MouseMoveTo(pos[0] + self.xingyunwuqipos[0], pos[1] + self.xingyunwuqipos[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.3)
-        pos = zupinconfirm.Pos()
-        MouseMoveTo(pos[0], pos[1])
+        MouseMoveTo(pos[0] + 9, pos[1] + 143), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.5)
         pos = zupinconfirm2.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
@@ -299,7 +299,7 @@ def main():
     # eq = Equips()
     # eq.ChangeEquip()
 
-    print( zupinScene.Match())
+    print( zupinScene.Pos())
 
 
 if __name__ == '__main__':
