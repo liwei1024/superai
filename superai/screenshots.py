@@ -101,6 +101,11 @@ def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defe
     hwnd = win32gui.FindWindow(windowClassName, windowName)
     left, top, right, bot = win32gui.GetWindowRect(hwnd)
     w, h = right - left, bot - top
+    if dw != 0:
+        w = dw
+
+    if dh != 0:
+        h = dh
 
     hdc = win32gui.GetWindowDC(hwnd)
     # defer(lambda: (win32gui.ReleaseDC(hwnd, windowDC)))
@@ -113,32 +118,26 @@ def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defe
 
     bitmap = win32ui.CreateBitmap()
     # defer(lambda: (win32gui.DeleteObject(bitmap.GetHandle())))
+    try:
+        bitmap.CreateCompatibleBitmap(imgDC, w, h)
+    except:
+        logger.error(win32api.FormatMessage())
+        img = np.zeros((h, w, 3), dtype=np.uint8)
+        return img
 
-    if dw != 0:
-        w = dw
-
-    if dh != 0:
-        h = dh
-
-    bitmap.CreateCompatibleBitmap(imgDC, w, h)
-    oldbmp = memDC.SelectObject(bitmap)
+    memDC.SelectObject(bitmap)
 
     # 从dx, dy 处拷贝 w,h 的位图,到申请的w,h大小的空间的0,0处开始拷贝
     memDC.BitBlt((0, 0), (w, h), imgDC, (dx, dy), win32con.SRCCOPY)
     npbytes = np.frombuffer(bitmap.GetBitmapBits(True), dtype='uint8')
-
-    # TODO 如果有效果 给其他添加上!!!
-    memDC.SelectObject(oldbmp)
-
     npbytes.shape = (h, w, 4)
 
-    img = cv2.cvtColor(npbytes, cv2.COLOR_BGRA2BGR)
-
-    win32gui.DeleteObject(bitmap.GetHandle())
-    memDC.DeleteDC()
     imgDC.DeleteDC()
+    memDC.DeleteDC()
     win32gui.ReleaseDC(hwnd, hdc)
-    return img
+    win32gui.DeleteObject(bitmap.GetHandle())
+
+    return cv2.cvtColor(npbytes, cv2.COLOR_BGRA2BGR)
 
 
 def main():

@@ -112,8 +112,12 @@ class TaskCtx:
         # 上一次小地图按键的时间点(对话NPC)
         self.latestmovpoint = None
 
+        # 上一次完成任务单击时间
+        self.latestsubmitpoint = None
+
     def Clear(self):
         self.latestmovpoint = None
+        # self.latestsubmitpoint = None
 
 
 # 到赛利亚
@@ -160,7 +164,7 @@ def IsMoveToChengzhenPos(destpic, destcoord):
 # 移动到目的位置
 def CoordMoveTo(shijitpic, mousecoord):
     if OpenShijieDitu():
-        if not shijitpic.Match():
+        if not shijiedituScene.Match():
             raise NotImplementedError()
         MouseMoveTo(mousecoord[0], mousecoord[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.3)
@@ -181,7 +185,7 @@ def MoveTo(npcname, player):
         CoordMoveTo(moveinfo.shijiepic, moveinfo.mousecoord)
         player.taskctx.latestmovpoint = time.time()
     else:
-        logger.info("时间没有到,继续等待移动")
+        logger.info("城镇移动中")
 
 
 # 到达选择角色页面
@@ -284,28 +288,31 @@ def AcceptMain():
     MouseLeftClick(), RanSleep(0.3)
 
 
-# 完成任务
-def SubmitTask():
-    if not taskScene.Match():
-        Clear()
-
-        logger.info("F1打开任务")
-        PressKey(VK_CODE["F1"]), RanSleep(0.3)
-
+# 完成任务  (直接完成不能一直点,因为会有对话框弹出来,多次按任务对话框数据变0)
+def SubmitTask(player):
+    if player.taskctx.latestsubmitpoint is None or player.taskctx.latestsubmitpoint - time.time() > 10.0:
         if not taskScene.Match():
-            logger.warning("按F1了没出现任务框")
+            Clear()
+
+            logger.info("F1打开任务")
+            PressKey(VK_CODE["F1"]), RanSleep(0.3)
+
+            if not taskScene.Match():
+                logger.warning("按F1了没出现任务框")
+                return
+
+        if not taskok.Match():
+            logger.warning("没有完成的主线任务")
             return
 
-    if not taskok.Match():
-        logger.warning("没有完成的主线任务")
-        return
+        pos = taskok.Pos()
+        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(0.3)
 
-    pos = taskok.Pos()
-    MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-    MouseLeftClick(), RanSleep(0.3)
+        player.taskctx.latestsubmitpoint = time.time()
+    else:
+        logger.warning("完成任务不能多次点击,本次啥都不做")
 
-    while IsWindowTop():
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
 
 # 返回一个打指定地图的函数
 def AttacktaskFoo(fubenname):
@@ -323,7 +330,7 @@ def AttacktaskFoo(fubenname):
 
         if TaskOk():
             logger.info("任务直接可完成")
-            SubmitTask()
+            SubmitTask(player)
             return
 
         moveinfo = MoveSetting[dituname]
@@ -355,7 +362,7 @@ def MeetNpcFoo(npcname):
 
         if TaskOk():
             logger.info("任务直接可完成")
-            SubmitTask()
+            SubmitTask(player)
             return
 
         if npcname == "":

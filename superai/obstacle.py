@@ -31,6 +31,11 @@ class GameObstacleData():
 # 获取地形 障碍 宽高
 def GetGameObstacleData():
     dixingtree, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
+
+    # for ob in obstacles:
+    #     if ob.code == 109006963: # 水晶柱
+    #         ob.w, ob.h = 30, 30
+
     return GameObstacleData(wh.w, wh.h, dixingtree, dixingvec, dixingextra, obstacles)
 
 

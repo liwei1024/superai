@@ -35,7 +35,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
-    GetObstacle, WithInRange, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj
+    GetObstacle, WithInRange, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -370,7 +370,7 @@ class Player:
         if self.latestlevel == 0:
             # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
-            return False
+            return True
         elif self.latestlevel != meninfo.level:
             # 变化了等级
             self.latestlevel = meninfo.level
@@ -417,7 +417,7 @@ class GlobalState(State):
         # 对话处理
         if player.IsEmptyFor(FOR_DUIHUA):
             logger.info("对话状态")
-            # PressKey(VK_CODE["esc"]), RanSleep(0.2)
+            PressKey(VK_CODE["esc"]), RanSleep(0.2)
             PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
             if not IsWindowTop():
                 player.RestoreContext()
@@ -467,7 +467,7 @@ class GlobalState(State):
             if time.time() - self.latesttime > 0.5:
 
                 curx, cury = GetMenXY()
-
+                # 城主宫殿 任务: 从天而落之物
                 if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
                     # 去下一个门的情况下.坐标判断宽松些
                     if WithInRange(curx, cury, self.beginx, self.beginy, 10):
@@ -531,6 +531,12 @@ class InChengzhen(State):
             RanSleep(0.2)
             return
 
+        # 需要领取称号
+        if eq.NeedGetChenghao():
+            player.ChangeState(GetChenghao())
+            RanSleep(0.2)
+            return
+
         # 背包有更好的装备,更换装备
         if eq.DoesBagHaveBetterEquip():
             player.ChangeState(ChangeEquip())
@@ -562,6 +568,7 @@ class InChengzhen(State):
 class SettingSkill(State):
     def Execute(self, player):
         logger.info("增加技能点")
+        Clear()
         oc = Occupationkills()
         oc.AddSkillPoints()
         oc.RemoveNotInStrategy()
@@ -591,6 +598,17 @@ class HireEquip(State):
             eq.ZupinWuqi()
             eq.CloseZupin()
         logger.info("租聘武器完毕")
+        player.ChangeState(InChengzhen())
+
+
+# 获取称号
+class GetChenghao(State):
+    def Execute(self, player):
+        logger.info("获取称号")
+        eq = Equips()
+        if eq.NeedGetChenghao():
+            eq.GetChenghao()
+        logger.info("获取称号完毕")
         player.ChangeState(InChengzhen())
 
 

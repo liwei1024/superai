@@ -341,6 +341,13 @@ def MouseMoveR(x, y):
     lib.M_MoveR(h, int(x), int(y))
 
 
+# 右键单击
+def MouseRightClick():
+    lib.M_RightDown(h)
+    RanSleep(0.1)
+    lib.M_RightUp(h)
+
+
 # 左键单击
 def MouseLeftClick():
     lib.M_LeftDown(h)
@@ -377,8 +384,6 @@ def MouseWheel(v):
     lib.M_MouseWheel(h, v)
 
 
-
-
 def main():
     InitLog()
     YijianshuInit()
@@ -392,8 +397,9 @@ def main():
     win32gui.SetForegroundWindow(hwnd)
 
     MouseMoveTo(560, 263)
-#     time.sleep(1)
 
+
+#     time.sleep(1)
 
 
 if __name__ == "__main__":

@@ -147,6 +147,8 @@ BODYPOS = [14, 15, 16, 17, 18]
 WUQIPOS = 12
 SHIPINPOS = [19, 20, 21]
 
+ChengHaoRequire = [ 12 , 14, 15, 16, 17, 18, 19, 20, 21]
+
 POSMAP = {
     12: "武器",
     13: "称号",

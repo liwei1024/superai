@@ -101,6 +101,7 @@ class Occupationkills:
         MouseMoveTo(309, 280), RanSleep(0.3)
         MouseWheel(30), RanSleep(0.3)
 
+        donotNeedLearn = 0
         for v in self.learnstrategy:
             logger.info("学习技能: %s" % v.name)
 
@@ -120,6 +121,7 @@ class Occupationkills:
             cannotLearn = Picture(GetImgDir() + "cannotlearn.png", dx=pos[0] - halfw, dy=pos[1] - halfh, dw=w, dh=h)
 
             if cannotLearn.Match():
+                donotNeedLearn += 1
                 logger.info("技能: %s 不需要学习", v.name)
                 continue
 
@@ -129,16 +131,16 @@ class Occupationkills:
 
         logger.info("技能已点完毕")
 
-        # 确认按钮
-        learnpos = skillSceneLearn.Pos()
-        MouseMoveTo(learnpos[0], learnpos[1]), RanSleep(0.2)
-        MouseLeftClick(), RanSleep(0.2)
-        MouseLeftClick(), RanSleep(0.2)
+        if donotNeedLearn != len(self.learnstrategy):
+            # 确认按钮
+            learnpos = skillSceneLearn.Pos()
+            MouseMoveTo(learnpos[0], learnpos[1]), RanSleep(0.2)
+            MouseLeftClick(), RanSleep(0.2)
+            MouseLeftClick(), RanSleep(0.2)
 
     # 打开技能栏
     def OpenSkillScene(self):
-        Clear()
-
+        # Clear() 不要再这里. 因为连续3次 (加点,脱进来,脱出去,太浪费时间了)
         while not skillScene.Match():
             logger.info("打开技能栏")
             PressKey(VK_CODE["k"]), RanSleep(0.5)
