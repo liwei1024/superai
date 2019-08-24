@@ -395,7 +395,7 @@ def main():
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     win32gui.SetForegroundWindow(hwnd)
 
-    MouseMoveTo(355, 237)
+    MouseMoveTo(345, 333)
 
 
 #     time.sleep(1)

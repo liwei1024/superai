@@ -43,10 +43,15 @@ class Occupationkills:
 
         if occupationbefore in ["魔枪士"]:
             self.moqiangInit()
-
-        if occupationbefore != occupationafter:
             if occupationafter in ["暗枪士"]:
                 self.anqiangInit()
+
+        elif occupationbefore in ["圣职者"]:
+            self.shengzhiInit()
+            if occupationafter in ["诱魔者"]:
+                self.youmozheInit()
+        else:
+            raise NotImplementedError("还未支持的职业")
 
     # 删除必备技能
     def DelSkill(self, name):
@@ -55,6 +60,34 @@ class Occupationkills:
                 if v.name == name:
                     self.learnstrategy.remove(v)
                     return
+
+    # 圣职 (15级前)
+    def shengzhiInit(self):
+        self.learnstrategy = []
+        meninfo = GetMenInfo()
+
+        if meninfo.level >= 1:
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "审判捶击", "shengzhi_shengpanchuiji.png"))
+        if meninfo.level >= 5:
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "钩颈斩", "shengzhi_goujingzhan.png"))
+        if meninfo.level >= 10:
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "罪业加身", "shengzhi_zuiyejiashen.png"))
+        if meninfo.level >= 15:
+            # self.learnstrategy.append(OccupationSkill("shengzhizhe", "冲刺斩", "shengzhi_chongcizhan.png"))
+            pass
+
+    # 四姨(转职后)
+    def youmozheInit(self):
+        meninfo = GetMenInfo()
+        if meninfo.level >= 15:
+            self.learnstrategy.append(
+                OccupationSkill("shengzhizhe", "负罪者镰刀精通", "youmozhe_liandaojingtong.png", beidong=True))
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "罪业诱惑", "youmozhe_zuiyeyouhuo.png", beidong=True))
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "双重切割", "youmozhe_shuangchongqiege.png"))
+        if meninfo.level >= 20:
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "断头台", "youmozhe_duantoutai.png"))
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "七宗罪", "youmozhe_qizongzui.png"))
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "欲望之手", "youmozhe_yuwangzhishou.png"))
 
     # 魔枪 (15级前)
     def moqiangInit(self):
@@ -72,7 +105,6 @@ class Occupationkills:
         meninfo = GetMenInfo()
         if meninfo.level >= 15:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "侵蚀之矛", "anqiang_qinshizhimao.png"))
-        if meninfo.level >= 15:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "双重投射", "anqiang_shuangchongtoushe.png"))
             self.learnstrategy.append(OccupationSkill("moqiangshi", "暗蚀", "anqiang_anshi.png", beidong=True))
         if meninfo.level >= 20:
@@ -98,11 +130,12 @@ class Occupationkills:
         self.OpenSkillScene()
         logger.info("技能栏已经打开")
 
-        MouseMoveTo(309, 280), RanSleep(0.3)
+        MouseMoveTo(536, 360), RanSleep(0.3)
         MouseWheel(30), RanSleep(0.3)
 
         donotNeedLearn = 0
         for v in self.learnstrategy:
+
             logger.info("学习技能: %s" % v.name)
 
             n = 0
@@ -128,6 +161,8 @@ class Occupationkills:
             logger.info("移动到相对位置: (%d,%d)" % (pos[0], pos[1]))
             MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
             MouseLeftDownFor(1.0), RanSleep(0.3)
+
+            MouseMoveTo(0, 0), RanSleep(0.3)
 
         logger.info("技能已点完毕")
 

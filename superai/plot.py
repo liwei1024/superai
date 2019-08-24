@@ -23,6 +23,7 @@ taskHuodetongxinzhen = Picture(GetImgDir() + "task_huodetongxingzhen.png")
 taskkzhuxian = Picture(GetImgDir() + "task_zhuxian.png")
 taskok = Picture(GetImgDir() + "taskok.png")
 zhuanzhiAnqiangshi = Picture(GetImgDir() + "zhuanzhi_anqiangshi.png")
+zhuanzhiYoumozhe = Picture(GetImgDir() + "zhuanzhi_youmozhe.png")
 zhuanzhiConfirm = Picture(GetImgDir() + "zhuanzhi_confirm.png")
 dituHedunmaer = Picture(GetImgDir() + "ditu_hedunmaer.png")
 dituAfaliya = Picture(GetImgDir() + "ditu_afaliya.png")
@@ -75,9 +76,13 @@ MoveSetting = {
     "天空之城": MoveInfo(destpic=Picture(GetImgDir() + "ditu_tiankongzhicheng.png"), destcoord=(727, 204),
                      shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(705, 280),
                      desc="天空之城"),
-    "洛巴赫": MoveInfo(destpic=Picture(GetImgDir() + "ditu_luobahe.png"), destcoord=(658, 215),
-                    shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(355, 237),
+    "洛巴赫": MoveInfo(destpic=Picture(GetImgDir() + "ditu_luobahe.png"), destcoord=(1433, 176),
+                    shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(345, 333),
                     desc="洛巴赫"),
+
+    "洛巴赫2": MoveInfo(destpic=Picture(GetImgDir() + "ditu_luobahe2.png"), destcoord=(658, 215),
+                     shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(355, 237),
+                     desc="洛巴赫2"),
     "巴恩": MoveInfo(destpic=Picture(GetImgDir() + "ditu_baen.png"), destcoord=(2216, 193),
                    shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(608, 262),
                    desc="巴恩"),
@@ -181,10 +186,15 @@ def IsMoveToChengzhenPos(destpic, destcoord):
 def CoordMoveTo(shijitpic, mousecoord):
     if OpenShijieDitu():
         if not shijiedituScene.Match():
-            raise NotImplementedError()
+            return False
         MouseMoveTo(mousecoord[0], mousecoord[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.3)
         CloseShijieDitu()
+
+        return True
+
+    logger.warning("世界地图没打开")
+    return False
 
 
 # 移动到目的位置
@@ -198,10 +208,10 @@ def MoveTo(npcname, player):
             moveinfo.destcoord[1], moveinfo.mousecoord[0],
             moveinfo.mousecoord[1]))
 
-        CoordMoveTo(moveinfo.shijiepic, moveinfo.mousecoord)
-        player.taskctx.latestmovpoint = time.time()
+        if CoordMoveTo(moveinfo.shijiepic, moveinfo.mousecoord):
+            player.taskctx.latestmovpoint = time.time()
     else:
-        logger.info("城镇移动中"), RanSleep(0.3)
+        logger.info("城镇移动中"), RanSleep(1.5)
 
 
 # 到达选择角色页面
@@ -416,13 +426,26 @@ def 守护森林的战斗(player):
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.5)
 
-        # 转职按钮
-        while not zhuanzhiAnqiangshi.Match():
-            logger.info("寻找转职按钮")
-            PressKey(VK_CODE["spacebar"]), RanSleep(1)
+        while IsWindowTop():
+            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
 
-        # TODO  目前写死暗枪. 要搞个全局变量
-        pos = zhuanzhiAnqiangshi.Pos()
+        # TODO  目前写死职业 . 要添加配置
+        pic = None
+        meninfo = GetMenInfo()
+        if meninfo.zhuanzhiqian in ["圣职者"]:
+            pic = zhuanzhiYoumozhe
+        elif meninfo.zhuanzhiqian in ["魔枪士"]:
+            pic = zhuanzhiAnqiangshi
+
+        if pic is None:
+            raise NotImplementedError("职业不支持")
+
+        # 转职职业
+        if not pic.Match():
+            logger.info("寻找转职职业")
+            return
+
+        pos = pic.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.5)
 

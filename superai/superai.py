@@ -20,7 +20,7 @@ from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, CoordToM
 from superai.astartdemo import idxToXY
 
 from superai.flannfind import SetThreadExit, \
-    IsConfirmTop, GetConfirmPos, FlushImg
+    IsConfirmTop, GetConfirmPos, FlushImg, IsShipinTop
 
 from superai.vkcode import VK_CODE
 
@@ -277,7 +277,7 @@ class Player:
                     # 把当前所有缓存刷新下
                     logger.warning("规划错误,刷新地图缓存 (%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
                     self.NewMapCache()
-                    self.SeekWithPathfinding(destx, desty, obj, dummy)
+                    # self.SeekWithPathfinding(destx, desty, obj, dummy)
                     return
 
                 s = ""
@@ -287,7 +287,7 @@ class Player:
 
                 logger.info("路径规划一共%d 个路程点 %s" % (len(lst), s))
                 self.pathfindinglst = lst
-                self.SeekWithPathfinding(destx, desty, obj, dummy)
+                # self.SeekWithPathfinding(destx, desty, obj, dummy)
                 return
 
             else:
@@ -306,8 +306,9 @@ class Player:
 
             # 如果修正过的坐标本身就没达到. 往那走一些
             if not IsClosedTo(menx, meny, nowcoord.x, nowcoord.y):
-                logger.warning("修正过的坐标(%d, %d)本身(%d, %d)就没达到, 调整" % (menx, meny, nowcoord.x, nowcoord.y))
+                logger.warning("修正过的坐标(%d, %d)本身(%d, %d)就没达到, 调整" % (nowcoord.x, nowcoord.y, menx, meny))
                 dummy = "" if dummy is None else dummy
+                self.UpLatestKey()
                 self.Seek(nowcoord.x, nowcoord.y, obj, dummy=dummy + "(调整修正位置)")
                 return
 
@@ -388,6 +389,7 @@ class State:
 
 FOR_DUIHUA = 0
 FOR_CONFIRM = 1
+FOR_SHIPIN = 2
 
 
 # 什么也不做的状态机. 一般是由于对话,动画或者视频才进入到这里,读取信息供外面恢复
@@ -415,8 +417,16 @@ class GlobalState(State):
         self.latesttime = None
 
     def Execute(self, player):
+        # 视频处理
+        if player.IsEmptyFor(FOR_SHIPIN):
+            logger.info("视频状态")
+            PressKey(VK_CODE["esc"]), RanSleep(0.5)
+            PressKey(VK_CODE["spacebar"]), RanSleep(0.5)
+            if not IsShipinTop():
+                player.RestoreContext()
+            return
         # 对话处理
-        if player.IsEmptyFor(FOR_DUIHUA):
+        elif player.IsEmptyFor(FOR_DUIHUA):
             logger.info("对话状态")
             PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
             if not IsWindowTop():
@@ -438,8 +448,13 @@ class GlobalState(State):
             if not IsConfirmTop():
                 player.RestoreContext()
             return
+
+        # 视频判断
+        if not player.IsEmptyFor(FOR_SHIPIN) and IsShipinTop():
+            player.SaveAndChangeToEmpty(FOR_SHIPIN)
+            return
         # 对话判断
-        if not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
+        elif not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
             player.SaveAndChangeToEmpty(FOR_DUIHUA)
             return
         # 确认按钮
@@ -465,7 +480,12 @@ class GlobalState(State):
                 self.beginx, self.beginy = GetMenXY()
 
             # 多久时间判断一次
-            if time.time() - self.latesttime > 0.5:
+
+            checktime = 0.5
+            if len(player.pathfindinglst) > 0:
+                checktime = 3.0
+
+            if time.time() - self.latesttime > checktime:
                 latestx, latesty = self.beginx, self.beginy
                 curx, cury = GetMenXY()
                 self.Reset()
@@ -483,6 +503,8 @@ class GlobalState(State):
                     logger.warning("卡死了,重置状态")
                     player.NewMapCache()
                     player.ChangeState(StandState())
+                else:
+                    logger.info("坐标在移动")
         else:
             self.Reset()
 
@@ -934,7 +956,10 @@ class TaskState(State):
         for v in tasks:
             if v.name in plotMap.keys():
                 plotMap[v.name](player)
-                return
+
+                # 做完任务切换setup
+                player.ChangeState(Setup())
+
         RanSleep(0.2)
 
 

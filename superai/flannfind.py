@@ -222,11 +222,11 @@ def GetImgDir():
 
 
 confirm = Picture(GetImgDir() + "confirm.png")
-space = Picture(GetImgDir() + "kongge.png")
+shipinScene = Picture(GetImgDir() + "shipin_scene.png")
 
 gConfirmTop = False
+gShipinScene = False
 gFlushExit = False
-gSpace = False
 
 
 # 是否有确认键置顶 (背景线程刷新)
@@ -239,6 +239,11 @@ def GetConfirmPos():
     return confirm.Pos()
 
 
+# 是否有视频
+def IsShipinTop():
+    return gShipinScene
+
+
 # 设置截屏线程退出
 def SetThreadExit():
     global gFlushExit
@@ -247,12 +252,12 @@ def SetThreadExit():
 
 # 不断截图把图片状态置到内存中
 def FlushImg():
-    global gConfirmTop
-    global gFlushExit
+    global gConfirmTop, gShipinScene
 
     try:
         while not gFlushExit:
             gConfirmTop = True if confirm.Match() else False
+            # gShipinScene = True if shipinScene.Match() else False
             time.sleep(0.3)
     except Exception:
         logger.info("flushimg thread error ")
@@ -263,10 +268,11 @@ def main():
     InitLog()
     YijianshuInit()
 
-    moqiangshi_ciji = Picture(basedir + "/kongge.png")
-    pos = moqiangshi_ciji.Pos()
-    print(pos)
-    MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+    print(shipinScene.Match())
+    # moqiangshi_ciji = Picture(basedir + "/kongge.png")
+    # pos = moqiangshi_ciji.Pos()
+    # print(pos)
+    # MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
 
     # while True:
     #     if IsCartoonTop():

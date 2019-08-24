@@ -81,24 +81,34 @@ class Equips:
     def __init__(self):
         meninfo = GetMenInfo()
         occupationafter = meninfo.zhuanzhihou
+        occupationbefore = meninfo.zhuanzhiqian
 
         self.bodystragy = None
 
-        if occupationafter in ["魔枪士"]:
+        if occupationbefore in ["魔枪士"]:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["长枪", "战戟", "光枪", "暗矛"]
             self.xingyunwuqipos = (-31, 114)
 
-        if occupationafter in ["暗枪士"]:
-            self.bodystragy = PIJIA
-            self.wuqistragy = ["长枪", "战戟", "光枪", "暗矛"]
-            self.xingyunwuqipos = (-31, 114)
-            if meninfo.level >= 20:
-                self.wuqistragy = ["暗矛"]
-                self.xingyunwuqipos = (30, 111)
+            if occupationafter in ["暗枪士"]:
+                self.bodystragy = PIJIA
+                if meninfo.level >= 20:
+                    self.wuqistragy = ["暗矛"]
+                    self.xingyunwuqipos = (30, 111)
 
-        if self.bodystragy is None:
-            raise NotImplementedError()
+        elif occupationbefore in ["圣职者"]:
+            self.bodystragy = ANYStrategy
+            self.wuqistragy = ["十字架", "念珠", "图腾", "镰刀", "战斧"]
+            self.xingyunwuqipos = (4, 107)
+
+            if occupationafter in ["诱魔者"]:
+                self.bodystragy = ZHONGJIA
+                if meninfo.level >= 20:
+                    self.wuqistragy = ["镰刀"]
+                    self.xingyunwuqipos = (63, 107)
+
+        else:
+            raise NotImplementedError("还未支持的职业")
 
     # 打开装备栏
     def OpenBagScene(self):
@@ -320,9 +330,8 @@ class Equips:
         Clear()
         MouseMoveTo(0, 0), RanSleep(0.3)
 
-        while not chenghaobu.Match():
-
-            while not bagScene.Match():
+        if not chenghaobu.Match():
+            if not bagScene.Match():
                 logger.info("打开装备栏")
                 PressKey(VK_CODE["i"]), RanSleep(0.5)
 

@@ -35,7 +35,8 @@ def GetGameObstacleData():
 
     for ob in obstacles:
         if ob.code == 109006963:  # 水晶柱
-            ob.w, ob.h = 40, 40
+            ob.w = 40
+            ob.h = 40
     # 109006963 问题的关键是这里为啥可以穿过去但是又穿不过去
 
     # 不要设置地形了. 可以走过去的

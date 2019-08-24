@@ -6,12 +6,10 @@ import time
 import cv2
 import numpy as np
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.common import InitLog
 import logging
-
 
 logger = logging.getLogger(__name__)
 
@@ -359,6 +357,7 @@ class Obstacle:
             if self.RangesHaveTrouble(l, r, t, d) > 0:
                 return True
         return False
+
 
 # a star search
 class AStartPaths:
