@@ -53,7 +53,6 @@ class DealEquip:
     # 分解
     def FenjieAll(self):
         Clear()
-        MouseMoveTo(0, 0), RanSleep(0.3)
 
         logger.info("分解所有")
 
@@ -68,7 +67,6 @@ class DealEquip:
         fenjiebt = fenjieButton.Pos()
         MouseMoveTo(fenjiebt[0], fenjiebt[1]), RanSleep(0.3)
 
-        print(fenjiebt)
 
         # 检查 "稀有" "勇者" "包含我的职业装备" 是否勾选
         xiyoucheck = (Picture(GetImgDir() + "checked.png", fenjiebt[0] + 67, fenjiebt[1] + 47, 12, 12),
@@ -94,12 +92,11 @@ class DealEquip:
         # 确认
         pos = fenjieConfirm.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(4.0)
+        MouseLeftClick(), RanSleep(3.0)
 
     # 卖所有装备
     def SellAll(self):
         Clear()
-        MouseMoveTo(0, 0), RanSleep(0.3)
 
         logger.info("出售所有")
         pos = self.GetFenjieJiPos()
@@ -127,7 +124,6 @@ class DealEquip:
     # 修理 (身上5件 + 武器)
     def RepairAll(self):
         Clear()
-        MouseMoveTo(0, 0), RanSleep(0.3)
 
         logger.info("修理所有")
         pos = self.GetFenjieJiPos()
@@ -155,13 +151,13 @@ class DealEquip:
 
     # 关闭分解机
     def CloseFenjie(self):
-        while fenjiexiulijiScene.Match():
+        if fenjiexiulijiScene.Match():
             logger.info("关闭分解机")
             PressKey(VK_CODE["esc"]), RanSleep(0.3)
 
     # 关闭卖物
     def CloseSell(self):
-        while sellButton.Match():
+        if sellButton.Match():
             logger.info("关闭分解机")
             PressKey(VK_CODE["esc"]), RanSleep(0.3)
 

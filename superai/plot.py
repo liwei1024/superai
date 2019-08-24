@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
-    CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear
+    CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc
 from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick
 
 shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
@@ -24,6 +24,7 @@ taskkzhuxian = Picture(GetImgDir() + "task_zhuxian.png")
 taskok = Picture(GetImgDir() + "taskok.png")
 zhuanzhiAnqiangshi = Picture(GetImgDir() + "zhuanzhi_anqiangshi.png")
 zhuanzhiYoumozhe = Picture(GetImgDir() + "zhuanzhi_youmozhe.png")
+zhuanzhiPalading = Picture(GetImgDir() + "zhuanzhi_palading.png")
 zhuanzhiConfirm = Picture(GetImgDir() + "zhuanzhi_confirm.png")
 dituHedunmaer = Picture(GetImgDir() + "ditu_hedunmaer.png")
 dituAfaliya = Picture(GetImgDir() + "ditu_afaliya.png")
@@ -143,34 +144,44 @@ class TaskCtx:
 
 # 到赛利亚
 def BackAndEnter():
-    while not IsEscTop():
-        logger.info("打开esc")
-        PressKey(VK_CODE["esc"]), RanSleep(0.2)
+    if not Openesc():
+        logger.warning("打开esc失败")
+        return
 
-    while not gamebegin.Match():
+    if not gamebegin.Match():
         logger.info("寻找游戏开始按钮")
-
         pos = selectmen.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(1.5)
+        MouseLeftClick(), RanSleep(1.5)  # TODO 写死了
 
     PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+
+
+# 打开任务栏
+def OpenTaskScene():
+    Clear()
+
+    if not taskScene.Match():
+        logger.info("F1打开任务列表")
+        PressKey(VK_CODE["F1"]), RanSleep(0.3)
+    return taskScene.Match()
 
 
 # 打开世界地图
 def OpenShijieDitu():
     Clear()
 
-    logger.info("打开世界地图")
-    PressKey(VK_CODE["n"]), RanSleep(0.5)
+    if not shijiedituScene.Match():
+        logger.info("打开世界地图")
+        PressKey(VK_CODE["n"]), RanSleep(0.3)
     return shijiedituScene.Match()
 
 
 # 关闭世界地图
 def CloseShijieDitu():
-    while shijiedituScene.Match():
+    if shijiedituScene.Match():
         logger.info("关闭世界地图")
-        PressKey(VK_CODE["n"]), RanSleep(0.5)
+        PressKey(VK_CODE["n"]), RanSleep(0.3)
 
 
 # 是否移动城镇的位置
@@ -185,16 +196,13 @@ def IsMoveToChengzhenPos(destpic, destcoord):
 # 移动到目的位置
 def CoordMoveTo(shijitpic, mousecoord):
     if OpenShijieDitu():
-        if not shijiedituScene.Match():
-            return False
         MouseMoveTo(mousecoord[0], mousecoord[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.3)
         CloseShijieDitu()
-
         return True
-
-    logger.warning("世界地图没打开")
-    return False
+    else:
+        logger.warning("世界地图没打开")
+        return False
 
 
 # 移动到目的位置
@@ -216,10 +224,10 @@ def MoveTo(npcname, player):
 
 # 到达选择角色页面
 def GoToSelect(quad: Quardant):
-    while not IsManInSelectMap():
+    if not IsManInSelectMap():
         logger.info("微调选择地图")
         QuadKeyDownMap[quad](), RanSleep(1)
-        QuadKeyUpMap[quad](), RanSleep(0.5)
+        QuadKeyUpMap[quad](), RanSleep(0.3)
 
 
 # 选择地图
@@ -283,16 +291,9 @@ def TaskOk():
 
 # 领取主线任务
 def AcceptMain():
-    MouseMoveTo(0, 0), RanSleep(0.3)
-    Clear()
-
-    if not taskScene.Match():
-        logger.info("F1打开任务")
-        PressKey(VK_CODE["F1"]), RanSleep(0.3)
-
-        if not taskScene.Match():
-            logger.warning("按F1了没出现任务框")
-            return
+    if not OpenTaskScene():
+        logger.warning("没有出现任务框")
+        return
 
     if not taskkzhuxian.Match():
         logger.warning("没有主线任务")
@@ -310,16 +311,10 @@ def AcceptMain():
 # 完成任务  (直接完成不能一直点,因为会有对话框弹出来,多次按任务对话框数据变0)
 def SubmitTask(player):
     if player.taskctx.latestsubmitpoint is None or time.time() - player.taskctx.latestsubmitpoint > 5.0:
-        MouseMoveTo(0, 0), RanSleep(0.3)
-        Clear()
 
-        if not taskScene.Match():
-            logger.info("F1打开任务")
-            PressKey(VK_CODE["F1"]), RanSleep(0.3)
-
-            if not taskScene.Match():
-                logger.warning("按F1了没出现任务框")
-                return
+        if not OpenTaskScene():
+            logger.warning("没有出现任务框")
+            return
 
         if not taskok.Match():
             logger.warning("没有完成的主线任务")
@@ -411,20 +406,21 @@ def MeetNpcFoo(npcname):
 
 # 转职任务!!!!!
 def 守护森林的战斗(player):
+    Clear()
     if not DidPlotAccept("守护森林的战斗"):
         logger.info("任务没有接受, 接受任务")
-        # 接受任务
-        while not taskScene.Match():
-            logger.info("F1打开任务")
-            PressKey(VK_CODE["F1"]), RanSleep(0.5)
 
-        while not taskShouhusenlin.Match():
-            logger.info("寻找守护森林任务")
-            RanSleep(0.5)
+        if not OpenTaskScene():
+            logger.warning("没有出现任务框")
+            return
+
+        if not taskShouhusenlin.Match():
+            logger.info("没有寻找守护森林任务")
+            return
 
         pos = taskShouhusenlin.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.5)
+        MouseLeftClick(), RanSleep(0.3)
 
         while IsWindowTop():
             PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
@@ -436,27 +432,33 @@ def 守护森林的战斗(player):
             pic = zhuanzhiYoumozhe
         elif meninfo.zhuanzhiqian in ["魔枪士"]:
             pic = zhuanzhiAnqiangshi
+        elif meninfo.zhuanzhiqian in ["守护者"]:
+            pic = zhuanzhiPalading
 
         if pic is None:
             raise NotImplementedError("职业不支持")
 
+
         # 转职职业
         if not pic.Match():
-            logger.info("寻找转职职业")
+            logger.warning("没有寻找到要转职的职业")
             return
 
         pos = pic.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.5)
+        MouseLeftClick(), RanSleep(0.3)
 
-        while not zhuanzhiConfirm.Match():
-            logger.info("寻找转职确认按钮")
+        while IsWindowTop():
             PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+
+        if not zhuanzhiConfirm.Match():
+            logger.warning("没有到寻找转职确认按钮")
+            return
 
         # 确认
         pos = zhuanzhiConfirm.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.5)
+        MouseLeftClick(), RanSleep(0.3)
     else:
         AttacktaskFoo("暗黑雷鸣废墟")(player)
 
@@ -465,14 +467,16 @@ def 守护森林的战斗(player):
 def 赫顿玛尔的骚乱(player):
     if HasMoveTo("艾尔文南"):
         logger.info("移动到了艾尔文南")
+
         while not dituHedunmaer.Match():
             logger.info("按键前往赫顿玛尔")
             QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
-            QuadKeyUpMap[Quardant.XIA](), RanSleep(0.5)
+            QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
 
-        while not taskScene.Match():
-            logger.info("F1打开任务列表")
-            PressKey(VK_CODE["F1"]), RanSleep(0.5)
+        if not OpenTaskScene():
+            logger.warning("没有出现任务框")
+            return
+
         pos = taskdone.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(1.5)
@@ -499,7 +503,7 @@ def 前往阿法利亚营地(player):
 
         while not dituAfaliya.Match():
             QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
-            QuadKeyUpMap[Quardant.XIA](), RanSleep(0.5)
+            QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
 
         logger.info("到达了阿法利亚营地")
 

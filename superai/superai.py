@@ -420,8 +420,8 @@ class GlobalState(State):
         # 视频处理
         if player.IsEmptyFor(FOR_SHIPIN):
             logger.info("视频状态")
-            PressKey(VK_CODE["esc"]), RanSleep(0.5)
-            PressKey(VK_CODE["spacebar"]), RanSleep(0.5)
+            PressKey(VK_CODE["esc"]), RanSleep(0.3)
+            PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
             if not IsShipinTop():
                 player.RestoreContext()
             return
@@ -444,7 +444,7 @@ class GlobalState(State):
                     logger.info("没有找到确认按钮位置")
             else:
                 logger.info("确认按钮没有置顶")
-            RanSleep(0.5)
+            RanSleep(0.3)
             if not IsConfirmTop():
                 player.RestoreContext()
             return
@@ -588,7 +588,6 @@ class SettingSkill(State):
     def Execute(self, player):
         logger.info("增加技能点")
         Clear()
-        MouseMoveTo(0, 0), RanSleep(0.3)
         oc = Occupationkills()
         oc.AddSkillPoints()
         oc.RemoveNotInStrategy()
@@ -699,12 +698,12 @@ class FirstInMap(State):
         if player.skills.HaveBuffCanBeUse():
             if not CanbeMovTest():
                 logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机")
-                time.sleep(0.5)
+                RanSleep(0.5)
                 return
-            RanSleep(0.5)
+            RanSleep(0.3)
             if not CanbeMovTest():
                 logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机")
-                time.sleep(0.5)
+                RanSleep(0.5)
                 return
 
             skills = player.skills.GetCanBeUseBuffSkills()
@@ -741,7 +740,7 @@ class StandState(State):
             return
         elif IsFuBenPass():
             # 打死boss后判断下物品
-            RanSleep(0.5)
+            RanSleep(0.3)
             if HaveGoods():
                 player.ChangeState(SeekAndPickUp())
                 return

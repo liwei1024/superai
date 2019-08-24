@@ -13,7 +13,8 @@ import math
 
 from superai.common import InitLog
 from superai.yijianshu import PressSkill, PressKey, DownZUO, DownYOU, DownSHANG, DownXIA, DownZUOSHANG, DownZUOXIA, \
-    DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, RanSleep
+    DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, RanSleep, \
+    MouseMoveTo
 from superai.vkcode import VK_CODE
 from superai.defer import defer
 
@@ -1683,6 +1684,14 @@ def Clear():
         logger.info("关闭esc")
         PressKey(VK_CODE["esc"]), RanSleep(0.2)
 
+    MouseMoveTo(0, 0), RanSleep(0.3)
+
+# 打开esc
+def Openesc():
+    if not IsEscTop():
+        logger.info("打开esc")
+        PressKey(VK_CODE["esc"]), RanSleep(0.2)
+    return IsEscTop()
 
 # 读写速度测试
 def SpeedTest():

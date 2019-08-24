@@ -15,7 +15,7 @@ from superai.yijianshu import PressKey, RanSleep, MouseMoveTo, MouseLeftDown, Mo
     MouseLeftClick, MouseMoveR, MouseRightClick
 
 from superai.gameapi import GetMenInfo, GetEquipObj, GetBagEquipObj, GameApiInit, FlushPid, TYPEMAP, BODYPOS, WUQIPOS, \
-    SHIPINPOS, IsEscTop, GetXingyunxing, Clear, ChengHaoRequire
+    SHIPINPOS, IsEscTop, GetXingyunxing, Clear, ChengHaoRequire, Openesc
 
 # 任意策略
 ANYStrategy = -1
@@ -89,7 +89,6 @@ class Equips:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["长枪", "战戟", "光枪", "暗矛"]
             self.xingyunwuqipos = (-31, 114)
-
             if occupationafter in ["暗枪士"]:
                 self.bodystragy = PIJIA
                 if meninfo.level >= 20:
@@ -100,12 +99,21 @@ class Equips:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["十字架", "念珠", "图腾", "镰刀", "战斧"]
             self.xingyunwuqipos = (4, 107)
-
             if occupationafter in ["诱魔者"]:
                 self.bodystragy = ZHONGJIA
                 if meninfo.level >= 20:
                     self.wuqistragy = ["镰刀"]
                     self.xingyunwuqipos = (63, 107)
+
+        elif occupationbefore in ["守护者"]:
+            self.bodystragy = ANYStrategy
+            self.wuqistragy = ["短剑", "太刀", "钝器", "巨剑", "光剑"]
+            self.xingyunwuqipos = (0, 109)
+            if occupationafter in ["帕拉丁"]:
+                self.bodystragy = BANJIA
+                if meninfo.level >= 20:
+                    self.wuqistragy = ["钝器"]
+                    self.xingyunwuqipos = (0, 109)
 
         else:
             raise NotImplementedError("还未支持的职业")
@@ -113,16 +121,16 @@ class Equips:
     # 打开装备栏
     def OpenBagScene(self):
         Clear()
-        MouseMoveTo(0, 0), RanSleep(0.3)
-        while not bagScene.Match():
+        if not bagScene.Match():
             logger.info("打开装备栏")
-            PressKey(VK_CODE["i"]), RanSleep(0.5)
+            PressKey(VK_CODE["i"]), RanSleep(0.3)
+        return bagScene.Match()
 
     # 关闭装备栏
     def CloseBagScene(self):
-        while bagScene.Match():
+        if bagScene.Match():
             logger.info("关闭装备栏")
-            PressKey(VK_CODE["i"]), RanSleep(0.5)
+            PressKey(VK_CODE["i"]), RanSleep(0.3)
 
     # 身上没有装备
     def BodyEquiped(self, IDX):
@@ -217,7 +225,10 @@ class Equips:
 
     # 更换装备
     def ChangeEquip(self):
-        self.OpenBagScene(), RanSleep(0.2)
+        if not self.OpenBagScene():
+            logger.warning("打开装备栏失败")
+            return
+
         bagpos = bagScene.Pos()
         for v in CheckReplices:
             betterEquip = self.BagEquipBetter(v[0], v[1])
@@ -264,17 +275,23 @@ class Equips:
 
     # 获取幸运星数量
     def GetXingyunxing(self):
-        self.OpenZupin()
+        if not self.OpenZupin():
+            logger.warning("打开租聘失败")
+            return 0
+
         return GetXingyunxing().num
 
     # 租聘武器
     def ZupinWuqi(self):
-        self.OpenZupin()
+        if not self.OpenZupin():
+            logger.warning("打开租聘失败")
+            return
+
         pos = zupinScene.Pos()
         MouseMoveTo(pos[0] + self.xingyunwuqipos[0], pos[1] + self.xingyunwuqipos[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.3)
         MouseMoveTo(pos[0] + 9, pos[1] + 143), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.5)
+        MouseLeftClick(), RanSleep(0.3)
         pos = zupinconfirm2.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.3)
@@ -284,29 +301,29 @@ class Equips:
         num = self.GetXingyunxing()
         meninfo = GetMenInfo()
         requirenum = levelNumMap[(meninfo.level // 10) * 10]
-
         if num >= requirenum:
             return True
 
     # 打开租聘界面
     def OpenZupin(self):
         if not zupinScene.Match():
-            Clear()
-            MouseMoveTo(0, 0), RanSleep(0.3)
+            Clear()  # 判断数量 + 租聘. 所以在这里clear
+            logger.info("要打开幸运星租聘界面")
+            if not Openesc():
+                logger.warning("打开esc失败")
+                return False
 
-            logger.info("打开幸运星租聘界面")
-            while not IsEscTop():
-                logger.info("打开esc")
-                PressKey(VK_CODE["esc"]), RanSleep(0.2)
             pos = xingyunxing.Pos()
             MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
             MouseLeftClick(), RanSleep(1)
 
+        return zupinScene.Match()
+
     # 关闭租聘界面
     def CloseZupin(self):
-        while zupinScene.Match():
+        if zupinScene.Match():
             logger.info("关闭幸运星租聘界面")
-            PressKey(VK_CODE["esc"]), RanSleep(0.2)
+            PressKey(VK_CODE["esc"]), RanSleep(0.3)
 
     # 是否可以领称号(基础达标者)
     def NeedGetChenghao(self):
@@ -325,23 +342,26 @@ class Equips:
 
         return True
 
-    # 打开称号界面
-    def GetChenghao(self):
+    # 获得称号界面
+    def OpenChenghao(self):
         Clear()
-        MouseMoveTo(0, 0), RanSleep(0.3)
-
         if not chenghaobu.Match():
-            if not bagScene.Match():
-                logger.info("打开装备栏")
-                PressKey(VK_CODE["i"]), RanSleep(0.5)
+            if not self.OpenBagScene():
+                logger.warning("打开装备栏失败")
+                return False
 
-            logger.info("打开称号栏")
+            logger.info("要打开称号栏")
             pos = chenghaobubtn.Pos()
             MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
             MouseLeftClick(), RanSleep(1)
 
-            MouseMoveR(100, 100)
-            RanSleep(0.5)
+        return chenghaobu.Match()
+
+    # 获取称号
+    def GetChenghao(self):
+        if not self.OpenChenghao():
+            logger.warning("打开称号栏失败")
+            return
 
         pos = zhuangbeizhanshi.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
@@ -350,7 +370,7 @@ class Equips:
         pos = jichudabiao.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
         MouseRightClick()
-        RanSleep(0.5)
+        RanSleep(0.3)
 
 
 def main():

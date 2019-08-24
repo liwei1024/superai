@@ -50,6 +50,10 @@ class Occupationkills:
             self.shengzhiInit()
             if occupationafter in ["诱魔者"]:
                 self.youmozheInit()
+        elif occupationbefore in ["守护者"]:
+            self.shouhuInit()
+            if occupationafter in ["帕拉丁"]:
+                self.paladingInit()
         else:
             raise NotImplementedError("还未支持的职业")
 
@@ -60,6 +64,17 @@ class Occupationkills:
                 if v.name == name:
                     self.learnstrategy.remove(v)
                     return
+
+    # 守护者(15级前)
+    def shouhuInit(self):
+        self.learnstrategy = []
+        meninfo = GetMenInfo()
+        if meninfo.level >= 1:
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "强踢", "shouhu_qiangti.png"))
+
+    # 帕拉丁(转职后)
+    def paladingInit(self):
+        meninfo = GetMenInfo()
 
     # 圣职 (15级前)
     def shengzhiInit(self):
@@ -127,9 +142,11 @@ class Occupationkills:
 
     # 加技能点
     def AddSkillPoints(self):
-        self.OpenSkillScene()
-        logger.info("技能栏已经打开")
+        if not self.OpenSkillScene():
+            logger.warning("打开技能栏失败")
+            return
 
+        logger.info("技能栏已经打开")
         MouseMoveTo(536, 360), RanSleep(0.3)
         MouseWheel(30), RanSleep(0.3)
 
@@ -140,7 +157,7 @@ class Occupationkills:
 
             n = 0
             while not self.FindedPic(v.picutre):
-                if n >= 5:
+                if n >= 3:
                     logger.warning("找不到技能: %s" % v.name)
                     continue
                 MouseWheel(-5), RanSleep(0.3)
@@ -164,7 +181,7 @@ class Occupationkills:
 
             MouseMoveTo(0, 0), RanSleep(0.3)
 
-        logger.info("技能已点完毕")
+        logger.info("技能已学习完毕")
 
         if donotNeedLearn != len(self.learnstrategy):
             # 确认按钮
@@ -176,15 +193,16 @@ class Occupationkills:
     # 打开技能栏
     def OpenSkillScene(self):
         # Clear() 不要再这里. 因为连续3次 (加点,脱进来,脱出去,太浪费时间了)
-        while not skillScene.Match():
+        if not skillScene.Match():
             logger.info("打开技能栏")
-            PressKey(VK_CODE["k"]), RanSleep(0.5)
+            PressKey(VK_CODE["k"]), RanSleep(0.3)
+        return skillScene.Match()
 
     # 关闭技能栏
     def CloseSkillScene(self):
-        while skillScene.Match():
+        if skillScene.Match():
             logger.info("关闭技能栏")
-            PressKey(VK_CODE["k"]), RanSleep(0.5)
+            PressKey(VK_CODE["k"]), RanSleep(0.3)
 
     # 在技能策略中
     def IsInLearnStrategy(self, name):
@@ -195,7 +213,9 @@ class Occupationkills:
 
     # 不是必备技能拖出去
     def RemoveNotInStrategy(self):
-        self.OpenSkillScene(), RanSleep(0.5)
+        if not self.OpenSkillScene():
+            logger.warning("打开技能栏失败")
+            return
 
         curskills = GetSkillObj()
         for v in curskills:
@@ -233,7 +253,9 @@ class Occupationkills:
 
     # 是必备技能找个空位置拖进来
     def EquipSkillInStrategy(self):
-        self.OpenSkillScene(), RanSleep(0.5)
+        if not self.OpenSkillScene():
+            logger.warning("打开技能栏失败")
+            return
 
         for v in self.learnstrategy:
             if v.beidong:
