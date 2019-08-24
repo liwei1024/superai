@@ -368,7 +368,6 @@ def MouseLeftDoubleClick():
     RanSleep(0.1)
     MouseLeftClick()
 
-
 # 左键按下
 def MouseLeftDown():
     lib.M_LeftDown(h)
@@ -396,7 +395,7 @@ def main():
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
     win32gui.SetForegroundWindow(hwnd)
 
-    MouseMoveTo(560, 263)
+    MouseMoveTo(336, 372)
 
 
 #     time.sleep(1)

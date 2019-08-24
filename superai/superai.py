@@ -457,35 +457,28 @@ class GlobalState(State):
                     return True
             return False
 
+        # 特定状态下才进行判断卡死
         if MapStateCheck(player.stateMachine.currentState):
-            # 重置坐标
             if self.latesttime is None:
                 self.latesttime = time.time()
                 self.beginx, self.beginy = GetMenXY()
 
-            # 检查时间过去了
+            # 多久时间判断一次
             if time.time() - self.latesttime > 0.5:
-
+                latestx, latesty = self.beginx, self.beginy
                 curx, cury = GetMenXY()
+                self.Reset()
 
+                # 去下一个门的时候卡死了
                 if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
-                    # 去下一个门的情况下.坐标判断宽松些
-                    if WithInRange(curx, cury, self.beginx, self.beginy, 10):
-                        self.Reset()
-                        # 刷新障碍物
-                        logger.warning("进门的时候卡死了, 回退一些再进门")
+                    if WithInRange(latestx, latesty, curx, cury, 10):
+                        logger.warning("去下一个门的时候卡死了, 回退一些再进门")
                         player.NewMapCache()
                         player.ChangeState(DoorStuckGoToPrev())
-                    else:
-                        self.Reset()
-                elif math.isclose(curx, self.beginx) and math.isclose(cury, self.beginy):
-                    self.Reset()
-                    # 刷新障碍物
-                    logger.warning("卡死了, 重置状态")
+                elif math.isclose(latestx, curx) and math.isclose(latesty, cury):
+                    logger.warning("卡死了,重置状态")
                     player.NewMapCache()
                     player.ChangeState(StandState())
-                else:
-                    self.Reset()
         else:
             self.Reset()
 

@@ -25,6 +25,7 @@ taskok = Picture(GetImgDir() + "taskok.png")
 zhuanzhiAnqiangshi = Picture(GetImgDir() + "zhuanzhi_anqiangshi.png")
 zhuanzhiConfirm = Picture(GetImgDir() + "zhuanzhi_confirm.png")
 dituHedunmaer = Picture(GetImgDir() + "ditu_hedunmaer.png")
+dituAfaliya = Picture(GetImgDir() + "ditu_afaliya.png")
 taskdone = Picture(GetImgDir() + "task_done.png")
 
 
@@ -104,6 +105,21 @@ MoveSetting = {
     "天帷巨兽": MoveInfo(destpic=Picture(GetImgDir() + "ditu_tianzhuijushou.png"), destcoord=(712, 306),
                      shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(647, 399),
                      desc="天帷巨兽"),
+    "赫顿玛尔": MoveInfo(destpic=Picture(GetImgDir() + "ditu_hedunmaer2.png"), destcoord=(1430, 188),
+                     shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(346, 335),
+                     desc="赫顿玛尔"),
+    "阿甘左": MoveInfo(destpic=Picture(GetImgDir() + "ditu_aganzuo.png"), destcoord=(1096, 188),
+                    shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(210, 213),
+                    desc="阿甘左"),
+    "后街": MoveInfo(destpic=Picture(GetImgDir() + "ditu_houjie.png"), destcoord=(578, 244),
+                   shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(221, 300),
+                   desc="后街"),
+    "布告": MoveInfo(destpic=Picture(GetImgDir() + "ditu_bugaolan.png"), destcoord=(926, 213),
+                   shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(320, 339),
+                   desc="布告"),
+    "赫顿玛尔2": MoveInfo(destpic=Picture(GetImgDir() + "hedunmaer2.png"), destcoord=(1257, 417),
+                      shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(336, 372),
+                      desc="赫顿玛尔2"),
 }
 
 
@@ -198,7 +214,8 @@ def GoToSelect(quad: Quardant):
 
 # 选择地图
 def SelectMap(mapname):
-    while CurSelectId() != IdxMapMap[mapname]:
+    idx = IdxMapMap[mapname]
+    while CurSelectId() != idx:
         logger.info("↑ 切换地图")
         PressKey(VK_CODE["up_arrow"]), RanSleep(0.2)
 
@@ -282,7 +299,7 @@ def AcceptMain():
 
 # 完成任务  (直接完成不能一直点,因为会有对话框弹出来,多次按任务对话框数据变0)
 def SubmitTask(player):
-    if player.taskctx.latestsubmitpoint is None or player.taskctx.latestsubmitpoint - time.time() > 5.0:
+    if player.taskctx.latestsubmitpoint is None or time.time() - player.taskctx.latestsubmitpoint > 5.0:
         MouseMoveTo(0, 0), RanSleep(0.3)
         Clear()
 
@@ -424,7 +441,7 @@ def 守护森林的战斗(player):
 # 需要到指定位置
 def 赫顿玛尔的骚乱(player):
     if HasMoveTo("艾尔文南"):
-        logger.info("没有移动到艾尔文南")
+        logger.info("移动到了艾尔文南")
         while not dituHedunmaer.Match():
             logger.info("按键前往赫顿玛尔")
             QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
@@ -439,6 +456,7 @@ def 赫顿玛尔的骚乱(player):
     else:
         MoveTo("艾尔文南", player)
 
+
 # 同名任务
 def 长脚罗特斯():
     def foo(player):
@@ -449,6 +467,22 @@ def 长脚罗特斯():
             AttacktaskFoo("第二脊椎")(player)
 
     return foo
+
+
+# 走到新的位置
+def 前往阿法利亚营地(player):
+    if HasMoveTo("赫顿玛尔2"):
+        logger.info("移动到了赫顿玛尔2")
+
+        while not dituAfaliya.Match():
+            QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
+            QuadKeyUpMap[Quardant.XIA](), RanSleep(0.5)
+
+        logger.info("到达了阿法利亚营地")
+
+
+    else:
+        MoveTo("赫顿玛尔2", player)
 
 
 fubenMap = {
@@ -487,7 +521,7 @@ IdxMapMap = {
     "炼狱": 2,
     "极昼": 3,
     "第一脊椎": 4,
-    "天帷禁地": 6,
+    "天帷禁地": 5,  # TODO 剧情变化了,下标也变啦
     "第二脊椎": 5
 }
 
@@ -570,6 +604,18 @@ plotMap = {
     "寻找阿甘左": AttacktaskFoo("第二脊椎"),
     # "长脚罗特斯": AttacktaskFoo("第二脊椎"),
     "消灭长脚罗特斯": AttacktaskFoo("第二脊椎"),
+    "满目疮痍的胜利": MeetNpcFoo("奥菲利亚"),
+    "斯卡迪女王": MeetNpcFoo("斯卡迪"),
+    "艾丽丝到访": MeetNpcFoo("赫顿玛尔"),
+    "关于艾丽丝的秘密与使徒": MeetNpcFoo("艾丽丝"),
+    "使徒的危险性": MeetNpcFoo("艾丽丝"),
+    "前往月光酒馆": MeetNpcFoo("阿甘左"),
+    "战端又起": MeetNpcFoo("月光酒馆"),
+    "商人的情报": MeetNpcFoo("后街"),
+    "宣战": MeetNpcFoo("布告"),
+    "忐忑不安的人们": MeetNpcFoo("洛巴赫"),
+    "前往阿法利亚营地": 前往阿法利亚营地,
+
 }
 
 
