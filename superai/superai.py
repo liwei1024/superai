@@ -280,20 +280,15 @@ class Player:
                     self.SeekWithPathfinding(destx, desty, obj, dummy)
                     return
 
-                if len(lst) == 2:
-                    logger.info("路径规划点为2个(起点,终点), 直接过去: (%d, %d)" % (destx, desty))
-                    self.Seek(destx, desty, obj, dummy)
-                    return
-                else:
-                    s = ""
-                    for v in lst:
-                        curpoint = idxToXY(v, self.d.mapw // 10)
-                        s += "(%d, %d) " % (curpoint[0], curpoint[1])
+                s = ""
+                for v in lst:
+                    curpoint = idxToXY(v, self.d.mapw // 10)
+                    s += "(%d, %d) " % (curpoint[0], curpoint[1])
 
-                    logger.info("路径规划一共%d 个路程点 %s" % (len(lst), s))
-                    self.pathfindinglst = lst
-                    self.SeekWithPathfinding(destx, desty, obj, dummy)
-                    return
+                logger.info("路径规划一共%d 个路程点 %s" % (len(lst), s))
+                self.pathfindinglst = lst
+                self.SeekWithPathfinding(destx, desty, obj, dummy)
+                return
 
             else:
                 logger.info("没有障碍物直接过去 (%d, %d)" % (destx, desty))
@@ -307,10 +302,15 @@ class Player:
         elif len(self.pathfindinglst) >= 2:
             # 路径规划过
             curpoint = idxToXY(self.pathfindinglst[0], self.d.mapw // 10)
-
             nowcoord = idxToZuobiao(CoordToManIdx(menx, meny, self.d.mapw // 10, self.ob), self.d.mapw // 10)
-            nextcoord = idxToZuobiao(self.pathfindinglst[1], self.d.mapw // 10)
 
+            # 如果修正过的坐标本身就没达到. 往那走一些
+            if not IsClosedTo(menx, meny, nowcoord.x, nowcoord.y):
+                logger.warning("修正过的坐标(%d, %d)本身(%d, %d)就没达到, 调整" % (menx, meny, nowcoord.x, nowcoord.y))
+                self.Seek(nowcoord.x, nowcoord.y, obj, dummy=dummy + "(调整修正位置)")
+                return
+            
+            nextcoord = idxToZuobiao(self.pathfindinglst[1], self.d.mapw // 10)
             flag = self.ob.CanTwoPointBeMove(nowcoord, nextcoord)
             logger.info("检测 %s -> %s 是否连通 %d" % (nowcoord, nextcoord, flag))
 
@@ -471,7 +471,7 @@ class GlobalState(State):
 
                 # 去下一个门的时候卡死了
                 if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
-                    if WithInRange(latestx, latesty, curx, cury, 10):
+                    if math.isclose(latestx, curx) and math.isclose(latesty, cury):
                         logger.warning("去下一个门的时候卡死了, 回退一些再进门")
                         player.NewMapCache()
                         player.ChangeState(DoorStuckGoToPrev())
