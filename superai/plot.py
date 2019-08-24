@@ -75,8 +75,8 @@ MoveSetting = {
     "天空之城": MoveInfo(destpic=Picture(GetImgDir() + "ditu_tiankongzhicheng.png"), destcoord=(727, 204),
                      shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(705, 280),
                      desc="天空之城"),
-    "洛巴赫": MoveInfo(destpic=Picture(GetImgDir() + "ditu_luobahe.png"), destcoord=(1433, 182),
-                    shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(345, 334),
+    "洛巴赫": MoveInfo(destpic=Picture(GetImgDir() + "ditu_luobahe.png"), destcoord=(658, 215),
+                    shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(355, 237),
                     desc="洛巴赫"),
     "巴恩": MoveInfo(destpic=Picture(GetImgDir() + "ditu_baen.png"), destcoord=(2216, 193),
                    shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(608, 262),
@@ -201,7 +201,7 @@ def MoveTo(npcname, player):
         CoordMoveTo(moveinfo.shijiepic, moveinfo.mousecoord)
         player.taskctx.latestmovpoint = time.time()
     else:
-        logger.info("城镇移动中")
+        logger.info("城镇移动中"), RanSleep(0.3)
 
 
 # 到达选择角色页面

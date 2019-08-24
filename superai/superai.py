@@ -307,9 +307,10 @@ class Player:
             # 如果修正过的坐标本身就没达到. 往那走一些
             if not IsClosedTo(menx, meny, nowcoord.x, nowcoord.y):
                 logger.warning("修正过的坐标(%d, %d)本身(%d, %d)就没达到, 调整" % (menx, meny, nowcoord.x, nowcoord.y))
+                dummy = "" if dummy is None else dummy
                 self.Seek(nowcoord.x, nowcoord.y, obj, dummy=dummy + "(调整修正位置)")
                 return
-            
+
             nextcoord = idxToZuobiao(self.pathfindinglst[1], self.d.mapw // 10)
             flag = self.ob.CanTwoPointBeMove(nowcoord, nextcoord)
             logger.info("检测 %s -> %s 是否连通 %d" % (nowcoord, nextcoord, flag))
@@ -323,7 +324,7 @@ class Player:
             if flag:
                 del self.pathfindinglst[0]
                 logger.info("到达了规划点 (%d, %d) 剩余 %d" % (destx, desty, len(self.pathfindinglst)))
-                self.SeekWithPathfinding(destx, desty, obj, dummy)
+                # self.SeekWithPathfinding(destx, desty, obj, dummy)
                 return
             else:
                 dummy = "" if dummy is None else dummy
@@ -475,6 +476,9 @@ class GlobalState(State):
                         logger.warning("去下一个门的时候卡死了, 回退一些再进门")
                         player.NewMapCache()
                         player.ChangeState(DoorStuckGoToPrev())
+                    else:
+                        logger.info("坐标不相同: (%d, %d)   (%d, %d)" % (latestx, latesty, curx, cury))
+
                 elif math.isclose(latestx, curx) and math.isclose(latesty, cury):
                     logger.warning("卡死了,重置状态")
                     player.NewMapCache()
