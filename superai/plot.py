@@ -101,9 +101,9 @@ MoveSetting = {
     "卡坤": MoveInfo(destpic=Picture(GetImgDir() + "ditu_kakun.png"), destcoord=(1077, 175),
                    shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(543, 367),
                    desc="卡坤"),
-    "天锥巨兽": MoveInfo(destpic=Picture(GetImgDir() + "ditu_tianzhuijushou.png"), destcoord=(712, 306),
+    "天帷巨兽": MoveInfo(destpic=Picture(GetImgDir() + "ditu_tianzhuijushou.png"), destcoord=(712, 306),
                      shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(647, 399),
-                     desc="天锥巨兽"),
+                     desc="天帷巨兽"),
 }
 
 
@@ -214,19 +214,6 @@ def EnterMap(mapname, player):
     player.ChangeState(FirstInMap())
 
 
-fubenMap = {
-    "格兰之森": ["幽暗密林", "猛毒雷鸣废墟", "冰霜幽暗密林", "格拉卡", "烈焰格拉卡", "烈焰格拉卡", "暗黑雷鸣废墟"],
-    "天空之城": ["龙人之塔", "人偶玄关", "石巨人塔", "黑暗悬廊", "城主宫殿", "悬空城"],
-    "天锥巨兽": ["GBL教的神殿", "树精丛林", "炼狱", "极昼", "第一脊椎"]
-}
-
-quadMap = {
-    "格兰之森": Quardant.ZUO,
-    "天空之城": Quardant.YOU,
-    "天锥巨兽": Quardant.YOU,
-}
-
-
 # 是否有剧情任务
 def HasPlot():
     tasks = GetTaskObj()
@@ -269,9 +256,10 @@ def TaskOk():
 
 # 领取主线任务
 def AcceptMain():
-    if not taskScene.Match():
-        Clear()
+    MouseMoveTo(0, 0), RanSleep(0.3)
+    Clear()
 
+    if not taskScene.Match():
         logger.info("F1打开任务")
         PressKey(VK_CODE["F1"]), RanSleep(0.3)
 
@@ -283,17 +271,22 @@ def AcceptMain():
         logger.warning("没有主线任务")
         return
 
+    if IsWindowTop():
+        logger.warning("有窗口弹出,退出领取主线任务")
+        return
+
     pos = taskkzhuxian.Pos()
     MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-    MouseLeftClick(), RanSleep(0.3)
+    MouseLeftClick(), RanSleep(1)
 
 
 # 完成任务  (直接完成不能一直点,因为会有对话框弹出来,多次按任务对话框数据变0)
 def SubmitTask(player):
-    if player.taskctx.latestsubmitpoint is None or player.taskctx.latestsubmitpoint - time.time() > 10.0:
-        if not taskScene.Match():
-            Clear()
+    if player.taskctx.latestsubmitpoint is None or player.taskctx.latestsubmitpoint - time.time() > 5.0:
+        MouseMoveTo(0, 0), RanSleep(0.3)
+        Clear()
 
+        if not taskScene.Match():
             logger.info("F1打开任务")
             PressKey(VK_CODE["F1"]), RanSleep(0.3)
 
@@ -305,9 +298,13 @@ def SubmitTask(player):
             logger.warning("没有完成的主线任务")
             return
 
+        if IsWindowTop():
+            logger.warning("有窗口弹出,退出完成任务")
+            return
+
         pos = taskok.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(1)
 
         player.taskctx.latestsubmitpoint = time.time()
     else:
@@ -325,12 +322,12 @@ def AttacktaskFoo(fubenname):
     def foo(player, dituname=dituname, fubenname=fubenname):
         if not IsTaskaccept():
             logger.info("没有主线任务被接受")
-            AcceptMain()
+            AcceptMain(), RanSleep(0.3)
             return
 
         if TaskOk():
             logger.info("任务直接可完成")
-            SubmitTask(player)
+            SubmitTask(player), RanSleep(0.3)
             return
 
         moveinfo = MoveSetting[dituname]
@@ -357,12 +354,12 @@ def MeetNpcFoo(npcname):
     def foo(player, npcname=npcname):
         if not IsTaskaccept():
             logger.info("没有主线任务被接受")
-            AcceptMain()
+            AcceptMain(), RanSleep(0.3)
             return
 
         if TaskOk():
             logger.info("任务直接可完成")
-            SubmitTask(player)
+            SubmitTask(player), RanSleep(0.3)
             return
 
         if npcname == "":
@@ -442,6 +439,29 @@ def 赫顿玛尔的骚乱(player):
     else:
         MoveTo("艾尔文南", player)
 
+# 同名任务
+def 长脚罗特斯():
+    def foo(player):
+        meninfo = GetMenInfo()
+        if meninfo.level < 30:
+            MeetNpcFoo("巴恩")(player)
+        else:
+            AttacktaskFoo("第二脊椎")(player)
+
+    return foo
+
+
+fubenMap = {
+    "格兰之森": ["幽暗密林", "猛毒雷鸣废墟", "冰霜幽暗密林", "格拉卡", "烈焰格拉卡", "烈焰格拉卡", "暗黑雷鸣废墟"],
+    "天空之城": ["龙人之塔", "人偶玄关", "石巨人塔", "黑暗悬廊", "城主宫殿", "悬空城"],
+    "天帷巨兽": ["GBL教的神殿", "树精丛林", "炼狱", "极昼", "第一脊椎", "天帷禁地", "第二脊椎"]
+}
+
+quadMap = {
+    "格兰之森": Quardant.ZUO,
+    "天空之城": Quardant.YOU,
+    "天帷巨兽": Quardant.YOU,
+}
 
 IdxMapMap = {
     # 1-16 格兰之森
@@ -466,7 +486,9 @@ IdxMapMap = {
     "树精丛林": 1,
     "炼狱": 2,
     "极昼": 3,
-    "第一脊椎": 4
+    "第一脊椎": 4,
+    "天帷禁地": 6,
+    "第二脊椎": 5
 }
 
 plotMap = {
@@ -526,7 +548,8 @@ plotMap = {
 
     # 24 -
     "告别和另一段冒险": MeetNpcFoo("奥菲利亚"),
-    "长脚罗特斯": MeetNpcFoo("巴恩"),
+    # "长脚罗特斯": MeetNpcFoo("巴恩"),
+    "长脚罗特斯": 长脚罗特斯(),
     "前往天帷巨兽": MeetNpcFoo("卡坤"),
     "GBL教的神殿": AttacktaskFoo("GBL教的神殿"),
     "被捉的信徒": AttacktaskFoo("GBL教的神殿"),
@@ -541,6 +564,12 @@ plotMap = {
     "奥菲利亚的帮助": MeetNpcFoo("奥菲利亚"),
     "骑士团参战": MeetNpcFoo("卡坤"),
     "艾丽丝的帮助": MeetNpcFoo(""),
+    "前往天帷巨兽的肚子里": AttacktaskFoo("天帷禁地"),
+    "无法幸免的马塞尔": AttacktaskFoo("天帷禁地"),
+    "罗特斯所在之地": AttacktaskFoo("第二脊椎"),
+    "寻找阿甘左": AttacktaskFoo("第二脊椎"),
+    # "长脚罗特斯": AttacktaskFoo("第二脊椎"),
+    "消灭长脚罗特斯": AttacktaskFoo("第二脊椎"),
 }
 
 

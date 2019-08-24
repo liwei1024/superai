@@ -417,7 +417,6 @@ class GlobalState(State):
         # 对话处理
         if player.IsEmptyFor(FOR_DUIHUA):
             logger.info("对话状态")
-            PressKey(VK_CODE["esc"]), RanSleep(0.2)
             PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
             if not IsWindowTop():
                 player.RestoreContext()
@@ -441,6 +440,7 @@ class GlobalState(State):
         # 对话判断
         if not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
             player.SaveAndChangeToEmpty(FOR_DUIHUA)
+            return
         # 确认按钮
         elif not player.IsEmptyFor(FOR_CONFIRM) and IsConfirmTop():
             player.SaveAndChangeToEmpty(FOR_CONFIRM)
@@ -467,7 +467,7 @@ class GlobalState(State):
             if time.time() - self.latesttime > 0.5:
 
                 curx, cury = GetMenXY()
-                # 城主宫殿 任务: 从天而落之物
+
                 if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
                     # 去下一个门的情况下.坐标判断宽松些
                     if WithInRange(curx, cury, self.beginx, self.beginy, 10):
@@ -569,6 +569,7 @@ class SettingSkill(State):
     def Execute(self, player):
         logger.info("增加技能点")
         Clear()
+        MouseMoveTo(0, 0), RanSleep(0.3)
         oc = Occupationkills()
         oc.AddSkillPoints()
         oc.RemoveNotInStrategy()
@@ -936,7 +937,7 @@ class TaskState(State):
         for v in tasks:
             if v.name in plotMap.keys():
                 plotMap[v.name](player)
-
+                return
         RanSleep(0.2)
 
 

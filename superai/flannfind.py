@@ -221,8 +221,8 @@ def GetImgDir():
     return basedir
 
 
-confirm = Picture(GetImgDir() + "/confirm.png")
-space = Picture(GetImgDir() + "/kongge.png")
+confirm = Picture(GetImgDir() + "confirm.png")
+space = Picture(GetImgDir() + "kongge.png")
 
 gConfirmTop = False
 gFlushExit = False

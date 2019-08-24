@@ -147,7 +147,7 @@ BODYPOS = [14, 15, 16, 17, 18]
 WUQIPOS = 12
 SHIPINPOS = [19, 20, 21]
 
-ChengHaoRequire = [ 12 , 14, 15, 16, 17, 18, 19, 20, 21]
+ChengHaoRequire = [12, 14, 15, 16, 17, 18, 19, 20, 21]
 
 POSMAP = {
     12: "武器",
@@ -354,7 +354,8 @@ class ObstacleObj(Structure):
             self.x, self.y, self.w, self.h, self.flag))
 
     def CanBeAttack(self):
-        if self.code in [109006910, 109006911, 226, 228, 19134, 19135, 18020, 109000583, 109000576, 57522, 109006963]:
+        if self.code in [109006910, 109006911, 226, 228, 19134, 19135, 18020, 109000583, 109000576, 57522, 109006963,
+                         109006964]:
             return False
 
         if self.hp > 0 and self.flag == 2:
@@ -667,7 +668,7 @@ def WithInManzou(x1, y1, x2, y2):
 
 # 是否在范围内
 def WithInRange(x1, y1, x2, y2, range):
-    return distance(x1, y2, x2, y2) < range
+    return distance(x1, y1, x2, y2) < range
 
 
 # 获取对象在右边还是左边

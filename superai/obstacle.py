@@ -6,16 +6,17 @@ import cv2
 import numpy as np
 
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.common import InitLog
 import logging
+
 logger = logging.getLogger(__name__)
 
-from superai.gameapi import GameApiInit, GetSeceneInfo, FlushPid, GetMenInfo, GetMonsters, GetGoods, IsManInMap, \
-    GetNextDoor
+from superai.plot import IsTaskaccept, DidPlotAccept
 
+from superai.gameapi import GameApiInit, GetSeceneInfo, FlushPid, GetMenInfo, GetMonsters, GetGoods, IsManInMap, \
+    GetNextDoor, GetMapInfo
 
 
 class GameObstacleData():
@@ -32,9 +33,19 @@ class GameObstacleData():
 def GetGameObstacleData():
     dixingtree, dixingvec, dixingextra, obstacles, wh = GetSeceneInfo()
 
-    # for ob in obstacles:
-    #     if ob.code == 109006963: # 水晶柱
-    #         ob.w, ob.h = 30, 30
+    for ob in obstacles:
+        if ob.code == 109006963:  # 水晶柱
+            ob.w, ob.h = 40, 40
+    # 109006963 问题的关键是这里为啥可以穿过去但是又穿不过去
+
+    # 不要设置地形了. 可以走过去的
+    mapinfo = GetMapInfo()
+    if mapinfo.name == "城主宫殿":
+        if DidPlotAccept("从天而落之物"):
+            dixingtree = []
+            dixingvec = []
+            dixingextra = []
+            obstacles = []
 
     return GameObstacleData(wh.w, wh.h, dixingtree, dixingvec, dixingextra, obstacles)
 

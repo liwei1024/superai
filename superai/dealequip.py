@@ -53,6 +53,7 @@ class DealEquip:
     # 分解
     def FenjieAll(self):
         Clear()
+        MouseMoveTo(0, 0), RanSleep(0.3)
 
         logger.info("分解所有")
 
@@ -98,6 +99,7 @@ class DealEquip:
     # 卖所有装备
     def SellAll(self):
         Clear()
+        MouseMoveTo(0, 0), RanSleep(0.3)
 
         logger.info("出售所有")
         pos = self.GetFenjieJiPos()
@@ -125,6 +127,7 @@ class DealEquip:
     # 修理 (身上5件 + 武器)
     def RepairAll(self):
         Clear()
+        MouseMoveTo(0, 0), RanSleep(0.3)
 
         logger.info("修理所有")
         pos = self.GetFenjieJiPos()

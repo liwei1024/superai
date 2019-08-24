@@ -60,15 +60,15 @@ IDXNAMEMAP = {
     JIEZHIIDX: "戒指",
 }
 
-bagScene = Picture(GetImgDir() + "/bagscene.png")
-zupinScene = Picture(GetImgDir() + "/zupin_scene.png")
-xingyunxing = Picture(GetImgDir() + "/xingyunxing.png")
-zupinconfirm = Picture(GetImgDir() + "/zupin_confirm.png")
-zupinconfirm2 = Picture(GetImgDir() + "/zupin_confirm2.png")
-chenghaobu = Picture(GetImgDir() + "/chenghaobu.png")
-chenghaobubtn = Picture(GetImgDir() + "/chenghaobubtn.png")
-zhuangbeizhanshi = Picture(GetImgDir() + "/zhuangbeizhanshi.png")
-jichudabiao = Picture(GetImgDir() + "/jichudabiao.png")
+bagScene = Picture(GetImgDir() + "bagscene.png")
+zupinScene = Picture(GetImgDir() + "zupin_scene.png")
+xingyunxing = Picture(GetImgDir() + "xingyunxing.png")
+zupinconfirm = Picture(GetImgDir() + "zupin_confirm.png")
+zupinconfirm2 = Picture(GetImgDir() + "zupin_confirm2.png")
+chenghaobu = Picture(GetImgDir() + "chenghaobu.png")
+chenghaobubtn = Picture(GetImgDir() + "chenghaobubtn.png")
+zhuangbeizhanshi = Picture(GetImgDir() + "zhuangbeizhanshi.png")
+jichudabiao = Picture(GetImgDir() + "jichudabiao.png")
 
 levelNumMap = {
     10: 3,
@@ -103,7 +103,7 @@ class Equips:
     # 打开装备栏
     def OpenBagScene(self):
         Clear()
-
+        MouseMoveTo(0, 0), RanSleep(0.3)
         while not bagScene.Match():
             logger.info("打开装备栏")
             PressKey(VK_CODE["i"]), RanSleep(0.5)
@@ -132,6 +132,11 @@ class Equips:
 
     # 比较装备 等级优先, 等级相等品级优先
     def CompareEquip(self, v1, v2):
+
+        # 幸运星优先
+        if "幸运星" in v1.name:
+            return True
+
         if v1.canbeusedlevel > v2.canbeusedlevel:
             return True
         elif v1.canbeusedlevel == v2.canbeusedlevel:
@@ -202,7 +207,7 @@ class Equips:
 
     # 更换装备
     def ChangeEquip(self):
-        self.OpenBagScene(), RanSleep(0.5)
+        self.OpenBagScene(), RanSleep(0.2)
         bagpos = bagScene.Pos()
         for v in CheckReplices:
             betterEquip = self.BagEquipBetter(v[0], v[1])
@@ -275,18 +280,17 @@ class Equips:
 
     # 打开租聘界面
     def OpenZupin(self):
-        Clear()
+        if not zupinScene.Match():
+            Clear()
+            MouseMoveTo(0, 0), RanSleep(0.3)
 
-        t = None
-        while not zupinScene.Match():
-            while t is None or time.time() - t > 5.0:
-                logger.info("打开幸运星租聘界面")
-                t = time.time()
-                while not IsEscTop():
-                    PressKey(VK_CODE["esc"]), RanSleep(0.2)
-                pos = xingyunxing.Pos()
-                MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-                MouseLeftClick(), RanSleep(1)
+            logger.info("打开幸运星租聘界面")
+            while not IsEscTop():
+                logger.info("打开esc")
+                PressKey(VK_CODE["esc"]), RanSleep(0.2)
+            pos = xingyunxing.Pos()
+            MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+            MouseLeftClick(), RanSleep(1)
 
     # 关闭租聘界面
     def CloseZupin(self):
@@ -314,8 +318,10 @@ class Equips:
     # 打开称号界面
     def GetChenghao(self):
         Clear()
+        MouseMoveTo(0, 0), RanSleep(0.3)
 
         while not chenghaobu.Match():
+
             while not bagScene.Match():
                 logger.info("打开装备栏")
                 PressKey(VK_CODE["i"]), RanSleep(0.5)

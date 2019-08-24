@@ -107,37 +107,50 @@ def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defe
     if dh != 0:
         h = dh
 
-    hdc = win32gui.GetWindowDC(hwnd)
-    # defer(lambda: (win32gui.ReleaseDC(hwnd, windowDC)))
-
-    imgDC = win32ui.CreateDCFromHandle(hdc)
-    # defer(lambda: (imgDC.DeleteDC()))
-
-    memDC = imgDC.CreateCompatibleDC()
-    # defer(lambda: (memDC.DeleteDC()))
-
-    bitmap = win32ui.CreateBitmap()
-    # defer(lambda: (win32gui.DeleteObject(bitmap.GetHandle())))
+    hdc, imgDC, memDC, bitmap = None, None, None, None
     try:
+        hdc = win32gui.GetWindowDC(hwnd)
+        imgDC = win32ui.CreateDCFromHandle(hdc)
+        memDC = imgDC.CreateCompatibleDC()
+        bitmap = win32ui.CreateBitmap()
         bitmap.CreateCompatibleBitmap(imgDC, w, h)
+
+        oldmap = memDC.SelectObject(bitmap)
+
+        # 从dx, dy 处拷贝 w,h 的位图,到申请的w,h大小的空间的0,0处开始拷贝
+        memDC.BitBlt((0, 0), (w, h), imgDC, (dx, dy), win32con.SRCCOPY)
+        npbytes = np.frombuffer(bitmap.GetBitmapBits(True), dtype='uint8')
+        npbytes.shape = (h, w, 4)
+        memDC.SelectObject(oldmap)
+        return cv2.cvtColor(npbytes, cv2.COLOR_BGRA2BGR)
     except:
-        logger.error(win32api.FormatMessage())
-        img = np.zeros((h, w, 3), dtype=np.uint8)
-        return img
+        logger.warning("截图函数发生异常")
+        return np.zeros((h, w, 3), dtype=np.uint8)
 
-    memDC.SelectObject(bitmap)
+    finally:
+        try:
+            if bitmap:
+                win32gui.DeleteObject(bitmap.GetHandle())
+        except:
+            logger.warning("win32gui.DeleteObject 发生异常")
 
-    # 从dx, dy 处拷贝 w,h 的位图,到申请的w,h大小的空间的0,0处开始拷贝
-    memDC.BitBlt((0, 0), (w, h), imgDC, (dx, dy), win32con.SRCCOPY)
-    npbytes = np.frombuffer(bitmap.GetBitmapBits(True), dtype='uint8')
-    npbytes.shape = (h, w, 4)
+        try:
+            if memDC:
+                memDC.DeleteDC()
+        except:
+            logger.warning("memDC.DeleteDC() 发生异常")
 
-    imgDC.DeleteDC()
-    memDC.DeleteDC()
-    win32gui.ReleaseDC(hwnd, hdc)
-    win32gui.DeleteObject(bitmap.GetHandle())
+        try:
+            if imgDC:
+                imgDC.DeleteDC()
+        except:
+            logger.warning("imgDC.DeleteDC() 发生异常")
 
-    return cv2.cvtColor(npbytes, cv2.COLOR_BGRA2BGR)
+        try:
+            if hdc:
+                win32gui.ReleaseDC(hwnd, hdc)
+        except:
+            logger.warning("win32gui.ReleaseDC() 发生异常")
 
 
 def main():
