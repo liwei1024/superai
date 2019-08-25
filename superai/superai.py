@@ -288,8 +288,8 @@ class Player:
 
                 s = ""
                 for v in lst:
-                    curpoint = idxToXY(v, self.d.mapw // 10)
-                    s += "(%d, %d) " % (curpoint[0], curpoint[1])
+                    firstPoint = idxToXY(v, self.d.mapw // 10)
+                    s += "(%d, %d) " % (firstPoint[0], firstPoint[1])
 
                 logger.info("路径规划一共%d 个路程点 %s" % (len(lst), s))
                 self.pathfindinglst = lst
@@ -307,26 +307,26 @@ class Player:
             return
         elif len(self.pathfindinglst) >= 2:
             # 路径规划过
-            curpoint = idxToXY(self.pathfindinglst[0], self.d.mapw // 10)
-            nowcoord = idxToZuobiao(CoordToManIdx(menx, meny, self.d.mapw // 10, self.ob), self.d.mapw // 10)
+            firstPoint = idxToXY(self.pathfindinglst[0], self.d.mapw // 10)
+            menCorrectCoord = idxToZuobiao(CoordToManIdx(menx, meny, self.d.mapw // 10, self.ob), self.d.mapw // 10)
 
             # 如果修正过的坐标本身就没达到. 往那走一些
-            if not IsClosedTo(menx, meny, nowcoord.x, nowcoord.y):
-                logger.warning("修正过的坐标(%d, %d)本身(%d, %d)就没达到, 调整" % (nowcoord.x, nowcoord.y, menx, meny))
+            if not IsClosedTo(menx, meny, menCorrectCoord.x, menCorrectCoord.y):
+                logger.warning("人物当前坐标(%d, %d) 没达到修正过的坐标(%d, %d), 调整" % (menx, meny, menCorrectCoord.x, menCorrectCoord.y))
                 dummy = "" if dummy is None else dummy
                 self.UpLatestKey()
-                self.Seek(nowcoord.x, nowcoord.y, obj, dummy=dummy + "(调整修正位置)")
+                self.Seek(menCorrectCoord.x, menCorrectCoord.y, obj, dummy=dummy + "(调整修正位置)")
                 return
 
-            nextcoord = idxToZuobiao(self.pathfindinglst[1], self.d.mapw // 10)
-            flag = self.ob.CanTwoPointBeMove(nowcoord, nextcoord)
-            logger.info("检测 %s -> %s 是否连通 %d" % (nowcoord, nextcoord, flag))
+            secondPoint = idxToZuobiao(self.pathfindinglst[1], self.d.mapw // 10)
+            flag = self.ob.CanTwoPointBeMove(menCorrectCoord, secondPoint)
+            logger.info("检测 %s -> %s 是否连通下一个点: %d" % (menCorrectCoord, secondPoint, flag))
 
             # 是否直接到达位置
             if not flag:
-                if IsClosedTo(menx, meny, curpoint[0], curpoint[1]):
+                if IsClosedTo(menCorrectCoord.x, menCorrectCoord.y, firstPoint[0], firstPoint[1]):
                     flag = True
-                    logger.info("直接设置到达位置 (%d, %d) (%d, %d)" % (menx, meny, curpoint[0], curpoint[1]))
+                    logger.info("直接设置到达当前点 (%d, %d) (%d, %d)" % (menCorrectCoord.x, menCorrectCoord.y, firstPoint[0], firstPoint[1]))
 
             if flag:
                 del self.pathfindinglst[0]
@@ -335,7 +335,7 @@ class Player:
                 return
             else:
                 dummy = "" if dummy is None else dummy
-                self.Seek(curpoint[0], curpoint[1], obj, dummy=dummy + "(寻路)")
+                self.Seek(firstPoint[0], firstPoint[1], obj, dummy=dummy + "(寻路)")
                 return
 
     # 因为到达目的地了清空当前寻路

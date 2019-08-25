@@ -306,7 +306,6 @@ class Obstacle:
         return True
 
     # 修正初始坐标, 初始坐标可能和障碍物相交, 所以需要稍微调整. return (cellx, celly)
-    # TODO 重写
     def CorrectZuobiao(self, cellpos):
         if self.TouchedAnything([cellpos[0], cellpos[1]]):
             curx, cury = cellpos[0], cellpos[1]
