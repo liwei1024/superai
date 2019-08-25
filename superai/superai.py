@@ -33,7 +33,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
-    GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear
+    GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -225,7 +225,10 @@ class Player:
             for keydown in latestDecompose:
                 if keydown not in currentDecompose:
                     QuadKeyUpMap[keydown]()
+                    RanSleep(0.01)
+
             self.DownKey(quad)
+
             RanSleep(0.02)
             logger.info("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 保持部分移动方向 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
@@ -286,9 +289,9 @@ class Player:
                 return
         elif len(self.pathfindinglst) == 1:
             point = idxToXY(self.pathfindinglst[0], self.d.mapw // 10)
-            logger.info("就一个最终目的规划点了,直接过去 (%d, %d)" % (point.x, point.y))
+            logger.info("就一个最终目的规划点了,直接过去 (%d, %d)" % (point[0], point[1]))
             del self.pathfindinglst[0]
-            self.Seek(point.x, point.y, obj, dummy)
+            self.Seek(point[0], point[1], obj, dummy)
             return
         elif len(self.pathfindinglst) >= 2:
             # 路径规划过
@@ -316,7 +319,7 @@ class Player:
 
             if flag:
                 point = idxToXY(self.pathfindinglst[0], self.d.mapw // 10)
-                logger.info("到达了规划点 (%d, %d) 剩余 %d" % (point.x, point.y, len(self.pathfindinglst) - 1))
+                logger.info("到达了规划点 (%d, %d) 剩余 %d" % (point[0], point[1], len(self.pathfindinglst) - 1))
                 del self.pathfindinglst[0]
                 # self.SeekWithPathfinding(destx, desty, obj, dummy)
                 return
@@ -746,6 +749,12 @@ class StandState(State):
             pass
             # 打死怪物后, 门可能不是马上就开, 直接靠近门
             # player.ChangeState(DoorDidnotOpen())
+        elif IsManInChengzhen():
+            player.ChangeState(InChengzhen())
+            return
+        elif IsMenDead():
+            player.ChangeState(DeadState())
+            return
         else:
             if IsCurrentInBossFangjian():
                 # 得不到怪物对象. 可能副本结束的瞬间 按esc吧!
@@ -814,7 +823,7 @@ class SeekAndAttackMonster(State):
                 player.UseSkill()
 
             # 阿甘左强行判断:
-            if 29 <= men.level <= 31 and obj.name == "领主 - 阿甘左" and obj.hp <= 271818:
+            if 28 <= men.level <= 32 and obj.name == "领主 - 阿甘左" and obj.hp <= 281818:
                 PressKey(VK_CODE["6"]), RanSleep(0.3)
                 logger.info("给阿甘左吃点香料")
             return
@@ -934,6 +943,21 @@ class DoorStuckGoToPrev(State):
             player.ChangeState(DoorOpenGotoNext())
         else:
             player.SeekWithPathfinding(door.prevcx, door.prevcy, dummy="靠近门前")
+
+
+# 死亡
+class DeadState(State):
+    def Execute(self, player):
+        meninfo = GetMenInfo()
+        if meninfo.hp > 0:
+            player.ChangeState(Setup())
+            return
+
+        if IsManInChengzhen():
+            player.ChangeState(Setup())
+            return
+
+        PressX(), RanSleep(0.3)
 
 
 # 做任务状态机

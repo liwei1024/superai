@@ -1208,13 +1208,13 @@ def GetGoodsWrap():
     return goods
 
 
-# 获取地面物品的wrap, 过滤掉不能捡取的
+# 获取地面物品的wrap, 过滤掉不能捡取的s
 def GetGoodsCanbePickup(player):
     goods = GetGoodsWrap()
-    if player.d is not None and player.ob is not None:
-        for good in goods:
-            if player.ob.TouchedAnything((int(good.x) // 10, int(good.y) // 10)):
-                goods.remove(good)
+    # if player.d is not None and player.ob is not None:
+    #     for good in goods:
+    #         if player.ob.TouchedAnything((int(good.x) // 10, int(good.y) // 10)):
+    #             goods.remove(good)
     return goods
 
 
@@ -1375,6 +1375,11 @@ def IsManJipao():
     meninfo = GetMenInfo()
     return meninfo.jipao
 
+
+# 是否死掉了
+def IsMenDead():
+    meninfo = GetMenInfo()
+    return meninfo.hp <= 0
 
 # 冰霜幽暗密林第一个门有冰柱挡住
 def GetNextDoorWrap():

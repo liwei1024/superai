@@ -329,31 +329,22 @@ class Obstacle:
         halfmenw, halfmenh = self.menw // 2, self.menh // 2
         composes = QuardantMap[quad]
         menl, menr, ment, mend = menx - halfmenw, menx + halfmenw, meny - halfmenh, meny + halfmenh
+
         for v in composes:
-            checks = []
-
-            zuo = (menl - self.menw, menr - self.menw, ment, mend)
-            you = (menl + self.menw, menr + self.menw, ment, mend)
-            shang = (menl, menr, ment - self.menh, mend - self.menh)
-            xia = (menl, menr, ment + self.menh, mend + self.menh)
-            chongdie = (menl, menr, ment, mend)
-
             if v == Quardant.ZUO:
-                checks.append(zuo)
+                l, r, t, d = menl - self.menw, menr - self.menw, ment, mend
             elif v == Quardant.YOU:
-                checks.append(you)
+                l, r, t, d = menl + self.menw, menr + self.menw, ment, mend
             elif v == Quardant.SHANG:
-                checks.append(shang)
+                l, r, t, d = menl, menr, ment - self.menh, mend - self.menh
             elif v == Quardant.XIA:
-                checks.append(xia)
+                l, r, t, d = menl, menr, ment + self.menh, mend + self.menh
             else:
-                checks.append(chongdie)
+                l, r, t, d = menl, menr, ment, mend
 
-            for c in checks:
-                if len(self.RangesAllObstacleAttack(c[0], c[1], c[2], c[3])) > 0:
-                    return True
-
-            return False
+            if len(self.RangesAllObstacleAttack(l, r, t, d)) > 0:
+                return True
+        return False
 
     # ** (直接使用)人物指定方向是否有障碍物或地形
     def ManQuadHasTrouble(self, quad, menx, meny):
@@ -667,7 +658,6 @@ def GetPaths(d, ob, beginpos, endpos):
     else:
         # 可能起点终点相同
         lst = [begincellidx, endcellidx]
-
     return lst, None
 
 
@@ -752,8 +742,8 @@ def main():
     GameApiInit()
     FlushPid()
 
-    DrawNextDoorPath()
-    # DrawAnyPath(1175, 217, 1358, 215)
+    # DrawNextDoorPath()
+    DrawAnyPath(1041, 266, 987, 191)
 
 
 if __name__ == '__main__':
