@@ -322,28 +322,6 @@ class Obstacle:
         composes = QuardantMap[quad]
         menl, menr, ment, mend = menx - halfmenw, menx + halfmenw, meny - halfmenh, meny + halfmenh
         for v in composes:
-            if v == Quardant.ZUO:
-                l, r, t, d = menl - self.menw, menr - self.menw, ment, mend
-            elif v == Quardant.YOU:
-                l, r, t, d = menl + self.menw, menr + self.menw, ment, mend
-            elif v == Quardant.SHANG:
-                l, r, t, d = menl, menr, ment - self.menh, mend - self.menh
-            elif v == Quardant.XIA:
-                l, r, t, d = menl, menr, ment + self.menh, mend + self.menh
-            else:
-                l, r, t, d = menl, menr, ment, mend
-
-            if len(self.RangesAllObstacleAttack(l, r, t, d)) > 0:
-                return True
-        return False
-
-    # ** (直接使用)人物指定方向是否有障碍物或地形
-    def ManQuadHasTrouble(self, quad, menx, meny):
-        halfmenw, halfmenh = self.menw // 2, self.menh // 2
-        composes = QuardantMap[quad]
-        menl, menr, ment, mend = menx - halfmenw, menx + halfmenw, meny - halfmenh, meny + halfmenh
-
-        for v in composes:
             checks = []
 
             zuo = (menl - self.menw, menr - self.menw, ment, mend)
@@ -368,10 +346,32 @@ class Obstacle:
                 checks.append(chongdie)
 
             for c in checks:
-                if self.RangesHaveTrouble(c[0], c[1], c[2], c[3]) > 0:
+                if self.RangesAllObstacleAttack(c[0], c[1], c[2], c[3]) > 0:
                     return True
 
             return False
+
+    # ** (直接使用)人物指定方向是否有障碍物或地形
+    def ManQuadHasTrouble(self, quad, menx, meny):
+        halfmenw, halfmenh = self.menw // 2, self.menh // 2
+        composes = QuardantMap[quad]
+        menl, menr, ment, mend = menx - halfmenw, menx + halfmenw, meny - halfmenh, meny + halfmenh
+
+        for v in composes:
+            if v == Quardant.ZUO:
+                l, r, t, d = menl - self.menw, menr - self.menw, ment, mend
+            elif v == Quardant.YOU:
+                l, r, t, d = menl + self.menw, menr + self.menw, ment, mend
+            elif v == Quardant.SHANG:
+                l, r, t, d = menl, menr, ment - self.menh, mend - self.menh
+            elif v == Quardant.XIA:
+                l, r, t, d = menl, menr, ment + self.menh, mend + self.menh
+            else:
+                l, r, t, d = menl, menr, ment, mend
+
+            if self.RangesHaveTrouble(l, r, t, d) > 0:
+                return True
+        return False
 
 
 # a star search
