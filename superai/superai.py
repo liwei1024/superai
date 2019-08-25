@@ -314,12 +314,8 @@ class Player:
             if not IsClosedTo(menx, meny, menCorrectCoord.x, menCorrectCoord.y):
                 logger.warning(
                     "人物当前坐标(%d, %d) 没达到修正过的坐标(%d, %d), 调整" % (menx, meny, menCorrectCoord.x, menCorrectCoord.y))
-                # dummy = "" if dummy is None else dummy
-                self.UpLatestKey()
-                self.DownKey(quad)
-                RanSleep(0.1)
-                self.UpLatestKey()
-                # self.Seek(menCorrectCoord.x, menCorrectCoord.y, obj, dummy=dummy + "(调整修正位置)")
+                dummy = "" if dummy is None else dummy
+                self.Seek(menCorrectCoord.x, menCorrectCoord.y, obj, dummy=dummy + "(调整修正位置)")
                 return
 
             secondPoint = idxToZuobiao(self.pathfindinglst[1], self.d.mapw // 10)

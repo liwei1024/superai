@@ -593,11 +593,8 @@ class BfsNextRangeCorrect:
 
         for (adjx, adjy) in checks:
 
-            idx = hwToidx(adjx, adjy, self.manCellWLen)
+            if not self.OutRange(adjcellx, adjcelly):
 
-            if idx >= self.manCellnum:
-                logger.warning("GetAdjs out of range ")
-                continue
 
             adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
 
@@ -622,7 +619,7 @@ class BfsNextRangeCorrect:
 
                 adjcellx, adjcelly = idxTohw(w, self.manCellWLen)
 
-                if not self.ob.TouchedAnything([adjcellx, adjcelly]) and not self.OutRange(adjcellx, adjcelly):
+                if not self.ob.TouchedAnything([adjcellx, adjcelly]):
                     return idxTohw(w, self.manCellWLen)
 
                 if not self.marked[w]:
