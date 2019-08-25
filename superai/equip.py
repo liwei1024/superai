@@ -152,7 +152,10 @@ class Equips:
     def CompareEquip(self, v1, v2):
 
         # 幸运星优先
-        if "幸运星" in v1.name:
+        meninfo = GetMenInfo()
+        suitlevel = (meninfo.level // 10) * 10
+
+        if v1.bodypos == WUQIPOS and v1.canbeusedlevel == suitlevel and "幸运星" in v1.name:
             return True
 
         if v1.canbeusedlevel > v2.canbeusedlevel:
@@ -209,6 +212,7 @@ class Equips:
                         elif self.CompareEquip(v, self.GetBodyEquip(IDX)):
                             tobeWrapedEquip = v
                 else:
+
                     if v.bodypos == WUQIPOS and self.DoesWuqiXingyunxing():
                         pass
                     elif self.CompareEquip(v, tobeWrapedEquip):

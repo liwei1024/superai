@@ -756,8 +756,8 @@ def main():
     GameApiInit()
     FlushPid()
 
-    DrawNextDoorPath()
-    # DrawAnyPath(1343, 287, 1272, 217)
+    #DrawNextDoorPath()
+    DrawAnyPath(976, 194 ,1388, 177)
 
 
 if __name__ == '__main__':

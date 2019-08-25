@@ -593,14 +593,14 @@ QuadKeyUpMap = {
 # 坐标位置
 def QuardrantWithOutRent(x2, y2, chuizhikuandu, shuipingkuandu):
     # 同一个垂直位置
-    if abs(x2) < chuizhikuandu:
+    if abs(x2) <= chuizhikuandu:
         if y2 > 0:
             return Quardant.XIA
         else:
             return Quardant.SHANG
 
     # 同一个水平位置
-    if abs(y2) < shuipingkuandu:
+    if abs(y2) <= shuipingkuandu:
         if x2 > 0:
             return Quardant.YOU
         else:
@@ -640,8 +640,8 @@ def GetQuadrant(x1, y1, x2, y2):
     newx2, newy2 = x2 - x1, y2 - y1
     if abs(newx2) < MOVE_BIG_V_WIDTH and abs(newy2) < MOVE_BIG_H_WIDTH:
         # 在中间的小矩阵
-        if abs(newx2) < MOVE_SMALL_V_WIDTH and abs(newy2) < MOVE_SMALL_H_WIDTH:
-            return Quardant.CHONGDIE, SMALL_RENT
+        # if abs(newx2) < MOVE_SMALL_V_WIDTH and abs(newy2) < MOVE_SMALL_H_WIDTH:
+        #     return Quardant.CHONGDIE, SMALL_RENT
         return QuardrantWithOutRent(newx2, newy2, MOVE_SMALL_V_WIDTH, MOVE_SMALL_H_WIDTH), SMALL_RENT
     return QuardrantWithOutRent(newx2, newy2, MOVE_BIG_V_WIDTH, MOVE_BIG_H_WIDTH), BIG_RENT
 
