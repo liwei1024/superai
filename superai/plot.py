@@ -132,13 +132,14 @@ MoveSetting = {
 class TaskCtx:
     def __init__(self):
         # 上一次小地图按键的时间点(对话NPC)
-        self.latestmovpoint = None
+        self.latestmovepoint = None
 
         # 上一次完成任务单击时间
         self.latestsubmitpoint = None
 
     def Clear(self):
-        self.latestmovpoint = None
+        pass
+        # self.latestmovepoint = None
         # self.latestsubmitpoint = None
 
 
@@ -201,23 +202,23 @@ def CoordMoveTo(shijitpic, mousecoord):
         CloseShijieDitu()
         return True
     else:
-        logger.warning("世界地图没打开")
+        logger.warning("世界地图没打开"), RanSleep(0.3)
         return False
 
 
 # 移动到目的位置
 def MoveTo(npcname, player):
     moveinfo = MoveSetting[npcname]
-    if player.taskctx.latestmovpoint is None or time.time() > player.taskctx.latestmovpoint + 10.0:
-        # 没有移动过或者超时
+    if player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 10.0:
 
+        # 没有移动过或者超时
         logger.info("目标: %s 城镇位置: (%d,%d)  没有到达, 开始移动. 鼠标指向到 (%d, %d)" % (
             moveinfo.desc, moveinfo.destcoord[0],
             moveinfo.destcoord[1], moveinfo.mousecoord[0],
             moveinfo.mousecoord[1]))
 
         if CoordMoveTo(moveinfo.shijiepic, moveinfo.mousecoord):
-            player.taskctx.latestmovpoint = time.time()
+            player.taskctx.latestmovepoint = time.time()
     else:
         logger.info("城镇移动中"), RanSleep(1.5)
 
@@ -273,10 +274,8 @@ def IsTaskaccept():
     for v in acceptedtasks:
         if "守护森林的战斗" in v.name:
             return True
-
         if v.name in plotMap:
             return True
-
     return False
 
 
@@ -310,7 +309,7 @@ def AcceptMain():
 
 # 完成任务  (直接完成不能一直点,因为会有对话框弹出来,多次按任务对话框数据变0)
 def SubmitTask(player):
-    if player.taskctx.latestsubmitpoint is None or time.time() - player.taskctx.latestsubmitpoint > 5.0:
+    if player.taskctx.latestsubmitpoint is None or time.time() - player.taskctx.latestsubmitpoint > 8.0:
 
         if not OpenTaskScene():
             logger.warning("没有出现任务框")
@@ -438,7 +437,6 @@ def 守护森林的战斗(player):
         if pic is None:
             raise NotImplementedError("职业不支持")
 
-
         # 转职职业
         if not pic.Match():
             logger.warning("没有寻找到要转职的职业")
@@ -446,7 +444,7 @@ def 守护森林的战斗(player):
 
         pos = pic.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(1)
 
         while IsWindowTop():
             PressKey(VK_CODE["spacebar"]), RanSleep(0.2)

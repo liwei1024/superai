@@ -85,6 +85,12 @@ class Player:
         # 任务上下文
         self.taskctx = TaskCtx()
 
+        # 障碍数据, 障碍数据包装 NewMapCache 更新
+        self.d, self.ob = None, None
+
+        # 下一个门的x, y  NewMapCache 更新
+        self.doorx, self.doory = 0, 0
+
     # 更改当前状态机
     def ChangeState(self, state):
         self.UpLatestKey()

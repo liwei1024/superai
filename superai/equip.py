@@ -128,7 +128,7 @@ class Equips:
 
     # 关闭装备栏
     def CloseBagScene(self):
-        if bagScene.Match():
+        while bagScene.Match():
             logger.info("关闭装备栏")
             PressKey(VK_CODE["i"]), RanSleep(0.3)
 
@@ -321,7 +321,7 @@ class Equips:
 
     # 关闭租聘界面
     def CloseZupin(self):
-        if zupinScene.Match():
+        while zupinScene.Match():
             logger.info("关闭幸运星租聘界面")
             PressKey(VK_CODE["esc"]), RanSleep(0.3)
 
@@ -353,7 +353,9 @@ class Equips:
             logger.info("要打开称号栏")
             pos = chenghaobubtn.Pos()
             MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-            MouseLeftClick(), RanSleep(1)
+            MouseLeftClick(), RanSleep(0.3)
+
+            MouseMoveTo(0, 0)
 
         return chenghaobu.Match()
 

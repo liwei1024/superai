@@ -342,21 +342,36 @@ class Obstacle:
         halfmenw, halfmenh = self.menw // 2, self.menh // 2
         composes = QuardantMap[quad]
         menl, menr, ment, mend = menx - halfmenw, menx + halfmenw, meny - halfmenh, meny + halfmenh
-        for v in composes:
-            if v == Quardant.ZUO:
-                l, r, t, d = menl - self.menw, menr - self.menw, ment, mend
-            elif v == Quardant.YOU:
-                l, r, t, d = menl + self.menw, menr + self.menw, ment, mend
-            elif v == Quardant.SHANG:
-                l, r, t, d = menl, menr, ment - self.menh, mend - self.menh
-            elif v == Quardant.XIA:
-                l, r, t, d = menl, menr, ment + self.menh, mend + self.menh
-            else:
-                l, r, t, d = menl, menr, ment, mend
 
-            if self.RangesHaveTrouble(l, r, t, d) > 0:
-                return True
-        return False
+        for v in composes:
+            checks = []
+
+            zuo = (menl - self.menw, menr - self.menw, ment, mend)
+            you = (menl + self.menw, menr + self.menw, ment, mend)
+            shang = (menl, menr, ment - self.menh, mend - self.menh)
+            xia = (menl, menr, ment + self.menh, mend + self.menh)
+            chongdie = (menl, menr, ment, mend)
+
+            if v == Quardant.ZUO:
+                checks.append(zuo)
+                checks.append(shang)
+                checks.append(xia)
+            elif v == Quardant.YOU:
+                checks.append(you)
+                checks.append(shang)
+                checks.append(xia)
+            elif v == Quardant.SHANG:
+                checks.append(shang)
+            elif v == Quardant.XIA:
+                checks.append(xia)
+            else:
+                checks.append(chongdie)
+
+            for c in checks:
+                if self.RangesHaveTrouble(c[0], c[1], c[2], c[3]) > 0:
+                    return True
+
+            return False
 
 
 # a star search
@@ -707,8 +722,8 @@ def main():
     GameApiInit()
     FlushPid()
 
-    DrawNextDoorPath()
-    # DrawAnyPath(895, 373, 840, 270)
+    # DrawNextDoorPath()
+    DrawAnyPath(332, 338, 317, 381)
 
 
 if __name__ == '__main__':

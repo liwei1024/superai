@@ -151,13 +151,13 @@ class DealEquip:
 
     # 关闭分解机
     def CloseFenjie(self):
-        if fenjiexiulijiScene.Match():
+        while fenjiexiulijiScene.Match():
             logger.info("关闭分解机")
             PressKey(VK_CODE["esc"]), RanSleep(0.3)
 
     # 关闭卖物
     def CloseSell(self):
-        if sellButton.Match():
+        while sellButton.Match():
             logger.info("关闭分解机")
             PressKey(VK_CODE["esc"]), RanSleep(0.3)
 

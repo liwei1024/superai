@@ -71,10 +71,25 @@ class Occupationkills:
         meninfo = GetMenInfo()
         if meninfo.level >= 1:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "强踢", "shouhu_qiangti.png"))
+        if meninfo.level >= 5:
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "命运之轮", "shouhu_mingyunlun.png"))
+        if meninfo.level >= 10:
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "致命突刺", "shouhu_zhimingci.png"))
 
     # 帕拉丁(转职后)
     def paladingInit(self):
         meninfo = GetMenInfo()
+        if meninfo.level >= 15:
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光冲击", "palading_shenguangchongji.png"))
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光连斩", "palading_shenguanglianzhan.png"))
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "天使降临", "palading_shouhujianglin.png", beidong=True))
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "天使光翼", "palading_tianshizhiyi.png", beidong=True))
+        if meninfo.level >= 20:
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "圣盾突击", "palading_shengduntiji.png"))
+
+            self.DelSkill("命运之轮")
+            self.DelSkill("致命突刺")
+            self.DelSkill("强踢")
 
     # 圣职 (15级前)
     def shengzhiInit(self):
@@ -159,7 +174,7 @@ class Occupationkills:
             while not self.FindedPic(v.picutre):
                 if n >= 3:
                     logger.warning("找不到技能: %s" % v.name)
-                    continue
+                    break
                 MouseWheel(-5), RanSleep(0.3)
                 n += 1
 
@@ -200,7 +215,7 @@ class Occupationkills:
 
     # 关闭技能栏
     def CloseSkillScene(self):
-        if skillScene.Match():
+        while skillScene.Match():
             logger.info("关闭技能栏")
             PressKey(VK_CODE["k"]), RanSleep(0.3)
 

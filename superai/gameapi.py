@@ -356,7 +356,7 @@ class ObstacleObj(Structure):
 
     def CanBeAttack(self):
         if self.code in [109006910, 109006911, 226, 228, 19134, 19135, 18020, 109000583, 109000576, 57522, 109006963,
-                         109006964]:
+                         109006964, 230]:
             return False
 
         if self.hp > 0 and self.flag == 2:
@@ -1197,7 +1197,7 @@ def NearestMonsterWrap():
     return obj
 
 
-UnuseFilterStr = "怒海霸主银币|解密礼盒|无尽的永恒|风化的碎骨|破旧的皮革|最下级砥石|最下级硬化剂|生锈的铁片|碎布片|回旋镖|天界珍珠|朗姆酒|飞盘|魔力之花|卡勒特指令书|入门HP药剂|入门MP药剂|普通HP药剂|普通MP药剂|飞盘2|邪恶药剂|圣杯|肉干"
+UnuseFilterStr = "|肉干|砂砾|天空树果实|燃烧瓶|军用回旋镖|裂空镖|甜瓜|飞镖|轰雷树果实|越桔|神圣葡萄酒|轰爆弹|爆弹|燃烧瓶|精灵香精|魔力之花|石头|苎麻花叶|怒海霸主银币|解密礼盒|无尽的永恒|风化的碎骨|破旧的皮革|最下级砥石|最下级硬化剂|生锈的铁片|碎布片|回旋镖|天界珍珠|朗姆酒|飞盘|魔力之花|卡勒特指令书|入门HP药剂|入门MP药剂|普通HP药剂|普通MP药剂|飞盘2|邪恶药剂|圣杯|肉干"
 
 UnuseFilter = UnuseFilterStr.split("|")
 
@@ -1208,6 +1208,15 @@ def GetGoodsWrap():
     goods = filter(lambda good: good.name not in UnuseFilter, goods)
     goods = list(goods)
     return goods
+
+
+# 获取地面物品的wrap, 过滤掉不能捡取的
+def GetGoodsCanbePickup(player):
+    goods = GetGoodsWrap()
+    if player.d is not None and player.ob is not None:
+        for good in goods:
+            if player.ob.TouchedAnything((good.x // 10, good.y // 10)):
+                goods.remove(good)
 
 
 # 地面有物品
@@ -1686,6 +1695,7 @@ def Clear():
 
     MouseMoveTo(0, 0), RanSleep(0.3)
 
+
 # 打开esc
 def Openesc():
     if not IsEscTop():
@@ -1693,11 +1703,12 @@ def Openesc():
         PressKey(VK_CODE["esc"]), RanSleep(0.2)
     return IsEscTop()
 
+
 # 读写速度测试
 def SpeedTest():
-    logger.info("HaveGoods")
-    HaveGoods()
-    logger.info("HaveGoods")
+    # logger.info("HaveGoods")
+    # HaveGoods()
+    # logger.info("HaveGoods")
 
     logger.info("HaveBuffs")
     HaveBuffs()
