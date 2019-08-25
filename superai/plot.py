@@ -638,7 +638,7 @@ plotMap = {
     "战端又起": MeetNpcFoo("月光酒馆"),
     "商人的情报": MeetNpcFoo("后街"),
     "宣战": MeetNpcFoo("布告"),
-    "忐忑不安的人们": MeetNpcFoo("洛巴赫"),
+    "忐忑不安的人们": MeetNpcFoo("洛巴赫2"),
     "前往阿法利亚营地": 前往阿法利亚营地,
 
 }

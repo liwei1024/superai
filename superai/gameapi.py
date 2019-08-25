@@ -640,9 +640,7 @@ def GetQuadrant(x1, y1, x2, y2):
     newx2, newy2 = x2 - x1, y2 - y1
     if abs(newx2) < MOVE_BIG_V_WIDTH and abs(newy2) < MOVE_BIG_H_WIDTH:
         # 在中间的小矩阵
-        # if abs(newx2) < MOVE_SMALL_V_WIDTH and abs(newy2) < MOVE_SMALL_H_WIDTH:
-        #     return Quardant.CHONGDIE, SMALL_RENT
-        return QuardrantWithOutRent(newx2, newy2, MOVE_SMALL_V_WIDTH, MOVE_SMALL_H_WIDTH), SMALL_RENT
+        return QuardrantWithOutRent(newx2, newy2, 1, 1), SMALL_RENT
     return QuardrantWithOutRent(newx2, newy2, MOVE_BIG_V_WIDTH, MOVE_BIG_H_WIDTH), BIG_RENT
 
 

@@ -214,14 +214,6 @@ class Player:
         jizou = not WithInManzou(menx, meny, destx, desty)
         jizoustr = "" if not jizou else "疾走"
 
-        if quad == Quardant.CHONGDIE:
-            # 已经重叠了, 调用者(靠近怪物, 捡物, 过门 应该不会再次调用seek了). 频繁发生就说明写错了
-            self.UpLatestKey()
-            RanSleep(0.05)
-            logger.info("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 重叠 %s" % (
-                menx, meny, objname, destx, desty, quad.name, jizoustr))
-            return
-
         if self.KeyDowned():
             if jizou and not IsManJipao():
                 logger.info("不在疾跑退出状态,重新来过")
@@ -258,18 +250,12 @@ class Player:
         self.ob.UpdateObstacle(GetObstacle())
         quad, _ = GetQuadrant(menx, meny, destx, desty)
 
-        if quad == Quardant.CHONGDIE:
-            logger.info("寻路 重叠了")
-            RanSleep(0.1)
+        if self.ob.ManQuadHasObstacle(quad, menx, meny):
+            self.ChaoxiangFangxiang(menx, destx)
+            logger.info("方向上有障碍物, 攻击")
+            self.UpLatestKey()
+            PressX()
             return
-
-        if quad != Quardant.CHONGDIE:
-            if self.ob.ManQuadHasObstacle(quad, menx, meny):
-                self.ChaoxiangFangxiang(menx, destx)
-                logger.info("方向上有障碍物, 攻击")
-                self.UpLatestKey()
-                PressX()
-                return
 
         if len(self.pathfindinglst) == 0:
             # 范围内有麻烦就路径规划一下

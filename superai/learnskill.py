@@ -90,6 +90,12 @@ class Occupationkills:
             self.DelSkill("命运之轮")
             self.DelSkill("致命突刺")
             self.DelSkill("强踢")
+        if meninfo.level >= 25:
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光喷涌", "palading_shenguangpenyong.png"))
+        if meninfo.level >= 30:
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光盾击", "palading_shenguangdunji.png"))
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "烈光", "palading_lieguang.png"))
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "信仰之念", "palding_xinyangzhinian.png"))
 
     # 圣职 (15级前)
     def shengzhiInit(self):
@@ -175,6 +181,7 @@ class Occupationkills:
                 if n >= 3:
                     logger.warning("找不到技能: %s" % v.name)
                     break
+                MouseMoveTo(536, 360), RanSleep(0.3)
                 MouseWheel(-5), RanSleep(0.3)
                 n += 1
 
