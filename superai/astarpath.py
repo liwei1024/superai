@@ -310,7 +310,7 @@ class Obstacle:
     # 修正初始坐标, 初始坐标可能和障碍物相交, 所以需要稍微调整. return (cellx, celly)
     def CorrectZuobiao(self, cellpos):
         if self.TouchedAnything([cellpos[0], cellpos[1]]):
-            rangeWrap = RangeWrap(cellpos[0] * 10 - 30, cellpos[1] * 10 - 30, 60, 60)
+            rangeWrap = RangeWrap(cellpos[0] * 10 - 60, cellpos[1] * 10 - 60, 120, 120)
 
             global img
             if img is not None:
@@ -753,7 +753,7 @@ def main():
     FlushPid()
 
     DrawNextDoorPath()
-    # DrawAnyPath(976, 194 ,1388, 177)
+    # DrawAnyPath(1175, 217, 1358, 215)
 
 
 if __name__ == '__main__':

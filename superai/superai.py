@@ -7,7 +7,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 logger = logging.getLogger(__name__)
 
-import math
 import random
 import time
 
@@ -29,13 +28,12 @@ from superai.yijianshu import YijianshuInit, PressRight, \
     PressUp, PressDown
 
 from superai.gameapi import GameApiInit, FlushPid, \
-    HaveMonsters, GetMenXY, GetQuadrant, Quardant, \
-    GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
+    HaveMonsters, GetMenXY, GetQuadrant, GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
     NearestGood, IsNextDoorOpen, IsCurrentInBossFangjian, GetMenInfo, \
     CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
-    GetObstacle, WithInRange, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear
+    GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -228,7 +226,7 @@ class Player:
                 if keydown not in currentDecompose:
                     QuadKeyUpMap[keydown]()
             self.DownKey(quad)
-            RanSleep(0.05)
+            RanSleep(0.02)
             logger.info("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 保持部分移动方向 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
         else:
@@ -237,7 +235,7 @@ class Player:
             if jizou:
                 self.KeyJiPao(GetFangxiang(menx, destx))
             self.DownKey(quad)
-            RanSleep(0.05)
+            RanSleep(0.02)
             logger.info("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
 
@@ -287,9 +285,10 @@ class Player:
                 self.Seek(destx, desty, obj, dummy)
                 return
         elif len(self.pathfindinglst) == 1:
+            point = idxToXY(self.pathfindinglst[0], self.d.mapw // 10)
+            logger.info("就一个最终目的规划点了,直接过去 (%d, %d)" % (point.x, point.y))
             del self.pathfindinglst[0]
-            logger.info("就一个最终目的规划点了,直接过去 (%d, %d)" % (destx, desty))
-            self.Seek(destx, desty, obj, dummy)
+            self.Seek(point.x, point.y, obj, dummy)
             return
         elif len(self.pathfindinglst) >= 2:
             # 路径规划过
@@ -316,8 +315,9 @@ class Player:
                         menCorrectCoord.x, menCorrectCoord.y, firstPoint[0], firstPoint[1]))
 
             if flag:
+                point = idxToXY(self.pathfindinglst[0], self.d.mapw // 10)
+                logger.info("到达了规划点 (%d, %d) 剩余 %d" % (point.x, point.y, len(self.pathfindinglst) - 1))
                 del self.pathfindinglst[0]
-                logger.info("到达了规划点 (%d, %d) 剩余 %d" % (destx, desty, len(self.pathfindinglst)))
                 # self.SeekWithPathfinding(destx, desty, obj, dummy)
                 return
             else:
@@ -596,6 +596,8 @@ class ChangeEquip(State):
         logger.info("换装备")
         eq = Equips()
         eq.ChangeEquip()
+
+        from superai.equip import CloseBagScene
         CloseBagScene()
         logger.info("换装备完毕")
         player.ChangeState(InChengzhen())

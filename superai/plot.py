@@ -237,30 +237,35 @@ def GoToSelect(quad: Quardant):
         QuadKeyDownMap[quad](), RanSleep(1)
         QuadKeyUpMap[quad](), RanSleep(0.3)
 
+    return IsManInSelectMap()
+
 
 # 选择地图
 def SelectMap(mapname):
     idx = IdxMapMap[mapname]
-    while CurSelectId() != idx:
+    while CurSelectId() != idx and IsManInSelectMap():
         logger.info("↑ 切换地图")
         PressKey(VK_CODE["up_arrow"]), RanSleep(0.2)
+
+    return CurSelectId() == idx and IsManInSelectMap()
 
 
 # 进图
 def EnterMap(mapname, player):
-    SelectMap(mapname)
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    if SelectMap(mapname):
+        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
 
-    for i in range(5):
-        if IsManInMap():
-            from superai.superai import FirstInMap
-            player.ChangeState(FirstInMap())
-            return
+        for i in range(5):
+            if IsManInMap():
+                from superai.superai import FirstInMap
+                player.ChangeState(FirstInMap())
+                return
 
-        logger.info("等待进图... %d" % i)
-        RanSleep(1)
+            logger.info("等待进图... %d" % i)
+            RanSleep(1)
+    else:
+        logger.warning("没有选择对地图")
 
-    logger.warning("没有进图")
 
 # 是否有剧情任务
 def HasPlot():
@@ -366,9 +371,11 @@ def AttacktaskFoo(fubenname):
         moveinfo = MoveSetting[dituname]
         if IsMoveToChengzhenPos(moveinfo.destpic, moveinfo.destcoord):
             # 左右调整进入地图选择界面
-            GoToSelect(quadMap[dituname])
-            # 进入地图
-            EnterMap(fubenname, player)
+            if GoToSelect(quadMap[dituname]):
+                # 进入地图
+                EnterMap(fubenname, player)
+            else:
+                logger.warning("没有进入选择地图")
         else:
             # 移动到指定位置
             MoveTo(dituname, player)
