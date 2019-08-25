@@ -735,7 +735,7 @@ class StandState(State):
         if HaveMonsters():
             player.ChangeState(SeekAndAttackMonster())
             return
-        elif HaveGoods():
+        elif HaveGoods(player):
             player.ChangeState(SeekAndPickUp())
             return
         elif HaveBuffs():
@@ -747,7 +747,7 @@ class StandState(State):
         elif IsFuBenPass():
             # 打死boss后判断下物品
             RanSleep(0.3)
-            if HaveGoods():
+            if HaveGoods(player):
                 player.ChangeState(SeekAndPickUp())
                 return
             else:
@@ -782,7 +782,7 @@ class SeekAndAttackMonster(State):
             return
 
         # 怪物在太远的距离, 有物品捡物
-        if SpecifyMonsterIsToofar(obj) and HaveGoods():
+        if SpecifyMonsterIsToofar(obj) and HaveGoods(player):
             player.ChangeState(SeekAndPickUp())
             return
 
@@ -865,7 +865,7 @@ class FuckDuonierState(State):
 # 靠近并捡取物品
 class SeekAndPickUp(State):
     def Execute(self, player):
-        obj = NearestGood()
+        obj = NearestGood(player)
 
         # 如果没有物品了,那么切换图内状态
         if obj is None:

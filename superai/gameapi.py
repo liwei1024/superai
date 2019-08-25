@@ -1217,18 +1217,19 @@ def GetGoodsCanbePickup(player):
         for good in goods:
             if player.ob.TouchedAnything((good.x // 10, good.y // 10)):
                 goods.remove(good)
+    return goods
 
 
 # 地面有物品
-def HaveGoods():
-    goods = GetGoodsWrap()
+def HaveGoods(player):
+    goods = GetGoodsCanbePickup(player)
     return len(goods) > 0
 
 
 # 最近物品对象
-def NearestGood():
+def NearestGood(player):
     menInfo = GetMenInfo()
-    goods = GetGoodsWrap()
+    goods = GetGoodsCanbePickup(player)
     if len(goods) < 1:
         return None
     return min(goods, key=lambda good: distance(good.x, good.y, menInfo.x, menInfo.y))
