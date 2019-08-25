@@ -596,7 +596,7 @@ class ChangeEquip(State):
         logger.info("换装备")
         eq = Equips()
         eq.ChangeEquip()
-        eq.CloseBagScene()
+        CloseBagScene()
         logger.info("换装备完毕")
         player.ChangeState(InChengzhen())
 
@@ -795,11 +795,9 @@ class SeekAndAttackMonster(State):
             player.UpLatestKey()
             player.ClearPathfindingLst()
             if random.uniform(0, 1) < 0.8:
-                PressHouTiao()
-                RanSleep(0.05)
+                PressHouTiao(), RanSleep(0.05)
             else:
-                player.SeekWithPathfinding(seekx, seeky, dummy="合适攻击位置")
-                RanSleep(0.05)
+                player.SeekWithPathfinding(seekx, seeky, dummy="合适攻击位置"), RanSleep(0.05)
             return
 
         # 在攻击的水平宽度和垂直宽度之内,攻击
@@ -812,6 +810,11 @@ class SeekAndAttackMonster(State):
             player.ChaoxiangFangxiang(men.x, obj.x)
             if player.IsChaoxiangDuifang(men.x, obj.x):
                 player.UseSkill()
+
+            # 阿甘左强行判断:
+            if 29 <= men.level <= 31 and obj.name == "领主 - 阿甘左" and obj.hp <= 271818:
+                PressKey(VK_CODE["6"]), RanSleep(0.3)
+                logger.info("给阿甘左吃点香料")
             return
 
         # 靠近

@@ -2,6 +2,8 @@ import os
 import sys
 import time
 
+from superai.equip import OpenBagScene, ZhunangbeiPos, XiaohaoPos, bagScene, CloseBagScene
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
@@ -11,7 +13,8 @@ logger = logging.getLogger(__name__)
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
     CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc
-from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick
+from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick, MouseLeftDown, MouseMoveR, \
+    MouseLeftUp
 
 shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
 selectmen = Picture(GetImgDir() + "selectmen.png")
@@ -29,6 +32,10 @@ zhuanzhiConfirm = Picture(GetImgDir() + "zhuanzhi_confirm.png")
 dituHedunmaer = Picture(GetImgDir() + "ditu_hedunmaer.png")
 dituAfaliya = Picture(GetImgDir() + "ditu_afaliya.png")
 taskdone = Picture(GetImgDir() + "task_done.png")
+aganzuowupin = Picture(GetImgDir() + "aganzuo_wupin.png", 243, 560, 28, 28)
+aganzuowupin2 = Picture(GetImgDir() + "aganzuo_wupin2.png")
+
+Wupin6Pos = (255, 577)
 
 
 class MoveInfo:
@@ -243,12 +250,17 @@ def SelectMap(mapname):
 def EnterMap(mapname, player):
     SelectMap(mapname)
     PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
-    while not IsManInMap():
-        logger.info("等待进图...")
-        RanSleep(1)
-    from superai.superai import FirstInMap
-    player.ChangeState(FirstInMap())
 
+    for i in range(5):
+        if IsManInMap():
+            from superai.superai import FirstInMap
+            player.ChangeState(FirstInMap())
+            return
+
+        logger.info("等待进图... %d" % i)
+        RanSleep(1)
+
+    logger.warning("没有进图")
 
 # 是否有剧情任务
 def HasPlot():
@@ -494,6 +506,43 @@ def 长脚罗特斯():
     return foo
 
 
+# 难搞的阿甘左
+def 寻找阿甘左(player):
+    Clear()
+
+    if not aganzuowupin.Match():
+        if not OpenBagScene():
+            logger.warning("打开背包失败")
+            return
+
+        pos = bagScene.Pos()
+        MouseMoveTo(pos[0] + XiaohaoPos[0], pos[1] + XiaohaoPos[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(0.3)
+
+        if not aganzuowupin2.Match():
+            logger.warning("找不到爱丽丝的香料")
+            return
+
+        anganzuopos = aganzuowupin2.Pos()
+        MouseMoveTo(anganzuopos[0], anganzuopos[1]), RanSleep(0.3)
+        MouseLeftDown(), RanSleep(0.3)
+        MouseMoveR(10, 10), RanSleep(0.3)
+        MouseMoveTo(Wupin6Pos[0], Wupin6Pos[1]), RanSleep(0.3)
+        MouseLeftUp(), RanSleep(0.3)
+        MouseMoveR(30, 30), RanSleep(0.3)
+
+        MouseMoveTo(pos[0] + ZhunangbeiPos[0], pos[1] + ZhunangbeiPos[1]), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(0.3)
+
+        if not aganzuowupin.Match():
+            logger.warning("拖动爱丽丝香料失败")
+            return
+
+        CloseBagScene()
+
+    AttacktaskFoo("第二脊椎")(player)
+
+
 # 走到新的位置
 def 前往阿法利亚营地(player):
     if HasMoveTo("赫顿玛尔2"):
@@ -626,7 +675,7 @@ plotMap = {
     "前往天帷巨兽的肚子里": AttacktaskFoo("天帷禁地"),
     "无法幸免的马塞尔": AttacktaskFoo("天帷禁地"),
     "罗特斯所在之地": AttacktaskFoo("第二脊椎"),
-    "寻找阿甘左": AttacktaskFoo("第二脊椎"),
+    "寻找阿甘左": 寻找阿甘左,
     # "长脚罗特斯": AttacktaskFoo("第二脊椎"),
     "消灭长脚罗特斯": AttacktaskFoo("第二脊椎"),
     "满目疮痍的胜利": MeetNpcFoo("奥菲利亚"),

@@ -340,12 +340,8 @@ class Obstacle:
 
             if v == Quardant.ZUO:
                 checks.append(zuo)
-                checks.append(shang)
-                checks.append(xia)
             elif v == Quardant.YOU:
                 checks.append(you)
-                checks.append(shang)
-                checks.append(xia)
             elif v == Quardant.SHANG:
                 checks.append(shang)
             elif v == Quardant.XIA:

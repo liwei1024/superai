@@ -76,6 +76,25 @@ levelNumMap = {
     30: 10,
 }
 
+ZhunangbeiPos = (-89, 193)
+XiaohaoPos = (-43, 194)
+
+
+# 打开装备栏
+def OpenBagScene():
+    Clear()
+    if not bagScene.Match():
+        logger.info("打开装备栏")
+        PressKey(VK_CODE["i"]), RanSleep(0.3)
+    return bagScene.Match()
+
+
+# 关闭装备栏
+def CloseBagScene():
+    while bagScene.Match():
+        logger.info("关闭装备栏")
+        PressKey(VK_CODE["i"]), RanSleep(0.3)
+
 
 class Equips:
     def __init__(self):
@@ -117,20 +136,6 @@ class Equips:
 
         else:
             raise NotImplementedError("还未支持的职业")
-
-    # 打开装备栏
-    def OpenBagScene(self):
-        Clear()
-        if not bagScene.Match():
-            logger.info("打开装备栏")
-            PressKey(VK_CODE["i"]), RanSleep(0.3)
-        return bagScene.Match()
-
-    # 关闭装备栏
-    def CloseBagScene(self):
-        while bagScene.Match():
-            logger.info("关闭装备栏")
-            PressKey(VK_CODE["i"]), RanSleep(0.3)
 
     # 身上没有装备
     def BodyEquiped(self, IDX):
@@ -229,7 +234,7 @@ class Equips:
 
     # 更换装备
     def ChangeEquip(self):
-        if not self.OpenBagScene():
+        if not OpenBagScene():
             logger.warning("打开装备栏失败")
             return
 
@@ -350,7 +355,7 @@ class Equips:
     def OpenChenghao(self):
         Clear()
         if not chenghaobu.Match():
-            if not self.OpenBagScene():
+            if not OpenBagScene():
                 logger.warning("打开装备栏失败")
                 return False
 

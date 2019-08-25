@@ -182,7 +182,7 @@ class Occupationkills:
                     logger.warning("找不到技能: %s" % v.name)
                     break
                 MouseMoveTo(536, 360), RanSleep(0.3)
-                MouseWheel(-5), RanSleep(0.3)
+                MouseWheel(-3), RanSleep(0.3)
                 n += 1
 
             pos = v.picutre.Pos()
