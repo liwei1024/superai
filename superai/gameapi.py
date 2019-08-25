@@ -538,8 +538,8 @@ MOVE_BIG_V_WIDTH = 40 / 2
 MOVE_BIG_H_WIDTH = 40 / 2
 
 # 误差
-MOVE_SMALL_V_WIDTH = 20 / 2
-MOVE_SMALL_H_WIDTH = 20 / 2
+MOVE_SMALL_V_WIDTH = 10 / 2
+MOVE_SMALL_H_WIDTH = 10 / 2
 
 # 大小矩阵
 BIG_RENT = 1
@@ -1215,7 +1215,7 @@ def GetGoodsCanbePickup(player):
     goods = GetGoodsWrap()
     if player.d is not None and player.ob is not None:
         for good in goods:
-            if player.ob.TouchedAnything((good.x // 10, good.y // 10)):
+            if player.ob.TouchedAnything((int(good.x) // 10, int(good.y) // 10)):
                 goods.remove(good)
     return goods
 

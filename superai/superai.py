@@ -312,10 +312,14 @@ class Player:
 
             # 如果修正过的坐标本身就没达到. 往那走一些
             if not IsClosedTo(menx, meny, menCorrectCoord.x, menCorrectCoord.y):
-                logger.warning("人物当前坐标(%d, %d) 没达到修正过的坐标(%d, %d), 调整" % (menx, meny, menCorrectCoord.x, menCorrectCoord.y))
-                dummy = "" if dummy is None else dummy
+                logger.warning(
+                    "人物当前坐标(%d, %d) 没达到修正过的坐标(%d, %d), 调整" % (menx, meny, menCorrectCoord.x, menCorrectCoord.y))
+                # dummy = "" if dummy is None else dummy
                 self.UpLatestKey()
-                self.Seek(menCorrectCoord.x, menCorrectCoord.y, obj, dummy=dummy + "(调整修正位置)")
+                self.DownKey(quad)
+                RanSleep(0.1)
+                self.UpLatestKey()
+                # self.Seek(menCorrectCoord.x, menCorrectCoord.y, obj, dummy=dummy + "(调整修正位置)")
                 return
 
             secondPoint = idxToZuobiao(self.pathfindinglst[1], self.d.mapw // 10)
@@ -326,7 +330,8 @@ class Player:
             if not flag:
                 if IsClosedTo(menCorrectCoord.x, menCorrectCoord.y, firstPoint[0], firstPoint[1]):
                     flag = True
-                    logger.info("直接设置到达当前点 (%d, %d) (%d, %d)" % (menCorrectCoord.x, menCorrectCoord.y, firstPoint[0], firstPoint[1]))
+                    logger.info("直接设置到达当前点 (%d, %d) (%d, %d)" % (
+                        menCorrectCoord.x, menCorrectCoord.y, firstPoint[0], firstPoint[1]))
 
             if flag:
                 del self.pathfindinglst[0]
@@ -498,14 +503,14 @@ class GlobalState(State):
 
                 # 去下一个门的时候卡死了
                 if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
-                    if math.isclose(latestx, curx) and math.isclose(latesty, cury):
+                    if IsClosedTo(latestx, latesty, curx, cury, 30 // 2):
                         logger.warning("去下一个门的时候卡死了, 回退一些再进门")
                         player.NewMapCache()
                         player.ChangeState(DoorStuckGoToPrev())
                     else:
                         logger.info("坐标不相同: (%d, %d)   (%d, %d)" % (latestx, latesty, curx, cury))
 
-                elif math.isclose(latestx, curx) and math.isclose(latesty, cury):
+                elif IsClosedTo(latestx, latesty, curx, cury):
                     logger.warning("卡死了,重置状态")
                     player.NewMapCache()
                     player.ChangeState(StandState())

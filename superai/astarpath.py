@@ -128,7 +128,9 @@ class Obstacle:
         self.menw = menw
         self.menh = menh
 
-        # 初始化 1. 地形二叉树 2. 地形数组 3. 地形额外  使用 16 * 12 长宽的格子
+        # 初始化 1. 地形二叉树 2. 地形数组 3. 地形额外  使用 16 * 12 长宽的格子\
+        self.mapWLen = d.mapw
+        self.mapHLen = d.maph
         self.mapCellWLen = d.mapw // 0x10
         self.mapCellHLen = d.maph // 0xc
         self.cellnum = self.mapCellWLen * self.mapCellHLen
@@ -249,7 +251,7 @@ class Obstacle:
 
     # 是否越界 TODO 写死了
     def OverStep(self, cellx, celly):
-        return cellx * 10 >= self.mapCellWLen * 0x10 or celly * 10 >= self.mapCellHLen * 0xc
+        return cellx * 10 >= self.mapWLen or celly * 10 >= self.mapHLen
 
     # 是否触碰到地形或者障碍物或者越界. p[cellx,celly] 10 宽高相应cell位置
     def TouchedAnything(self, p):
@@ -308,12 +310,18 @@ class Obstacle:
     # 修正初始坐标, 初始坐标可能和障碍物相交, 所以需要稍微调整. return (cellx, celly)
     def CorrectZuobiao(self, cellpos):
         if self.TouchedAnything([cellpos[0], cellpos[1]]):
-            curx, cury = cellpos[0], cellpos[1]
-            for k in range(10):
-                for i in range(4):
-                    correctx, correcty = NextZuobiao(curx, cury, i, k)
-                    if not self.TouchedAnything([correctx, correcty]):
-                        return correctx, correcty
+            rangeWrap = RangeWrap(cellpos[0] * 10 - 30, cellpos[1] * 10 - 30, 60, 60)
+
+            global img
+            if img is not None:
+                # 画位置纠正坐标
+                cv2.rectangle(img, (rangeWrap.x, rangeWrap.y), (rangeWrap.x + rangeWrap.w, rangeWrap.y + rangeWrap.h),
+                              (0, 0, 139), 3)
+
+            bfs = BfsNextRangeCorrect(self.mapWLen, self.mapHLen, rangeWrap, self)
+            (cellx, celly) = bfs.bfs()
+            return cellx, celly
+
         return cellpos[0], cellpos[1]
 
     # 人物指定方向是否有障碍物 (攻击用)
@@ -346,7 +354,7 @@ class Obstacle:
                 checks.append(chongdie)
 
             for c in checks:
-                if self.RangesAllObstacleAttack(c[0], c[1], c[2], c[3]) > 0:
+                if len(self.RangesAllObstacleAttack(c[0], c[1], c[2], c[3])) > 0:
                     return True
 
             return False
@@ -515,45 +523,65 @@ class AStartPaths:
         return result
 
 
-# 取门范围内的可移动位置 (就写在这里吧. 防止py循环引用)
-class BfsNextDoorWrapCorrect:
-    def __init__(self, MAPW, MAPH, door, ob: Obstacle):
+# 范围包装
+class RangeWrap:
+    def __init__(self, x, y, w, h):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
+
+
+# 门数据结构转换到范围包装
+def DoorConvertToRangeWrap(door):
+    return RangeWrap(door.x, door.y, door.w, door.h)
+
+
+# 取范围内的可移动位置
+class BfsNextRangeCorrect:
+    def __init__(self, MAPW, MAPH, rangeWrap: RangeWrap, ob: Obstacle):
         self.MAPW = MAPW
         self.MAPH = MAPH
-        self.door = door
+        self.rangeWrap = rangeWrap
         self.ob = ob
 
         self.manCellWLen = MAPW // 10
         self.manCellHLen = MAPH // 10
         self.manCellnum = self.manCellHLen * self.manCellWLen
 
-        self.doorl, self.doorr, self.doort, self.doord = self.door.x, self.door.x + self.door.w, self.door.y, self.door.y + self.door.h
-        self.halfw, self.halfh = self.door.w // 2, self.door.h // 2
+        self.range_l, self.range_r, self.range_t, self.range_d = rangeWrap.x, rangeWrap.x + rangeWrap.w, \
+                                                                 rangeWrap.y, rangeWrap.y + rangeWrap.h
+        self.halfw, self.halfh = rangeWrap.w // 2, rangeWrap.h // 2
 
         # bfs core
         self.marked = [False] * self.manCellnum
         self.edgeTo = [0] * self.manCellnum
 
-        startcellx = (self.doorl + self.halfw) // 10
-        startcelly = (self.doort + self.halfh) // 10
+        startcellx = (self.range_l + self.halfw) // 10
+        startcelly = (self.range_t + self.halfh) // 10
 
         self.s = hwToidx(startcellx, startcelly, self.manCellWLen)
 
-    # 是否超过门的范围
+    # 是否超过矩形的范围
     def OutRange(self, cellx, celly):
         l = cellx * 10
         r = cellx * 10 + 10
         t = celly * 10
         d = celly * 10 + 10
-        # 不超过门的范围
-        return not IsRectangleOverlap(Zuobiao(self.doorl + 1, self.doort + 1),
-                                      Zuobiao(self.doorr - 1, self.doord - 1),
+
+        if img is not None:
+            cv2.rectangle(img, (l, t), (r, d),
+                          (0, 0, 139), 3)
+
+        # 不超过矩形的范围
+        return not IsRectangleOverlap(Zuobiao(self.range_l + 1, self.range_t + 1),
+                                      Zuobiao(self.range_r - 1, self.range_d - 1),
                                       Zuobiao(l, t),
                                       Zuobiao(r, d))
 
     # 获取邻居节点. return [cellx, celly]
     def GetAdjs(self, pos):
-        # 不超过门的范围
+        # 不超过矩形的范围
         adjs = []
         cellx, celly = idxTohw(pos, self.manCellWLen)
 
@@ -564,14 +592,14 @@ class BfsNextDoorWrapCorrect:
         ]
 
         for (adjx, adjy) in checks:
-            if not self.OutRange(adjx, adjy):
-                idx = hwToidx(adjx, adjy, self.manCellWLen)
 
-                # TODO 不知道为啥增加了 不合适的点
-                if idx >= self.manCellnum:
-                    continue
+            idx = hwToidx(adjx, adjy, self.manCellWLen)
 
-                adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
+            if idx >= self.manCellnum:
+                logger.warning("GetAdjs out of range ")
+                continue
+
+            adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
 
         return adjs
 
@@ -579,6 +607,12 @@ class BfsNextDoorWrapCorrect:
     def bfs(self):
         q = queue.Queue()
         q.put(self.s)
+
+        global img
+        if img is not None:
+            (cellx, celly) = idxTohw(self.s, self.manCellWLen)
+            drawx, drawy = cellx * 10, celly * 10
+            cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
 
         while q.qsize() != 0:
             v = q.get()
@@ -588,19 +622,22 @@ class BfsNextDoorWrapCorrect:
 
                 adjcellx, adjcelly = idxTohw(w, self.manCellWLen)
 
-                if not self.ob.TouchedAnything([adjcellx, adjcelly]):
+                if not self.ob.TouchedAnything([adjcellx, adjcelly]) and not self.OutRange(adjcellx, adjcelly):
                     return idxTohw(w, self.manCellWLen)
 
                 if not self.marked[w]:
                     self.edgeTo[w] = v
                     self.marked[w] = True
                     q.put(w)
+
+        logger.warning("坐标重置没有找到合适的点")
         return idxTohw(self.s, self.manCellWLen)
 
 
 # 获取门坐标
 def GetCorrectDoorXY(MAPW, MAPH, door, ob):
-    bfsdoor = BfsNextDoorWrapCorrect(MAPW, MAPH, door, ob)
+    rangeWrap = DoorConvertToRangeWrap(door)
+    bfsdoor = BfsNextRangeCorrect(MAPW, MAPH, rangeWrap, ob)
     doorcellx, doorcelly = bfsdoor.bfs()
     return doorcellx * 10, doorcelly * 10
 
@@ -693,7 +730,8 @@ def DrawNextDoorPath():
     drawWithOutDoor(img, d)
 
     door = GetNextDoorWrap()
-    bfsdoor = BfsNextDoorWrapCorrect(d.mapw, d.maph, door, ob)
+    rangeWrap = DoorConvertToRangeWrap(door)
+    bfsdoor = BfsNextRangeCorrect(d.mapw, d.maph, rangeWrap, ob)
     (cellx, celly) = bfsdoor.bfs()
 
     lst, err = GetPaths(d, ob, [meninfo.x, meninfo.y], [cellx * 10, celly * 10])
@@ -723,7 +761,7 @@ def main():
     FlushPid()
 
     # DrawNextDoorPath()
-    DrawAnyPath(332, 338, 317, 381)
+    DrawAnyPath(1343, 287, 1272, 217)
 
 
 if __name__ == '__main__':
