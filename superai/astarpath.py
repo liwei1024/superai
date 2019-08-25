@@ -592,11 +592,10 @@ class BfsNextRangeCorrect:
         ]
 
         for (adjx, adjy) in checks:
-
-            if not self.OutRange(adjcellx, adjcelly):
-
-
-            adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
+            if not self.OutRange(adjx, adjy):
+                idx = hwToidx(adjx, adjy, self.manCellWLen)
+                if idx < self.manCellnum:
+                    adjs.append(idx)
 
         return adjs
 
@@ -757,8 +756,8 @@ def main():
     GameApiInit()
     FlushPid()
 
-    # DrawNextDoorPath()
-    DrawAnyPath(1343, 287, 1272, 217)
+    DrawNextDoorPath()
+    # DrawAnyPath(1343, 287, 1272, 217)
 
 
 if __name__ == '__main__':
