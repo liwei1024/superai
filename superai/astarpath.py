@@ -743,7 +743,8 @@ def main():
     FlushPid()
 
     # DrawNextDoorPath()
-    DrawAnyPath(827, 377, 938, 356)
+    # DrawAnyPath(827, 377, 938, 356) 寂静城第二图
+    DrawAnyPath(1030, 234, 1040, 230)
 
 
 if __name__ == '__main__':

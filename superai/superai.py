@@ -489,7 +489,7 @@ class GlobalState(State):
 
                 # 去下一个门的时候卡死了
                 if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
-                    if IsClosedTo(latestx, latesty, curx, cury, 40 // 2):
+                    if IsClosedTo(latestx, latesty, curx, cury, 40):
                         logger.warning("去下一个门的时候卡死了, 回退一些再进门")
                         player.NewMapCache()
                         player.ChangeState(DoorStuckGoToPrev())

@@ -418,6 +418,7 @@ def AttacktaskFoo(fubenname):
 
         moveinfo = MoveSetting[dituname]
         if IsMoveToChengzhenPos(moveinfo.destpic, moveinfo.destcoord, moveinfo.desc):
+            Clear()
             # 左右调整进入地图选择界面
             if GoToSelect(quadMap[dituname]):
                 # 进入地图
@@ -462,6 +463,7 @@ def MeetNpcFoo(npcname):
             PressKey(VK_CODE["spacebar"]), KongjianSleep()
         else:
             if HasMoveTo(npcname):
+                Clear()
                 logger.info("到达了指定位置,按space键")
                 PressKey(VK_CODE["spacebar"]), KongjianSleep()
             else:
@@ -487,7 +489,7 @@ def IsinAerfayingdi():
 
 # 转职任务
 def 守护森林的战斗(player):
-    SafeClear(player, 5)
+    SafeClear(player)
 
     if not DidPlotAccept("守护森林的战斗"):
         logger.info("任务没有接受, 接受任务")
@@ -546,7 +548,7 @@ def 守护森林的战斗(player):
 
 # 艾尔文防线 -> 赫顿玛尔   (艾尔文防线移动到边界点,下一个场景直接完成)
 def 赫顿玛尔的骚乱(player):
-    SafeClear(player, 5)
+    SafeClear(player)
 
     if IsinAierwenfnagxian():
         if not HasMoveTo("艾尔文南"):
@@ -572,7 +574,7 @@ def 赫顿玛尔的骚乱(player):
 
 # 赫顿玛尔 -> 阿尔法营地  (赫顿玛尔移动到边界点,下一个场景移动到NPC)
 def 前往阿法利亚营地(player):
-    SafeClear(player, 5)
+    SafeClear(player)
 
     if IsinHedunmaer():
         if not HasMoveTo("赫顿玛尔2"):
@@ -595,7 +597,7 @@ def 前往阿法利亚营地(player):
 
 # 阿尔法营地 -> 赫顿玛尔 (阿尔法营地移动到边界点,下一个场景移动到NPC)
 def 战火虽已平息(player):
-    SafeClear(player, 5)
+    SafeClear(player)
 
     if IsinAerfayingdi():
         if not HasMoveTo("阿尔法-赫顿玛尔"):
@@ -616,7 +618,7 @@ def 战火虽已平息(player):
 
 # 赫顿玛尔 -> 阿尔法营地 (赫顿玛尔移动到边界点,下一个场景移动到NPC)
 def 被带走的俩人(player):
-    SafeClear(player, 5)
+    SafeClear(player)
 
     if IsinHedunmaer():
         if not HasMoveTo("赫顿玛尔2"):
@@ -649,7 +651,7 @@ def 长脚罗特斯():
 
 # 阿甘左香水
 def 寻找阿甘左(player):
-    SafeClear(player, 5)
+    SafeClear(player)
 
     if not aganzuowupin.Match():
         if not OpenBagScene():

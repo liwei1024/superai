@@ -146,7 +146,7 @@ def RanSleep(t):
 
 # 操作控件后的sleep
 def KongjianSleep():
-    RanSleep(0.1)
+    RanSleep(0.2)
 
 
 # 全局变量

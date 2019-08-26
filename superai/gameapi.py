@@ -1706,7 +1706,7 @@ def Clear():
 
 
 # 不要频繁的clear
-def SafeClear(player, t):
+def SafeClear(player, t=5):
     if player.latestClear is None or time.time() - player.latestClear > t:
         Clear()
         player.latestClear = time.time()
