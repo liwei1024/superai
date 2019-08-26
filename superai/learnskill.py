@@ -153,6 +153,14 @@ class Occupationkills:
         if meninfo.level >= 30:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "黑蚀葬礼", "anqiang_heishizangli.png"))
             self.learnstrategy.append(OccupationSkill("moqiangshi", "绝望枪", "anqiang_juewangqiang.png"))
+            self.DelSkill("刺击")
+            self.DelSkill("横扫")
+            self.DelSkill("扫堂枪")
+        if meninfo.level >= 35:
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "暗蚀螺旋枪", "anqiang_anheiluoxuanqiang.png"))
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "连锁侵蚀", "anqiang_liansuoqinshi.png"))
+
+
 
     # 找不到图片,滚轮用
     def FindedPic(self, pic):
@@ -168,22 +176,23 @@ class Occupationkills:
             return
 
         logger.info("技能栏已经打开")
-        MouseMoveTo(536, 360), RanSleep(0.3)
-        MouseWheel(30), RanSleep(0.3)
+        MouseMoveTo(536, 360), RanSleep(0.1)
+        MouseWheel(30), RanSleep(0.1)
 
         donotNeedLearn = 0
         for v in self.learnstrategy:
 
             logger.info("学习技能: %s" % v.name)
 
-            n = 0
-            while not self.FindedPic(v.picutre):
-                if n >= 3:
-                    logger.warning("找不到技能: %s" % v.name)
+            for i in range(3):
+                if self.FindedPic(v.picutre):
                     break
-                MouseMoveTo(536, 360), RanSleep(0.3)
-                MouseWheel(-3), RanSleep(0.3)
-                n += 1
+                MouseMoveTo(536, 360), RanSleep(0.1)
+                MouseWheel(-3), RanSleep(0.1)
+
+            if not self.FindedPic(v.picutre):
+                logger.warning("找不到技能: %s" % v.name)
+                continue
 
             pos = v.picutre.Pos()
 
@@ -198,10 +207,10 @@ class Occupationkills:
                 continue
 
             logger.info("移动到相对位置: (%d,%d)" % (pos[0], pos[1]))
-            MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-            MouseLeftDownFor(1.0), RanSleep(0.3)
+            MouseMoveTo(pos[0], pos[1]), RanSleep(0.1)
+            MouseLeftDownFor(1.0), RanSleep(0.1)
 
-            MouseMoveTo(0, 0), RanSleep(0.3)
+            MouseMoveTo(0, 0), RanSleep(0.1)
 
         logger.info("技能已学习完毕")
 

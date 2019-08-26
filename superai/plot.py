@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
-    CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc
+    CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc, SafeClear
 from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick, MouseLeftDown, MouseMoveR, \
     MouseLeftUp
 
@@ -30,10 +30,17 @@ zhuanzhiYoumozhe = Picture(GetImgDir() + "zhuanzhi_youmozhe.png")
 zhuanzhiPalading = Picture(GetImgDir() + "zhuanzhi_palading.png")
 zhuanzhiConfirm = Picture(GetImgDir() + "zhuanzhi_confirm.png")
 dituHedunmaer = Picture(GetImgDir() + "ditu_hedunmaer.png")
+dituHedunmaer3 = Picture(GetImgDir() + "ditu_hedunmaer3.png")
 dituAfaliya = Picture(GetImgDir() + "ditu_afaliya.png")
 taskdone = Picture(GetImgDir() + "task_done.png")
 aganzuowupin = Picture(GetImgDir() + "aganzuo_wupin.png", 243, 560, 28, 28)
 aganzuowupin2 = Picture(GetImgDir() + "aganzuo_wupin2.png")
+
+wenziaierwenfangxian = Picture(GetImgDir() + "wenzi_aierwenfangxian.png")
+wenzihedunmaer = Picture(GetImgDir() + "wenzi_hedunmaer.png")
+wenziaerfayingdi = Picture(GetImgDir() + "wenzi_aerfayingdi.png")
+wenzianheicheng = Picture(GetImgDir() + "wenzi_anheicheng.png")
+wenzixihaian = Picture(GetImgDir() + "wenzi_xihaian.png")
 
 Wupin6Pos = (255, 577)
 
@@ -130,9 +137,37 @@ MoveSetting = {
     "布告": MoveInfo(destpic=Picture(GetImgDir() + "ditu_bugaolan.png"), destcoord=(926, 213),
                    shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(320, 339),
                    desc="布告"),
-    "赫顿玛尔2": MoveInfo(destpic=Picture(GetImgDir() + "hedunmaer2.png"), destcoord=(1257, 417),
+    "赫顿玛尔2": MoveInfo(destpic=Picture(GetImgDir() + "hedunmaer2.png"), destcoord=(1248, 407),
                       shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(336, 372),
                       desc="赫顿玛尔2"),
+
+    "洛巴赫3": MoveInfo(destpic=Picture(GetImgDir() + "ditu_luobahe3.png"), destcoord=(346, 160),
+                     shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(281, 258),
+                     desc="洛巴赫3"),
+    "克伦特": MoveInfo(destpic=Picture(GetImgDir() + "dittu_kelunte.png"), destcoord=(474, 135),
+                    shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(381, 259),
+                    desc="克伦特"),
+    "阿法利亚": MoveInfo(destpic=Picture(GetImgDir() + "ditu_afaliya2.png"), destcoord=(752, 227),
+                     shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(522, 281),
+                     desc="阿法利亚"),
+    "鲁埃尔": MoveInfo(destpic=Picture(GetImgDir() + "ditu_luaier.png"), destcoord=(760, 123),
+                    shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(405, 257),
+                    desc="鲁埃尔"),
+    "帕丽丝": MoveInfo(destpic=Picture(GetImgDir() + "ditu_palisi.png"), destcoord=(521, 160),
+                    shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(302, 261),
+                    desc="帕丽丝"),
+    "梅娅女王": MoveInfo(destpic=Picture(GetImgDir() + "ditu_meiyanvwang.png"), destcoord=(482, 219),
+                     shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(386, 489),
+                     desc="梅娅女王"),
+    "阿尔法-赫顿玛尔": MoveInfo(destpic=Picture(GetImgDir() + "ditu_aerfahedunmaer.png"), destcoord=(290, 81),
+                         shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(220, 180),
+                         desc="阿尔法-赫顿玛尔"),
+    "王宫外": MoveInfo(destpic=Picture(GetImgDir() + "ditu_wanggongwai.png"), destcoord=(1103, 302),
+                    shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(501, 508),
+                    desc="王宫外"),
+    "诺伊佩拉": MoveInfo(destpic=Picture(GetImgDir() + "ditu_nuoyipeila.png"), destcoord=(982, 182),
+                     shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(580, 425),
+                     desc="诺伊佩拉"),
 }
 
 
@@ -193,17 +228,27 @@ def CloseShijieDitu():
 
 
 # 是否移动城镇的位置
-def IsMoveToChengzhenPos(destpic, destcoord):
+def IsMoveToChengzhenPos(destpic, destcoord, desc):
     if destpic.Match():
         meninfo = GetMenInfo()
         if IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 100):
             return True
+        else:
+            logger.warning("目的地: %s [坐标]没有对比上" % desc)
+    else:
+        logger.warning("目的地: %s [图片]没有对比上" % desc)
+
     return False
 
 
 # 移动到目的位置
 def CoordMoveTo(shijitpic, mousecoord):
     if OpenShijieDitu():
+
+        if not shijitpic.Match():
+            logger.warning("当前世界地图对不上")
+            return
+
         MouseMoveTo(mousecoord[0], mousecoord[1]), RanSleep(0.3)
         MouseLeftClick(), RanSleep(0.3)
         CloseShijieDitu()
@@ -227,7 +272,7 @@ def MoveTo(npcname, player):
         if CoordMoveTo(moveinfo.shijiepic, moveinfo.mousecoord):
             player.taskctx.latestmovepoint = time.time()
     else:
-        logger.info("城镇移动中"), RanSleep(1.5)
+        logger.info("城镇移动中"), RanSleep(0.3)
 
 
 # 到达选择角色页面
@@ -369,7 +414,7 @@ def AttacktaskFoo(fubenname):
             return
 
         moveinfo = MoveSetting[dituname]
-        if IsMoveToChengzhenPos(moveinfo.destpic, moveinfo.destcoord):
+        if IsMoveToChengzhenPos(moveinfo.destpic, moveinfo.destcoord, moveinfo.desc):
             # 左右调整进入地图选择界面
             if GoToSelect(quadMap[dituname]):
                 # 进入地图
@@ -386,7 +431,7 @@ def AttacktaskFoo(fubenname):
 # 是否移动到
 def HasMoveTo(npcname):
     moveinfo = MoveSetting[npcname]
-    return IsMoveToChengzhenPos(moveinfo.destpic, moveinfo.destcoord)
+    return IsMoveToChengzhenPos(moveinfo.destpic, moveinfo.destcoord, moveinfo.desc)
 
 
 # 返回一个访问指定对象的函数
@@ -422,9 +467,25 @@ def MeetNpcFoo(npcname):
     return foo
 
 
-# 转职任务!!!!!
+# 是否在艾尔文防线
+def IsinAierwenfnagxian():
+    return wenziaierwenfangxian.Match()
+
+
+# 是否在赫顿玛尔
+def IsinHedunmaer():
+    return wenzihedunmaer.Match() or wenzixihaian.Match()
+
+
+# 是否在阿尔法营地
+def IsinAerfayingdi():
+    return wenziaerfayingdi.Match() or wenzianheicheng.Match()
+
+
+# 转职任务
 def 守护森林的战斗(player):
-    Clear()
+    SafeClear(player, 10)
+
     if not DidPlotAccept("守护森林的战斗"):
         logger.info("任务没有接受, 接受任务")
 
@@ -480,25 +541,89 @@ def 守护森林的战斗(player):
         AttacktaskFoo("暗黑雷鸣废墟")(player)
 
 
-# 需要到指定位置
+# 艾尔文防线 -> 赫顿玛尔   (艾尔文防线移动到边界点,下一个场景直接完成)
 def 赫顿玛尔的骚乱(player):
-    if HasMoveTo("艾尔文南"):
-        logger.info("移动到了艾尔文南")
+    SafeClear(player, 10)
 
-        while not dituHedunmaer.Match():
+    if IsinAierwenfnagxian():
+        if not HasMoveTo("艾尔文南"):
+            MoveTo("艾尔文南", player)
+            return
+        for i in range(30):
+            if IsinHedunmaer():
+                break
             logger.info("按键前往赫顿玛尔")
             QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
             QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
-
+    elif IsinHedunmaer():
         if not OpenTaskScene():
             logger.warning("没有出现任务框")
             return
-
         pos = taskdone.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(1.5)
+        MouseLeftClick(), RanSleep(1.0)
     else:
-        MoveTo("艾尔文南", player)
+        logger.warning("我在哪,我要到哪里去?")
+
+
+# 赫顿玛尔 -> 阿尔法营地  (赫顿玛尔移动到边界点,下一个场景移动到NPC)
+def 前往阿法利亚营地(player):
+    SafeClear(player, 10)
+
+    if IsinHedunmaer():
+        if not HasMoveTo("赫顿玛尔2"):
+            MoveTo("赫顿玛尔2", player)
+            return
+        for i in range(30):
+            if IsinAerfayingdi():
+                break
+            logger.info("按键前往阿尔法营地")
+            QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
+            QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
+    elif IsinAerfayingdi():
+        MeetNpcFoo("洛巴赫3")(player)
+    else:
+        logger.warning("我在哪,我要到哪里去?")
+
+
+# 阿尔法营地 -> 赫顿玛尔 (阿尔法营地移动到边界点,下一个场景移动到NPC)
+def 战火虽已平息(player):
+    SafeClear(player, 10)
+
+    if IsinAerfayingdi():
+        if not HasMoveTo("阿尔法-赫顿玛尔"):
+            MoveTo("阿尔法-赫顿玛尔", player)
+            return
+        for i in range(30):
+            if IsinHedunmaer():
+                break
+            logger.info("按键前往赫顿玛尔")
+            QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
+            QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
+    elif IsinHedunmaer():
+        MeetNpcFoo("斯卡迪")(player)
+    else:
+        logger.warning("我在哪,我要到哪里去?")
+
+
+# 赫顿玛尔 -> 阿尔法营地 (赫顿玛尔移动到边界点,下一个场景移动到NPC)
+def 被带走的俩人(player):
+    SafeClear(player, 10)
+
+    if IsinHedunmaer():
+        if not HasMoveTo("赫顿玛尔2"):
+            MoveTo("赫顿玛尔2", player)
+            return
+        for i in range(30):
+            if IsinAerfayingdi():
+                break
+            logger.info("按键前往阿尔法营地")
+            QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
+            QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
+    elif IsinAerfayingdi():
+        MeetNpcFoo("帕丽丝")(player)
+    else:
+        logger.warning("我在哪,我要到哪里去?")
 
 
 # 同名任务
@@ -513,9 +638,9 @@ def 长脚罗特斯():
     return foo
 
 
-# 难搞的阿甘左
+# 阿甘左香水
 def 寻找阿甘左(player):
-    Clear()
+    SafeClear(player, 10)
 
     if not aganzuowupin.Match():
         if not OpenBagScene():
@@ -550,32 +675,20 @@ def 寻找阿甘左(player):
     AttacktaskFoo("第二脊椎")(player)
 
 
-# 走到新的位置
-def 前往阿法利亚营地(player):
-    if HasMoveTo("赫顿玛尔2"):
-        logger.info("移动到了赫顿玛尔2")
-
-        while not dituAfaliya.Match():
-            QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
-            QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
-
-        logger.info("到达了阿法利亚营地")
-
-
-    else:
-        MoveTo("赫顿玛尔2", player)
-
-
 fubenMap = {
     "格兰之森": ["幽暗密林", "猛毒雷鸣废墟", "冰霜幽暗密林", "格拉卡", "烈焰格拉卡", "烈焰格拉卡", "暗黑雷鸣废墟"],
     "天空之城": ["龙人之塔", "人偶玄关", "石巨人塔", "黑暗悬廊", "城主宫殿", "悬空城"],
-    "天帷巨兽": ["GBL教的神殿", "树精丛林", "炼狱", "极昼", "第一脊椎", "天帷禁地", "第二脊椎"]
+    "天帷巨兽": ["GBL教的神殿", "树精丛林", "炼狱", "极昼", "第一脊椎", "天帷禁地", "第二脊椎"],
+    "阿法利亚": ["浅栖之地", "蜘蛛洞穴", "蜘蛛王国", "英雄冢", "暗精灵墓地", "熔岩穴", "暗黑城入口", "暗黑城"],
+    "诺伊佩拉": ["暴君的祭坛", "黄金矿洞"],
 }
 
 quadMap = {
     "格兰之森": Quardant.ZUO,
     "天空之城": Quardant.YOU,
     "天帷巨兽": Quardant.YOU,
+    "阿法利亚": Quardant.YOU,
+    "诺伊佩拉": Quardant.YOU,
 }
 
 IdxMapMap = {
@@ -596,14 +709,28 @@ IdxMapMap = {
     "城主宫殿": 4,
     "悬空城": 5,
 
-    # 24:
+    # 24-32:
     "GBL教的神殿": 0,
     "树精丛林": 1,
     "炼狱": 2,
     "极昼": 3,
     "第一脊椎": 4,
     "天帷禁地": 5,  # TODO 剧情变化了,下标也变啦
-    "第二脊椎": 5
+    "第二脊椎": 5,
+
+    # 32
+    "浅栖之地": 0,
+    "蜘蛛洞穴": 1,
+    "蜘蛛王国": 2,
+    "英雄冢": 3,
+    "暗精灵墓地": 4,
+    "熔岩穴": 4,  # TODO  = =
+    "暗黑城入口": 6,
+    "暗黑城": 7,
+
+    # 37
+    "暴君的祭坛": 0,
+    "黄金矿洞": 1,
 }
 
 plotMap = {
@@ -696,7 +823,40 @@ plotMap = {
     "宣战": MeetNpcFoo("布告"),
     "忐忑不安的人们": MeetNpcFoo("洛巴赫2"),
     "前往阿法利亚营地": 前往阿法利亚营地,
-
+    "暗精灵的传令使": MeetNpcFoo("克伦特"),
+    "调查传染病": AttacktaskFoo("浅栖之地"),
+    "寻找炼金术师": AttacktaskFoo("浅栖之地"),
+    "炼金术师摩根": AttacktaskFoo("浅栖之地"),
+    "好斗者鲁埃尔": MeetNpcFoo("鲁埃尔"),
+    "与鲁埃尔同行": AttacktaskFoo("蜘蛛洞穴"),
+    "捉蜘蛛": AttacktaskFoo("蜘蛛洞穴"),
+    "寻找专家": MeetNpcFoo("洛巴赫3"),
+    "莎兰与赛丽亚": MeetNpcFoo("帕丽丝"),
+    "无法合作的合作者": AttacktaskFoo("蜘蛛洞穴"),
+    "蜘蛛洞穴的密径": AttacktaskFoo("蜘蛛王国"),
+    "蜘蛛王国": AttacktaskFoo("蜘蛛王国"),
+    "安吉丽娜的突变": AttacktaskFoo("蜘蛛王国"),
+    "向暗黑城前进": AttacktaskFoo("英雄冢"),
+    "复活的暗精灵英雄们": AttacktaskFoo("英雄冢"),
+    "埋葬在岁月中": AttacktaskFoo("英雄冢"),
+    "探索墓地": AttacktaskFoo("暗精灵墓地"),
+    "认识克伦特的女人": AttacktaskFoo("暗精灵墓地"),
+    "封印之门的另一边": AttacktaskFoo("暗精灵墓地"),
+    "穿过熔岩": AttacktaskFoo("熔岩穴"),
+    "前往暗黑城入口": AttacktaskFoo("暗黑城入口"),
+    "前往暗黑城": AttacktaskFoo("暗黑城"),
+    "梅娅女王": MeetNpcFoo("梅娅女王"),
+    "传达消息": MeetNpcFoo("克伦特"),
+    "喜讯": MeetNpcFoo("洛巴赫3"),
+    "战火虽已平息": 战火虽已平息,
+    "邪恶的暗流": MeetNpcFoo("艾丽丝"),
+    "被带走的俩人": 被带走的俩人,
+    "了解情况": MeetNpcFoo("梅娅女王"),
+    "夏普伦长老的要求": MeetNpcFoo("王宫外"),
+    "神秘的暗精灵": AttacktaskFoo("暴君的祭坛"),
+    "寻找真正的祭坛": AttacktaskFoo("暴君的祭坛"),
+    "充满黄金的地方": AttacktaskFoo("黄金矿洞"),
+    "维迪尔的要求": AttacktaskFoo("黄金矿洞"),
 }
 
 

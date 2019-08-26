@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -359,7 +360,10 @@ class ObstacleObj(Structure):
                          109006964, 230]:
             return False
 
-        if self.hp > 0 and self.flag == 2:
+        if self.code in [109007006]:
+            return True
+
+        if self.hp > 0 and self.flag in [1, 2]:
             return True
 
         return False
@@ -1381,6 +1385,7 @@ def IsMenDead():
     meninfo = GetMenInfo()
     return meninfo.hp <= 0
 
+
 # 冰霜幽暗密林第一个门有冰柱挡住
 def GetNextDoorWrap():
     mapinfo = GetMapInfo()
@@ -1697,10 +1702,18 @@ def Clear():
         logger.info("关闭esc")
         PressKey(VK_CODE["esc"]), RanSleep(0.2)
 
-    MouseMoveTo(0, 0), RanSleep(0.3)
+    MouseMoveTo(0, 0), RanSleep(0.1)
 
 
-# 打开esc
+# 不要频繁的clear
+def SafeClear(player, t):
+    if player.latestClear is None or time.time() - player.latestClear > t:
+        Clear()
+        player.latestClear = time.time()
+    else:
+        logger.warning("屏蔽频繁clear")
+
+
 def Openesc():
     if not IsEscTop():
         logger.info("打开esc")

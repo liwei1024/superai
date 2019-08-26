@@ -89,6 +89,9 @@ class Player:
         # 下一个门的x, y  NewMapCache 更新
         self.doorx, self.doory = 0, 0
 
+        # 上次clear的时间点,用于防止频繁clear
+        self.latestClear = None
+
     # 更改当前状态机
     def ChangeState(self, state):
         self.UpLatestKey()
@@ -154,6 +157,7 @@ class Player:
 
     # 随机选择一种技能
     def SelectSkill(self):
+        self.skills.Update()
         if random.uniform(0, 1) < 0.05:
             self.curskill = simpleAttackSkill
         else:
@@ -164,7 +168,6 @@ class Player:
     # 使用掉随机选择的技能
     def UseSkill(self):
         self.curskill.Use()
-        self.skills.Update()
         self.curskill = None
 
     # 是否已经选择了技能
@@ -255,7 +258,8 @@ class Player:
             self.ChaoxiangFangxiang(menx, destx)
             logger.info("方向上有障碍物, 攻击")
             self.UpLatestKey()
-            PressX()
+            self.SelectSkill()
+            self.UseSkill()
             return
 
         if len(self.pathfindinglst) == 0:
@@ -351,7 +355,7 @@ class Player:
     # 切换到新的图
     def CheckInToNewMap(self):
         self.UpLatestKey()
-        RanSleep(0.1)
+        RanSleep(0.2)
         logger.info("进了新的房间")
         self.NewMapCache()
         self.ChangeState(StandState())
@@ -704,11 +708,11 @@ class FirstInMap(State):
                 RanSleep(0.5)
                 return
 
+            player.skills.Update()
             skills = player.skills.GetCanBeUseBuffSkills()
             for skill in skills:
                 logger.info("使用buff: %s" % skill.name)
                 skill.Use()
-                player.skills.Update()
         else:
             logger.info("没有buffer可以使用")
 

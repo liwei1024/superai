@@ -12,7 +12,7 @@ import win32gui
 import random
 
 from ctypes import *
-from superai.common import InitLog
+from superai.common import InitLog, GameWindowToTop
 
 from superai.vkcode import *
 
@@ -390,15 +390,9 @@ def main():
     global h
     global x
 
-    hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
-    # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
-    #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
-    win32gui.SetForegroundWindow(hwnd)
+    GameWindowToTop()
 
-    MouseMoveTo(345, 333)
-
-
-#     time.sleep(1)
+    MouseMoveTo(580, 425)
 
 
 if __name__ == "__main__":

@@ -20,6 +20,8 @@ fenjieTianzhuijushou = Picture(GetImgDir() + "fenjieTianzhuijushou.png")
 fenjieButton = Picture(GetImgDir() + "fenjie_button.png")
 fenjiexiulijiScene = Picture(GetImgDir() + "fenjiexiuliji_scene.png")
 fenjieConfirm =  Picture(GetImgDir() + "fenjie_confirm.png")
+fenjieAfaliya = Picture(GetImgDir() + "fenjieAfaliya.png")
+fenjieNuoyipeila = Picture(GetImgDir() + "fenjie_nuoyipeila.png")
 sellButton = Picture(GetImgDir() + "sellbt.png")
 bagScene = Picture(GetImgDir() + "bagscene.png")
 repairButton = Picture(GetImgDir() + "repair.png")
@@ -47,7 +49,10 @@ class DealEquip:
             pos = fenjieTiankongzhicheng.Pos()
         elif lo.get() == "天锥巨兽":
             pos = fenjieTianzhuijushou.Pos()
-
+        elif lo.get() == "阿法利亚":
+            pos = fenjieAfaliya.Pos()
+        elif lo.get() == "诺伊佩拉":
+            pos = fenjieNuoyipeila.Pos()
         return pos
 
     # 分解
@@ -58,14 +63,14 @@ class DealEquip:
 
         pos = self.GetFenjieJiPos()
 
-        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.3)
-        MouseMoveR(56, 54), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.3)
+        MouseMoveTo(pos[0], pos[1]), RanSleep(0.1)
+        MouseLeftClick(), RanSleep(0.1)
+        MouseMoveR(56, 54), RanSleep(0.1)
+        MouseLeftClick(), RanSleep(0.1)
 
         # 分解按钮
         fenjiebt = fenjieButton.Pos()
-        MouseMoveTo(fenjiebt[0], fenjiebt[1]), RanSleep(0.3)
+        MouseMoveTo(fenjiebt[0], fenjiebt[1]), RanSleep(0.1)
 
 
         # 检查 "稀有" "勇者" "包含我的职业装备" 是否勾选
@@ -81,7 +86,7 @@ class DealEquip:
         checks = [xiyoucheck, yongzhecheck, zhiyecheck]
         for v in checks:
             if not v[0].Match():
-                MouseMoveTo((v[1])[0], (v[1])[1]), RanSleep(0.3)
+                MouseMoveTo((v[1])[0], (v[1])[1]), RanSleep(0.1)
                 MouseLeftClick(), RanSleep(0.3)
                 MouseMoveTo(fenjiebt[0], fenjiebt[1]), RanSleep(0.3)
 
@@ -153,13 +158,13 @@ class DealEquip:
     def CloseFenjie(self):
         while fenjiexiulijiScene.Match():
             logger.info("关闭分解机")
-            PressKey(VK_CODE["esc"]), RanSleep(0.3)
+            PressKey(VK_CODE["esc"]), RanSleep(0.1)
 
     # 关闭卖物
     def CloseSell(self):
         while sellButton.Match():
             logger.info("关闭分解机")
-            PressKey(VK_CODE["esc"]), RanSleep(0.3)
+            PressKey(VK_CODE["esc"]), RanSleep(0.1)
 
 
 def main():
