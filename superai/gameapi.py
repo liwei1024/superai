@@ -15,7 +15,7 @@ import math
 from superai.common import InitLog
 from superai.yijianshu import PressSkill, PressKey, DownZUO, DownYOU, DownSHANG, DownXIA, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, RanSleep, \
-    MouseMoveTo
+    MouseMoveTo, KongjianSleep
 from superai.vkcode import VK_CODE
 from superai.defer import defer
 
@@ -1697,12 +1697,12 @@ simpleAttackSkill.skilldata.delaytime = 1.0
 
 # 清空当前
 def Clear():
-    PressKey(VK_CODE["esc"]), RanSleep(0.2)
+    PressKey(VK_CODE["esc"]), KongjianSleep()
     if GetMenInfo().esc:
         logger.info("关闭esc")
-        PressKey(VK_CODE["esc"]), RanSleep(0.2)
+        PressKey(VK_CODE["esc"]), KongjianSleep()
 
-    MouseMoveTo(0, 0), RanSleep(0.1)
+    MouseMoveTo(0, 0), KongjianSleep()
 
 
 # 不要频繁的clear
@@ -1717,7 +1717,7 @@ def SafeClear(player, t):
 def Openesc():
     if not IsEscTop():
         logger.info("打开esc")
-        PressKey(VK_CODE["esc"]), RanSleep(0.2)
+        PressKey(VK_CODE["esc"]), KongjianSleep()
     return IsEscTop()
 
 

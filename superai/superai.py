@@ -25,7 +25,7 @@ from superai.vkcode import VK_CODE
 
 from superai.yijianshu import YijianshuInit, PressRight, \
     PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, PressKey, MouseMoveTo, MouseLeftClick, \
-    PressUp, PressDown
+    PressUp, PressDown, KongjianSleep
 
 from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, GetMenXY, GetQuadrant, GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
@@ -206,6 +206,14 @@ class Player:
         menx, meny = GetMenXY()
         quad, rent = GetQuadrant(menx, meny, destx, desty)
 
+        if self.ob.ManQuadHasObstacle(quad, menx, meny):
+            self.ChaoxiangFangxiang(menx, destx)
+            logger.info("方向上有障碍物, 攻击")
+            self.UpLatestKey()
+            self.SelectSkill()
+            self.UseSkill()
+            return
+
         objname = ""
         if obj is not None:
             objname = "name:%s obj:0x%X hp:%d " % (obj.name, obj.object, obj.hp) if obj is not None else ""
@@ -227,12 +235,9 @@ class Player:
             # 上次的按键在本次方向中没找到就弹起
             for keydown in latestDecompose:
                 if keydown not in currentDecompose:
-                    QuadKeyUpMap[keydown]()
-                    RanSleep(0.01)
+                    QuadKeyUpMap[keydown](), RanSleep(0.01)
 
-            self.DownKey(quad)
-
-            RanSleep(0.02)
+            self.DownKey(quad), RanSleep(0.02)
             logger.info("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 保持部分移动方向 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
         else:
@@ -240,8 +245,7 @@ class Player:
             self.UpLatestKey()
             if jizou:
                 self.KeyJiPao(GetFangxiang(menx, destx))
-            self.DownKey(quad)
-            RanSleep(0.02)
+            self.DownKey(quad), RanSleep(0.02)
             logger.info("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
 
@@ -253,14 +257,6 @@ class Player:
         # 方向是否有障碍物
         self.ob.UpdateObstacle(GetObstacle())
         quad, _ = GetQuadrant(menx, meny, destx, desty)
-
-        if self.ob.ManQuadHasObstacle(quad, menx, meny):
-            self.ChaoxiangFangxiang(menx, destx)
-            logger.info("方向上有障碍物, 攻击")
-            self.UpLatestKey()
-            self.SelectSkill()
-            self.UseSkill()
-            return
 
         if len(self.pathfindinglst) == 0:
             # 范围内有麻烦就路径规划一下
@@ -420,15 +416,15 @@ class GlobalState(State):
         # 视频处理
         if player.IsEmptyFor(FOR_SHIPIN):
             logger.info("视频状态")
-            PressKey(VK_CODE["esc"]), RanSleep(0.3)
-            PressKey(VK_CODE["spacebar"]), RanSleep(0.3)
+            PressKey(VK_CODE["esc"]), KongjianSleep()
+            PressKey(VK_CODE["spacebar"]), KongjianSleep()
             if not IsShipinTop():
                 player.RestoreContext()
             return
         # 对话处理
         elif player.IsEmptyFor(FOR_DUIHUA):
             logger.info("对话状态")
-            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+            PressKey(VK_CODE["spacebar"]), KongjianSleep()
             if not IsWindowTop():
                 player.RestoreContext()
             return
@@ -438,13 +434,14 @@ class GlobalState(State):
             if IsConfirmTop():
                 confirmPos = GetConfirmPos()
                 if confirmPos != (0, 0):
-                    MouseMoveTo(confirmPos[0], confirmPos[1]), RanSleep(0.3)
-                    MouseLeftClick(), RanSleep(0.3)
+                    MouseMoveTo(confirmPos[0], confirmPos[1]), KongjianSleep()
+                    MouseLeftClick(), KongjianSleep()
                 else:
                     logger.info("没有找到确认按钮位置")
             else:
                 logger.info("确认按钮没有置顶")
-            RanSleep(0.3)
+
+            RanSleep(0.1)
             if not IsConfirmTop():
                 player.RestoreContext()
             return
@@ -483,7 +480,7 @@ class GlobalState(State):
 
             checktime = 0.5
             if len(player.pathfindinglst) > 0:
-                checktime = 3.0
+                checktime = 1.5
 
             if time.time() - self.latesttime > checktime:
                 latestx, latesty = self.beginx, self.beginy
@@ -492,7 +489,7 @@ class GlobalState(State):
 
                 # 去下一个门的时候卡死了
                 if isinstance(player.stateMachine.currentState, DoorOpenGotoNext):
-                    if IsClosedTo(latestx, latesty, curx, cury, 30 // 2):
+                    if IsClosedTo(latestx, latesty, curx, cury, 40 // 2):
                         logger.warning("去下一个门的时候卡死了, 回退一些再进门")
                         player.NewMapCache()
                         player.ChangeState(DoorStuckGoToPrev())
@@ -514,15 +511,13 @@ class Setup(State):
     def Execute(self, player):
         if IsManInMap():
             player.ChangeState(FirstInMap())
-            RanSleep(0.2)
             return
 
         if IsManInChengzhen():
             player.ChangeState(InChengzhen())
-            RanSleep(0.2)
             return
 
-        RanSleep(0.2)
+        RanSleep(0.1)
 
 
 # 城镇
@@ -535,52 +530,44 @@ class InChengzhen(State):
         # 如果在图内,切换到图内
         if IsManInMap():
             player.ChangeState(FirstInMap())
-            RanSleep(0.2)
             return
 
         # 等级发生变化, 技能加点
         if player.HasLevelChanged():
             player.ChangeState(SettingSkill())
-            RanSleep(0.2)
             return
 
         # 等级 >= 10, 身上,背包没有合适的幸运星武器
         if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
             player.ChangeState(HireEquip())
-            RanSleep(0.2)
             return
 
         # 需要领取称号
         if eq.NeedGetChenghao():
             player.ChangeState(GetChenghao())
-            RanSleep(0.2)
             return
 
         # 背包有更好的装备,更换装备
         if eq.DoesBagHaveBetterEquip():
             player.ChangeState(ChangeEquip())
-            RanSleep(0.2)
             return
 
         # 负重超过80%,分解 (需要先到副本外)
         if meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65 and deal.GetFenjieJiPos() is not None:
             player.ChangeState(FenjieEquip())
-            RanSleep(0.2)
             return
 
         # 耐久小于25%,修理 (需要先到副本外)
         if deal.NeedRepair() and deal.GetFenjieJiPos() is not None:
             player.ChangeState(RepairEquip())
-            RanSleep(0.2)
             return
 
         # 做剧情任务
         if HasPlot():
             player.ChangeState(TaskState())
-            RanSleep(0.2)
             return
 
-        RanSleep(0.2)
+        RanSleep(0.1)
 
 
 # 技能加点,移除不需要的技能,放入需要的技能
@@ -658,11 +645,11 @@ class RepairEquip(State):
 # 副本结束, 尝试退出
 class FubenOver(State):
     def Execute(self, player):
-        PressKey(VK_CODE["esc"]), RanSleep(0.2)
-        PressKey(VK_CODE["F12"]), RanSleep(0.2)
+        PressKey(VK_CODE["esc"]), KongjianSleep()
+        PressKey(VK_CODE["F12"]), KongjianSleep()
         if IsManInChengzhen():
             while IsEscTop():
-                PressKey(VK_CODE["esc"]), RanSleep(0.2)
+                PressKey(VK_CODE["esc"]), KongjianSleep()
             player.ChangeState(InChengzhen())
             return
 
@@ -699,13 +686,11 @@ class FirstInMap(State):
 
         if player.skills.HaveBuffCanBeUse():
             if not CanbeMovTest():
-                logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机")
-                RanSleep(0.5)
+                logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机"), RanSleep(0.5)
                 return
-            RanSleep(0.3)
+
             if not CanbeMovTest():
-                logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机")
-                RanSleep(0.5)
+                logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机"), RanSleep(0.5)
                 return
 
             player.skills.Update()
@@ -742,7 +727,7 @@ class StandState(State):
             return
         elif IsFuBenPass():
             # 打死boss后判断下物品
-            RanSleep(0.3)
+            RanSleep(0.2)
             if HaveGoods(player):
                 player.ChangeState(SeekAndPickUp())
                 return
@@ -762,13 +747,13 @@ class StandState(State):
         else:
             if IsCurrentInBossFangjian():
                 # 得不到怪物对象. 可能副本结束的瞬间 按esc吧!
-                PressKey(VK_CODE["esc"]), RanSleep(0.1)
+                PressKey(VK_CODE["esc"]), KongjianSleep()
 
                 # 把它再点掉,投机取巧
                 if IsEscTop():
-                    PressKey(VK_CODE["esc"]), RanSleep(0.1)
+                    PressKey(VK_CODE["esc"]), KongjianSleep()
 
-        RanSleep(0.3)
+        RanSleep(0.1)
         logger.info("state can not switch")
 
 
@@ -828,7 +813,7 @@ class SeekAndAttackMonster(State):
 
             # 阿甘左强行判断:
             if 28 <= men.level <= 32 and obj.name == "领主 - 阿甘左" and obj.hp <= 281818:
-                PressKey(VK_CODE["6"]), RanSleep(0.3)
+                PressKey(VK_CODE["6"]), KongjianSleep()
                 logger.info("给阿甘左吃点香料")
             return
 
@@ -887,8 +872,7 @@ class SeekAndPickUp(State):
             # 上一次的跑动的按键恢复
             player.UpLatestKey()
             player.ClearPathfindingLst()
-            logger.info("捡取 (%d,%d)" % (obj.x, obj.y))
-            RanSleep(0.05)
+            logger.info("捡取 (%d,%d)" % (obj.x, obj.y)), RanSleep(0.05)
             PressX()
         else:
             player.SeekWithPathfinding(obj.x, obj.y, dummy="物品:" + obj.name)
@@ -915,7 +899,6 @@ class PickBuf(State):
             player.UpLatestKey()
             player.ClearPathfindingLst()
             logger.info("捡取buff (%d,%d)" % (obj.x, obj.y))
-            RanSleep(0.1)
         else:
             player.SeekWithPathfinding(obj.x, obj.y, dummy="捡取buff")
 
@@ -969,12 +952,10 @@ class TaskState(State):
     def Execute(self, player):
         if not HasPlot():
             player.ChangeState(Setup())
-            RanSleep(0.2)
             return
 
         if IsManInMap():
             player.ChangeState(FirstInMap())
-            RanSleep(0.2)
             return
 
         tasks = GetTaskObj()
@@ -983,9 +964,9 @@ class TaskState(State):
                 plotMap[v.name](player)
 
                 # 做完任务切换setup
-                player.ChangeState(Setup())
+                # player.ChangeState(Setup())
 
-        RanSleep(0.2)
+        RanSleep(0.1)
 
 
 def main():

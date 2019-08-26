@@ -14,7 +14,7 @@ from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
     CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc, SafeClear
 from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick, MouseLeftDown, MouseMoveR, \
-    MouseLeftUp
+    MouseLeftUp, KongjianSleep
 
 shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
 selectmen = Picture(GetImgDir() + "selectmen.png")
@@ -36,11 +36,11 @@ taskdone = Picture(GetImgDir() + "task_done.png")
 aganzuowupin = Picture(GetImgDir() + "aganzuo_wupin.png", 243, 560, 28, 28)
 aganzuowupin2 = Picture(GetImgDir() + "aganzuo_wupin2.png")
 
-wenziaierwenfangxian = Picture(GetImgDir() + "wenzi_aierwenfangxian.png")
-wenzihedunmaer = Picture(GetImgDir() + "wenzi_hedunmaer.png")
-wenziaerfayingdi = Picture(GetImgDir() + "wenzi_aerfayingdi.png")
-wenzianheicheng = Picture(GetImgDir() + "wenzi_anheicheng.png")
-wenzixihaian = Picture(GetImgDir() + "wenzi_xihaian.png")
+wenziaierwenfangxian = Picture(GetImgDir() + "wenzi_aierwenfangxian.png", 610, 22, 182, 25)
+wenzihedunmaer = Picture(GetImgDir() + "wenzi_hedunmaer.png", 610, 22, 182, 25)
+wenziaerfayingdi = Picture(GetImgDir() + "wenzi_aerfayingdi.png", 610, 22, 182, 25)
+wenzianheicheng = Picture(GetImgDir() + "wenzi_anheicheng.png", 610, 22, 182, 25)
+wenzixihaian = Picture(GetImgDir() + "wenzi_xihaian.png", 610, 22, 182, 25)
 
 Wupin6Pos = (255, 577)
 
@@ -137,7 +137,7 @@ MoveSetting = {
     "布告": MoveInfo(destpic=Picture(GetImgDir() + "ditu_bugaolan.png"), destcoord=(926, 213),
                    shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(320, 339),
                    desc="布告"),
-    "赫顿玛尔2": MoveInfo(destpic=Picture(GetImgDir() + "hedunmaer2.png"), destcoord=(1248, 407),
+    "赫顿玛尔2": MoveInfo(destpic=Picture(GetImgDir() + "hedunmaer2.png"), destcoord=(1254, 417),
                       shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(336, 372),
                       desc="赫顿玛尔2"),
 
@@ -194,10 +194,10 @@ def BackAndEnter():
     if not gamebegin.Match():
         logger.info("寻找游戏开始按钮")
         pos = selectmen.Pos()
-        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
         MouseLeftClick(), RanSleep(1.5)  # TODO 写死了
 
-    PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+    PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
 
 # 打开任务栏
@@ -206,7 +206,7 @@ def OpenTaskScene():
 
     if not taskScene.Match():
         logger.info("F1打开任务列表")
-        PressKey(VK_CODE["F1"]), RanSleep(0.3)
+        PressKey(VK_CODE["F1"]), KongjianSleep()
     return taskScene.Match()
 
 
@@ -216,7 +216,8 @@ def OpenShijieDitu():
 
     if not shijiedituScene.Match():
         logger.info("打开世界地图")
-        PressKey(VK_CODE["n"]), RanSleep(0.3)
+        PressKey(VK_CODE["n"]), KongjianSleep()
+
     return shijiedituScene.Match()
 
 
@@ -224,7 +225,7 @@ def OpenShijieDitu():
 def CloseShijieDitu():
     if shijiedituScene.Match():
         logger.info("关闭世界地图")
-        PressKey(VK_CODE["n"]), RanSleep(0.3)
+        PressKey(VK_CODE["n"]), KongjianSleep()
 
 
 # 是否移动城镇的位置
@@ -249,19 +250,19 @@ def CoordMoveTo(shijitpic, mousecoord):
             logger.warning("当前世界地图对不上")
             return
 
-        MouseMoveTo(mousecoord[0], mousecoord[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.3)
+        MouseMoveTo(mousecoord[0], mousecoord[1]), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
         CloseShijieDitu()
         return True
     else:
-        logger.warning("世界地图没打开"), RanSleep(0.3)
+        logger.warning("世界地图没打开")
         return False
 
 
 # 移动到目的位置
 def MoveTo(npcname, player):
     moveinfo = MoveSetting[npcname]
-    if player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 10.0:
+    if player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 5.0:
 
         # 没有移动过或者超时
         logger.info("目标: %s 城镇位置: (%d,%d)  没有到达, 开始移动. 鼠标指向到 (%d, %d)" % (
@@ -277,10 +278,13 @@ def MoveTo(npcname, player):
 
 # 到达选择角色页面
 def GoToSelect(quad: Quardant):
-    if not IsManInSelectMap():
-        logger.info("微调选择地图")
-        QuadKeyDownMap[quad](), RanSleep(1)
-        QuadKeyUpMap[quad](), RanSleep(0.3)
+    for i in range(3):
+        if not IsManInSelectMap():
+            logger.info("微调选择地图")
+            QuadKeyDownMap[quad](), RanSleep(1)
+            QuadKeyUpMap[quad](), KongjianSleep()
+        else:
+            break
 
     return IsManInSelectMap()
 
@@ -290,7 +294,7 @@ def SelectMap(mapname):
     idx = IdxMapMap[mapname]
     while CurSelectId() != idx and IsManInSelectMap():
         logger.info("↑ 切换地图")
-        PressKey(VK_CODE["up_arrow"]), RanSleep(0.2)
+        PressKey(VK_CODE["up_arrow"]), KongjianSleep()
 
     return CurSelectId() == idx and IsManInSelectMap()
 
@@ -298,16 +302,15 @@ def SelectMap(mapname):
 # 进图
 def EnterMap(mapname, player):
     if SelectMap(mapname):
-        PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+        PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
-        for i in range(5):
+        for i in range(10):
             if IsManInMap():
                 from superai.superai import FirstInMap
                 player.ChangeState(FirstInMap())
                 return
 
-            logger.info("等待进图... %d" % i)
-            RanSleep(1)
+            logger.info("等待进图... %d" % i), RanSleep(5)
     else:
         logger.warning("没有选择对地图")
 
@@ -365,8 +368,8 @@ def AcceptMain():
         return
 
     pos = taskkzhuxian.Pos()
-    MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-    MouseLeftClick(), RanSleep(1)
+    MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+    MouseLeftClick(), KongjianSleep()
 
 
 # 完成任务  (直接完成不能一直点,因为会有对话框弹出来,多次按任务对话框数据变0)
@@ -386,8 +389,8 @@ def SubmitTask(player):
             return
 
         pos = taskok.Pos()
-        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(1)
+        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
 
         player.taskctx.latestsubmitpoint = time.time()
     else:
@@ -405,12 +408,12 @@ def AttacktaskFoo(fubenname):
     def foo(player, dituname=dituname, fubenname=fubenname):
         if not IsTaskaccept():
             logger.info("没有主线任务被接受")
-            AcceptMain(), RanSleep(0.3)
+            AcceptMain()
             return
 
         if TaskOk():
             logger.info("任务直接可完成")
-            SubmitTask(player), RanSleep(0.3)
+            SubmitTask(player)
             return
 
         moveinfo = MoveSetting[dituname]
@@ -439,12 +442,12 @@ def MeetNpcFoo(npcname):
     def foo(player, npcname=npcname):
         if not IsTaskaccept():
             logger.info("没有主线任务被接受")
-            AcceptMain(), RanSleep(0.3)
+            AcceptMain()
             return
 
         if TaskOk():
             logger.info("任务直接可完成")
-            SubmitTask(player), RanSleep(0.3)
+            SubmitTask(player)
             return
 
         if npcname == "":
@@ -454,13 +457,13 @@ def MeetNpcFoo(npcname):
         if npcname == "赛利亚":
             # 返回角色再进入
             BackAndEnter()
-            QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
-            QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
-            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+            QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)  # TODO 写死了
+            QuadKeyUpMap[Quardant.SHANG](), KongjianSleep()
+            PressKey(VK_CODE["spacebar"]), KongjianSleep()
         else:
             if HasMoveTo(npcname):
                 logger.info("到达了指定位置,按space键")
-                PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+                PressKey(VK_CODE["spacebar"]), KongjianSleep()
             else:
                 MoveTo(npcname, player)
 
@@ -484,7 +487,7 @@ def IsinAerfayingdi():
 
 # 转职任务
 def 守护森林的战斗(player):
-    SafeClear(player, 10)
+    SafeClear(player, 5)
 
     if not DidPlotAccept("守护森林的战斗"):
         logger.info("任务没有接受, 接受任务")
@@ -498,11 +501,11 @@ def 守护森林的战斗(player):
             return
 
         pos = taskShouhusenlin.Pos()
-        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.3)
+        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
 
         while IsWindowTop():
-            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+            PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
         # TODO  目前写死职业 . 要添加配置
         pic = None
@@ -523,11 +526,11 @@ def 守护森林的战斗(player):
             return
 
         pos = pic.Pos()
-        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
         MouseLeftClick(), RanSleep(1)
 
         while IsWindowTop():
-            PressKey(VK_CODE["spacebar"]), RanSleep(0.2)
+            PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
         if not zhuanzhiConfirm.Match():
             logger.warning("没有到寻找转职确认按钮")
@@ -535,15 +538,15 @@ def 守护森林的战斗(player):
 
         # 确认
         pos = zhuanzhiConfirm.Pos()
-        MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.3)
+        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
     else:
         AttacktaskFoo("暗黑雷鸣废墟")(player)
 
 
 # 艾尔文防线 -> 赫顿玛尔   (艾尔文防线移动到边界点,下一个场景直接完成)
 def 赫顿玛尔的骚乱(player):
-    SafeClear(player, 10)
+    SafeClear(player, 5)
 
     if IsinAierwenfnagxian():
         if not HasMoveTo("艾尔文南"):
@@ -551,6 +554,7 @@ def 赫顿玛尔的骚乱(player):
             return
         for i in range(30):
             if IsinHedunmaer():
+                logger.info("到达了")
                 break
             logger.info("按键前往赫顿玛尔")
             QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
@@ -561,22 +565,25 @@ def 赫顿玛尔的骚乱(player):
             return
         pos = taskdone.Pos()
         MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(1.0)
+        MouseLeftClick(), RanSleep(0.3)
     else:
         logger.warning("我在哪,我要到哪里去?")
 
 
 # 赫顿玛尔 -> 阿尔法营地  (赫顿玛尔移动到边界点,下一个场景移动到NPC)
 def 前往阿法利亚营地(player):
-    SafeClear(player, 10)
+    SafeClear(player, 5)
 
     if IsinHedunmaer():
         if not HasMoveTo("赫顿玛尔2"):
             MoveTo("赫顿玛尔2", player)
             return
+
         for i in range(30):
             if IsinAerfayingdi():
+                logger.info("到达了")
                 break
+
             logger.info("按键前往阿尔法营地")
             QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
             QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
@@ -588,7 +595,7 @@ def 前往阿法利亚营地(player):
 
 # 阿尔法营地 -> 赫顿玛尔 (阿尔法营地移动到边界点,下一个场景移动到NPC)
 def 战火虽已平息(player):
-    SafeClear(player, 10)
+    SafeClear(player, 5)
 
     if IsinAerfayingdi():
         if not HasMoveTo("阿尔法-赫顿玛尔"):
@@ -596,6 +603,7 @@ def 战火虽已平息(player):
             return
         for i in range(30):
             if IsinHedunmaer():
+                logger.info("到达了")
                 break
             logger.info("按键前往赫顿玛尔")
             QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
@@ -608,7 +616,7 @@ def 战火虽已平息(player):
 
 # 赫顿玛尔 -> 阿尔法营地 (赫顿玛尔移动到边界点,下一个场景移动到NPC)
 def 被带走的俩人(player):
-    SafeClear(player, 10)
+    SafeClear(player, 5)
 
     if IsinHedunmaer():
         if not HasMoveTo("赫顿玛尔2"):
@@ -616,6 +624,7 @@ def 被带走的俩人(player):
             return
         for i in range(30):
             if IsinAerfayingdi():
+                logger.info("到达了")
                 break
             logger.info("按键前往阿尔法营地")
             QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
@@ -640,7 +649,7 @@ def 长脚罗特斯():
 
 # 阿甘左香水
 def 寻找阿甘左(player):
-    SafeClear(player, 10)
+    SafeClear(player, 5)
 
     if not aganzuowupin.Match():
         if not OpenBagScene():
@@ -648,23 +657,23 @@ def 寻找阿甘左(player):
             return
 
         pos = bagScene.Pos()
-        MouseMoveTo(pos[0] + XiaohaoPos[0], pos[1] + XiaohaoPos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.3)
+        MouseMoveTo(pos[0] + XiaohaoPos[0], pos[1] + XiaohaoPos[1]), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
 
         if not aganzuowupin2.Match():
             logger.warning("找不到爱丽丝的香料")
             return
 
         anganzuopos = aganzuowupin2.Pos()
-        MouseMoveTo(anganzuopos[0], anganzuopos[1]), RanSleep(0.3)
-        MouseLeftDown(), RanSleep(0.3)
-        MouseMoveR(10, 10), RanSleep(0.3)
-        MouseMoveTo(Wupin6Pos[0], Wupin6Pos[1]), RanSleep(0.3)
-        MouseLeftUp(), RanSleep(0.3)
-        MouseMoveR(30, 30), RanSleep(0.3)
+        MouseMoveTo(anganzuopos[0], anganzuopos[1]), KongjianSleep()
+        MouseLeftDown(), KongjianSleep()
+        MouseMoveR(10, 10), KongjianSleep()
+        MouseMoveTo(Wupin6Pos[0], Wupin6Pos[1]), KongjianSleep()
+        MouseLeftUp(), KongjianSleep()
+        MouseMoveR(30, 30), KongjianSleep()
 
-        MouseMoveTo(pos[0] + ZhunangbeiPos[0], pos[1] + ZhunangbeiPos[1]), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.3)
+        MouseMoveTo(pos[0] + ZhunangbeiPos[0], pos[1] + ZhunangbeiPos[1]), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
 
         if not aganzuowupin.Match():
             logger.warning("拖动爱丽丝香料失败")

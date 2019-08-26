@@ -272,7 +272,7 @@ def main():
     # moqiangshi_ciji = Picture(basedir + "/kongge.png")
     # pos = moqiangshi_ciji.Pos()
     # print(pos)
-    # MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
+    # MouseMoveTo(pos[0], pos[1]), KongjianSleep()
 
     # while True:
     #     if IsCartoonTop():

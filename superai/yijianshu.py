@@ -144,6 +144,11 @@ def RanSleep(t):
         time.sleep(t)
 
 
+# 操作控件后的sleep
+def KongjianSleep():
+    RanSleep(0.1)
+
+
 # 全局变量
 h = None
 x = None
@@ -171,21 +176,15 @@ def ReleaseAllKey():
 
 
 def JiPaoYou():
-    lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    RanSleep(0.15)
-    lib.M_KeyUp2(h, VK_CODE["right_arrow"])
-    RanSleep(0.15)
-    lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    RanSleep(0.15)
+    lib.M_KeyDown2(h, VK_CODE["right_arrow"]), RanSleep(0.15)
+    lib.M_KeyUp2(h, VK_CODE["right_arrow"]), RanSleep(0.15)
+    lib.M_KeyDown2(h, VK_CODE["right_arrow"]), RanSleep(0.15)
 
 
 def JiPaoZuo():
-    lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    RanSleep(0.15)
-    lib.M_KeyUp2(h, VK_CODE["left_arrow"])
-    RanSleep(0.15)
-    lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    RanSleep(0.15)
+    lib.M_KeyDown2(h, VK_CODE["left_arrow"]), RanSleep(0.15)
+    lib.M_KeyUp2(h, VK_CODE["left_arrow"]), RanSleep(0.15)
+    lib.M_KeyDown2(h, VK_CODE["left_arrow"]), RanSleep(0.15)
 
 
 # 八方位移动
@@ -262,67 +261,53 @@ def UpYOUXIA():
 
 
 def PressKey(key):
-    lib.M_KeyDown2(h, key)
-    RanSleep(0.1)
+    lib.M_KeyDown2(h, key), KongjianSleep()
     lib.M_KeyUp2(h, key)
 
 
 def PressRight():
-    lib.M_KeyDown2(h, VK_CODE["right_arrow"])
-    RanSleep(0.1)
+    lib.M_KeyDown2(h, VK_CODE["right_arrow"]), KongjianSleep()
     lib.M_KeyUp2(h, VK_CODE["right_arrow"])
 
 
 def PressLeft():
-    lib.M_KeyDown2(h, VK_CODE["left_arrow"])
-    RanSleep(0.1)
+    lib.M_KeyDown2(h, VK_CODE["left_arrow"]), KongjianSleep()
     lib.M_KeyUp2(h, VK_CODE["left_arrow"])
 
 
 def PressUp():
-    lib.M_KeyDown2(h, VK_CODE["up_arrow"])
-    RanSleep(0.1)
+    lib.M_KeyDown2(h, VK_CODE["up_arrow"]), KongjianSleep()
     lib.M_KeyUp2(h, VK_CODE["up_arrow"])
 
 
 def PressDown():
-    lib.M_KeyDown2(h, VK_CODE["down_arrow"])
-    RanSleep(0.1)
+    lib.M_KeyDown2(h, VK_CODE["down_arrow"]), KongjianSleep()
     lib.M_KeyUp2(h, VK_CODE["down_arrow"])
 
 
 def PressX():
-    lib.M_KeyDown2(h, VK_CODE["x"])
-    RanSleep(0.1)
+    lib.M_KeyDown2(h, VK_CODE["x"]), KongjianSleep()
     lib.M_KeyUp2(h, VK_CODE["x"])
 
 
 def PressSkill(key, delay, afterdelay, thenpress=None, doublepress=False):
-    lib.M_KeyDown2(h, key)
-    RanSleep(delay)
-    lib.M_KeyUp2(h, key)
-
-    RanSleep(afterdelay)
+    lib.M_KeyDown2(h, key), RanSleep(delay)
+    lib.M_KeyUp2(h, key), RanSleep(afterdelay)
 
     if thenpress is not None:
-        lib.M_KeyDown2(h, thenpress)
-        RanSleep(0.1)
+        lib.M_KeyDown2(h, thenpress), KongjianSleep()
         lib.M_KeyUp2(h, thenpress)
 
     if doublepress:
-        lib.M_KeyDown2(h, key)
-        RanSleep(0.1)
-        lib.M_KeyUp2(h, key)
-        RanSleep(0.2)
+        lib.M_KeyDown2(h, key), KongjianSleep()
+        lib.M_KeyUp2(h, key), KongjianSleep()
 
 
 def PressHouTiao():
-    lib.M_KeyDown2(h, VK_CODE["down_arrow"])
-    RanSleep(0.1)
+    lib.M_KeyDown2(h, VK_CODE["down_arrow"]), KongjianSleep()
     lib.M_KeyDown2(h, VK_CODE["c"])
 
-    RanSleep(0.1)
-    lib.M_KeyUp2(h, VK_CODE["c"])
+    lib.M_KeyUp2(h, VK_CODE["c"]), KongjianSleep()
     lib.M_KeyUp2(h, VK_CODE["down_arrow"])
 
 
@@ -343,30 +328,27 @@ def MouseMoveR(x, y):
 
 # 右键单击
 def MouseRightClick():
-    lib.M_RightDown(h)
-    RanSleep(0.1)
+    lib.M_RightDown(h), KongjianSleep()
     lib.M_RightUp(h)
 
 
 # 左键单击
 def MouseLeftClick():
-    lib.M_LeftDown(h)
-    RanSleep(0.1)
+    lib.M_LeftDown(h), KongjianSleep()
     lib.M_LeftUp(h)
 
 
 # 左键持续按键
 def MouseLeftDownFor(t):
-    lib.M_LeftDown(h)
-    RanSleep(t)
+    lib.M_LeftDown(h), RanSleep(t)
     lib.M_LeftUp(h)
 
 
 # 左键双击
 def MouseLeftDoubleClick():
+    MouseLeftClick(), KongjianSleep()
     MouseLeftClick()
-    RanSleep(0.1)
-    MouseLeftClick()
+
 
 # 左键按下
 def MouseLeftDown():
@@ -392,7 +374,7 @@ def main():
 
     GameWindowToTop()
 
-    MouseMoveTo(580, 425)
+    MouseMoveTo(336, 372)
 
 
 if __name__ == "__main__":

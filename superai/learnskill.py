@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.yijianshu import PressKey, VK_CODE, MouseMoveTo, YijianshuInit, MouseLeftDown, RanSleep, MouseLeftClick, \
-    MouseLeftUp, MouseLeftDownFor, MouseMoveR, MouseWheel
+    MouseLeftUp, MouseLeftDownFor, MouseMoveR, MouseWheel, KongjianSleep
 from superai.common import InitLog, GameWindowToTop
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj, Clear
@@ -160,8 +160,6 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "暗蚀螺旋枪", "anqiang_anheiluoxuanqiang.png"))
             self.learnstrategy.append(OccupationSkill("moqiangshi", "连锁侵蚀", "anqiang_liansuoqinshi.png"))
 
-
-
     # 找不到图片,滚轮用
     def FindedPic(self, pic):
         pos = pic.Pos()
@@ -176,8 +174,8 @@ class Occupationkills:
             return
 
         logger.info("技能栏已经打开")
-        MouseMoveTo(536, 360), RanSleep(0.1)
-        MouseWheel(30), RanSleep(0.1)
+        MouseMoveTo(536, 360), KongjianSleep()
+        MouseWheel(30), KongjianSleep()
 
         donotNeedLearn = 0
         for v in self.learnstrategy:
@@ -187,8 +185,8 @@ class Occupationkills:
             for i in range(3):
                 if self.FindedPic(v.picutre):
                     break
-                MouseMoveTo(536, 360), RanSleep(0.1)
-                MouseWheel(-3), RanSleep(0.1)
+                MouseMoveTo(536, 360), KongjianSleep()
+                MouseWheel(-3), KongjianSleep()
 
             if not self.FindedPic(v.picutre):
                 logger.warning("找不到技能: %s" % v.name)
@@ -197,7 +195,7 @@ class Occupationkills:
             pos = v.picutre.Pos()
 
             # w, h = 30, 25
-            w, h = 50, 45
+            w, h = 50, 50
             halfw, halfh = w // 2, h // 2
             cannotLearn = Picture(GetImgDir() + "cannotlearn.png", dx=pos[0] - halfw, dy=pos[1] - halfh, dw=w, dh=h)
 
@@ -207,33 +205,33 @@ class Occupationkills:
                 continue
 
             logger.info("移动到相对位置: (%d,%d)" % (pos[0], pos[1]))
-            MouseMoveTo(pos[0], pos[1]), RanSleep(0.1)
-            MouseLeftDownFor(1.0), RanSleep(0.1)
+            MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+            MouseLeftDownFor(1.0), KongjianSleep()
 
-            MouseMoveTo(0, 0), RanSleep(0.1)
+            # MouseMoveR(- (30 // 2 - 2), 0), KongjianSleep()
 
         logger.info("技能已学习完毕")
 
         if donotNeedLearn != len(self.learnstrategy):
             # 确认按钮
             learnpos = skillSceneLearn.Pos()
-            MouseMoveTo(learnpos[0], learnpos[1]), RanSleep(0.2)
-            MouseLeftClick(), RanSleep(0.2)
-            MouseLeftClick(), RanSleep(0.2)
+            MouseMoveTo(learnpos[0], learnpos[1]), KongjianSleep()
+            MouseLeftClick(), KongjianSleep()
+            MouseLeftClick(), KongjianSleep()
 
     # 打开技能栏
     def OpenSkillScene(self):
         # Clear() 不要再这里. 因为连续3次 (加点,脱进来,脱出去,太浪费时间了)
         if not skillScene.Match():
             logger.info("打开技能栏")
-            PressKey(VK_CODE["k"]), RanSleep(0.3)
+            PressKey(VK_CODE["k"]), KongjianSleep()
         return skillScene.Match()
 
     # 关闭技能栏
     def CloseSkillScene(self):
         while skillScene.Match():
             logger.info("关闭技能栏")
-            PressKey(VK_CODE["k"]), RanSleep(0.3)
+            PressKey(VK_CODE["k"]), KongjianSleep()
 
     # 在技能策略中
     def IsInLearnStrategy(self, name):
@@ -255,10 +253,10 @@ class Occupationkills:
 
                 # 向上移动, 脱离
                 pos = idxposmap[v.idx]
-                MouseMoveTo(pos[0], pos[1]), RanSleep(0.3)
-                MouseLeftDown(), RanSleep(0.3)
-                MouseMoveTo(pos[0], pos[1] - 150), RanSleep(0.3)
-                MouseLeftUp(), RanSleep(0.3)
+                MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                MouseLeftDown(), KongjianSleep()
+                MouseMoveTo(pos[0], pos[1] - 150), KongjianSleep()
+                MouseLeftUp(), KongjianSleep()
 
     # 该位置是否有技能
     def HasPosHaveSkill(self, i):
@@ -297,11 +295,11 @@ class Occupationkills:
                 destpos = idxposmap[idx]
                 logger.info("技能: %s 没有装备 位置: %d 有空位 (%d, %d)", v.name, idx, destpos[0], destpos[1])
                 srcpos = v.picutre.Pos()
-                MouseMoveTo(srcpos[0], srcpos[1]), RanSleep(0.3)
-                MouseLeftDown(), RanSleep(0.3)
-                MouseMoveR(10, 10), RanSleep(0.3)
-                MouseMoveTo(destpos[0], destpos[1]), RanSleep(0.3)
-                MouseLeftUp(), RanSleep(0.3)
+                MouseMoveTo(srcpos[0], srcpos[1]), KongjianSleep()
+                MouseLeftDown(), KongjianSleep()
+                MouseMoveR(10, 10), KongjianSleep()
+                MouseMoveTo(destpos[0], destpos[1]), KongjianSleep()
+                MouseLeftUp(), KongjianSleep()
 
 
 def main():
