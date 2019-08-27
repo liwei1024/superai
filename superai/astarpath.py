@@ -312,11 +312,11 @@ class Obstacle:
         if self.TouchedAnything([cellpos[0], cellpos[1]]):
             rangeWrap = RangeWrap(cellpos[0] * 10 - 60, cellpos[1] * 10 - 60, 120, 120)
 
-            global img
-            if img is not None:
-                # 画位置纠正坐标
-                cv2.rectangle(img, (rangeWrap.x, rangeWrap.y), (rangeWrap.x + rangeWrap.w, rangeWrap.y + rangeWrap.h),
-                              (0, 0, 139), 3)
+            # global img
+            # if img is not None:
+            #     # 画位置纠正坐标
+            #     cv2.rectangle(img, (rangeWrap.x, rangeWrap.y), (rangeWrap.x + rangeWrap.w, rangeWrap.y + rangeWrap.h),
+            #                   (0, 0, 139), 3)
 
             bfs = BfsNextRangeCorrect(self.mapWLen, self.mapHLen, rangeWrap, self)
             (cellx, celly) = bfs.bfs()
@@ -556,9 +556,9 @@ class BfsNextRangeCorrect:
         t = celly * 10
         d = celly * 10 + 10
 
-        if img is not None:
-            cv2.rectangle(img, (l, t), (r, d),
-                          (0, 0, 139), 3)
+        # if img is not None:
+        #     cv2.rectangle(img, (l, t), (r, d),
+        #                   (0, 0, 139), 3)
 
         # 不超过矩形的范围
         return not IsRectangleOverlap(Zuobiao(self.range_l + 1, self.range_t + 1),
@@ -591,11 +591,11 @@ class BfsNextRangeCorrect:
         q = queue.Queue()
         q.put(self.s)
 
-        global img
-        if img is not None:
-            (cellx, celly) = idxTohw(self.s, self.manCellWLen)
-            drawx, drawy = cellx * 10, celly * 10
-            cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
+        # global img
+        # if img is not None:
+        #     (cellx, celly) = idxTohw(self.s, self.manCellWLen)
+        #     drawx, drawy = cellx * 10, celly * 10
+        #     cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
 
         while q.qsize() != 0:
             v = q.get()
@@ -742,9 +742,8 @@ def main():
     GameApiInit()
     FlushPid()
 
-    # DrawNextDoorPath()
+    DrawNextDoorPath()
     # DrawAnyPath(827, 377, 938, 356) 寂静城第二图
-    DrawAnyPath(1030, 234, 1040, 230)
 
 
 if __name__ == '__main__':

@@ -146,8 +146,12 @@ def RanSleep(t):
 
 # 操作控件后的sleep
 def KongjianSleep():
-    RanSleep(0.2)
+    RanSleep(0.1)
 
+
+# 打开某个栏的sleep
+def LanSleep():
+    RanSleep(0.3)
 
 # 全局变量
 h = None
@@ -374,7 +378,7 @@ def main():
 
     GameWindowToTop()
 
-    MouseMoveTo(336, 372)
+    MouseMoveTo(486, 407)
 
 
 if __name__ == "__main__":

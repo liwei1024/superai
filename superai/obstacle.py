@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 from superai.plot import IsTaskaccept, DidPlotAccept
 
 from superai.gameapi import GameApiInit, GetSeceneInfo, FlushPid, GetMenInfo, GetMonsters, GetGoods, IsManInMap, \
-    GetNextDoor, GetMapInfo
+    GetNextDoor, GetMapInfo, GetMonstersWrap
 
 
 class GameObstacleData():
@@ -90,7 +90,7 @@ def drawOther(img):
                   (int(meninfo.x) + halfw, int(meninfo.y) + halfh),
                   (0, 0, 255), 2)
 
-    monsters = GetMonsters()
+    monsters = GetMonstersWrap()
     for mon in monsters:
         halfw = int(mon.w / 2)
         halfh = int(mon.h / 2)

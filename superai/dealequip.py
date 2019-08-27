@@ -20,7 +20,7 @@ fenjieTiankongzhicheng = Picture(GetImgDir() + "fenjie_tiankonghzicheng.png")
 fenjieTianzhuijushou = Picture(GetImgDir() + "fenjieTianzhuijushou.png")
 fenjieButton = Picture(GetImgDir() + "fenjie_button.png")
 fenjiexiulijiScene = Picture(GetImgDir() + "fenjiexiuliji_scene.png")
-fenjieConfirm =  Picture(GetImgDir() + "fenjie_confirm.png")
+fenjieConfirm = Picture(GetImgDir() + "fenjie_confirm.png")
 fenjieAfaliya = Picture(GetImgDir() + "fenjieAfaliya.png")
 fenjieNuoyipeila = Picture(GetImgDir() + "fenjie_nuoyipeila.png")
 sellButton = Picture(GetImgDir() + "sellbt.png")
@@ -72,7 +72,6 @@ class DealEquip:
         # 分解按钮
         fenjiebt = fenjieButton.Pos()
         MouseMoveTo(fenjiebt[0], fenjiebt[1]), KongjianSleep()
-
 
         # 检查 "稀有" "勇者" "包含我的职业装备" 是否勾选
         xiyoucheck = (Picture(GetImgDir() + "checked.png", fenjiebt[0] + 67, fenjiebt[1] + 47, 12, 12),

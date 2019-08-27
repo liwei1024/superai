@@ -12,7 +12,7 @@ from superai.common import InitLog, GameWindowToTop
 from superai.flannfind import Picture, GetImgDir
 from superai.vkcode import VK_CODE
 from superai.yijianshu import PressKey, RanSleep, MouseMoveTo, MouseLeftDown, MouseLeftUp, YijianshuInit, \
-    MouseLeftClick, MouseMoveR, MouseRightClick, KongjianSleep
+    MouseLeftClick, MouseMoveR, MouseRightClick, KongjianSleep, LanSleep
 
 from superai.gameapi import GetMenInfo, GetEquipObj, GetBagEquipObj, GameApiInit, FlushPid, TYPEMAP, BODYPOS, WUQIPOS, \
     SHIPINPOS, IsEscTop, GetXingyunxing, Clear, ChengHaoRequire, Openesc
@@ -74,6 +74,7 @@ levelNumMap = {
     10: 3,
     20: 5,
     30: 10,
+    40: 15,
 }
 
 ZhunangbeiPos = (-89, 193)
@@ -85,7 +86,7 @@ def OpenBagScene():
     Clear()
     if not bagScene.Match():
         logger.info("打开装备栏")
-        PressKey(VK_CODE["i"]), KongjianSleep()
+        PressKey(VK_CODE["i"]), LanSleep()
     return bagScene.Match()
 
 
@@ -324,7 +325,7 @@ class Equips:
 
             pos = xingyunxing.Pos()
             MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-            MouseLeftClick(), RanSleep(0.5)
+            MouseLeftClick(), LanSleep()
 
         return zupinScene.Match()
 
@@ -362,7 +363,7 @@ class Equips:
             logger.info("要打开称号栏")
             pos = chenghaobubtn.Pos()
             MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-            MouseLeftClick(), KongjianSleep()
+            MouseLeftClick(), LanSleep()
 
             MouseMoveTo(0, 0)
 

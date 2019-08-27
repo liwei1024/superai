@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.yijianshu import PressKey, VK_CODE, MouseMoveTo, YijianshuInit, MouseLeftDown, RanSleep, MouseLeftClick, \
-    MouseLeftUp, MouseLeftDownFor, MouseMoveR, MouseWheel, KongjianSleep
+    MouseLeftUp, MouseLeftDownFor, MouseMoveR, MouseWheel, KongjianSleep, LanSleep
 from superai.common import InitLog, GameWindowToTop
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj, Clear
@@ -224,7 +224,7 @@ class Occupationkills:
         # Clear() 不要再这里. 因为连续3次 (加点,脱进来,脱出去,太浪费时间了)
         if not skillScene.Match():
             logger.info("打开技能栏")
-            PressKey(VK_CODE["k"]), KongjianSleep()
+            PressKey(VK_CODE["k"]), LanSleep()
         return skillScene.Match()
 
     # 关闭技能栏

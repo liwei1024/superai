@@ -1097,7 +1097,7 @@ def PrintXingyunxing():
 
 # 有怪物
 def HaveMonsters():
-    monsters = GetMonsters()
+    monsters = GetMonstersWrap()
     return len(monsters) > 0
 
 
@@ -1123,7 +1123,7 @@ def SpecifyMonsterIsToofar(monster):
 # 最近怪物对象 (极昼先攻击除开多尼尔的怪物)
 def NearestMonster():
     menInfo = GetMenInfo()
-    monsters = GetMonsters()
+    monsters = GetMonstersWrap()
     if len(monsters) < 1:
         return None
     mapinfo = GetMapInfo()
@@ -1145,7 +1145,7 @@ def NearestMonster():
 
 # 更新怪物对象信息
 def UpdateMonsterInfo(monster):
-    objs = GetMonsters()
+    objs = GetMonstersWrap()
     for obj in objs:
         if obj.object == monster.object and obj.hp > 0:
             return obj
@@ -1154,7 +1154,7 @@ def UpdateMonsterInfo(monster):
 
 # 获取boss对象
 def GetBossObj():
-    monsters = GetMonsters()
+    monsters = GetMonstersWrap()
     if len(monsters) < 1:
         return None
 
@@ -1197,6 +1197,15 @@ def NearestMonsterWrap():
         obj = NearestMonster()
 
     return obj
+
+
+# 获取怪物的包装
+def GetMonstersWrap():
+    monsters = GetMonsters()
+    if IsLockedHp():
+        monsters = filter(lambda mon: mon.hp > 1, monsters)
+        monsters = list(monsters)
+    return monsters
 
 
 UnuseFilterStr = "|肉干|砂砾|天空树果实|燃烧瓶|军用回旋镖|裂空镖|甜瓜|飞镖|轰雷树果实|越桔|神圣葡萄酒|轰爆弹|爆弹|燃烧瓶|精灵香精|魔力之花|石头|苎麻花叶|怒海霸主银币|解密礼盒|无尽的永恒|风化的碎骨|破旧的皮革|最下级砥石|最下级硬化剂|生锈的铁片|碎布片|回旋镖|天界珍珠|朗姆酒|飞盘|魔力之花|卡勒特指令书|入门HP药剂|入门MP药剂|普通HP药剂|普通MP药剂|飞盘2|邪恶药剂|圣杯|肉干"
@@ -1314,7 +1323,7 @@ def IsCurrentInBossFangjian():
 
 # 多尼尔难以攻击
 def FuckDuonier():
-    mons = GetMonsters()
+    mons = GetMonstersWrap()
     excludeDuonier = filter(lambda mon: "多尼尔" not in mon.name, mons)
     excludeDuonier = list(excludeDuonier)
     if len(excludeDuonier) > 0:
@@ -1480,8 +1489,32 @@ class SkillData:
         # 时候重复按下本次按键(4姨,阿修罗) 蓄力后,再次释放
         self.doublepress = False
 
+        # 是否锁为一血
+        self.lockhp = False
+
         for k, w in kw.items():
             setattr(self, k, w)
+
+
+# 是否锁血
+gHplocked = False
+
+
+# 是否锁血了 (某些技能会让怪物锁1血, 那时候不要遍历出来)
+def IsLockedHp():
+    return gHplocked
+
+
+# 锁血
+def LockHp():
+    global gHplocked
+    gHplocked = True
+
+
+# 解除锁血
+def UnLockHp():
+    global gHplocked
+    gHplocked = False
 
 
 # 单个技能包装
@@ -1554,6 +1587,9 @@ class Skill:
             self.name, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.doublepress))
         PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.thenpress,
                    self.skilldata.doublepress)
+
+        if self.skilldata.lockhp:
+            LockHp()
 
 
 # 技能列表
@@ -1653,6 +1689,8 @@ skillSettingMap = {
 
     # 暗枪
     "黑暗化身": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+    "连锁侵蚀": SkillData(type=SkillType.Gongji, delaytime=0.2, afterdelay=0.4, lockhp=True),
+    "暗蚀螺旋枪": SkillData(type=SkillType.Gongji, delaytime=0.2, afterdelay=0.4, lockhp=True),
 
     # 女光剑
     "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
@@ -1706,7 +1744,7 @@ def Clear():
 
 
 # 不要频繁的clear
-def SafeClear(player, t=5):
+def SafeClear(player, t=10):
     if player.latestClear is None or time.time() - player.latestClear > t:
         Clear()
         player.latestClear = time.time()

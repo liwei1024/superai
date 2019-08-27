@@ -5,15 +5,19 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from superai.flannfind import Picture, GetImgDir
+from superai.plot import IsinAierwenfnagxian, IsinHedunmaer, IsinAerfayingdi
+
 
 locationGelanzhisen = Picture(GetImgDir() + "ditu_gelanzhisen.png")
 locationTiankongzhichen = Picture(GetImgDir() + "ditu_tiankongzhicheng.png")
-locationTianzhuijushou  = Picture(GetImgDir() + "ditu_tianzhuijushou.png")
+locationTianzhuijushou = Picture(GetImgDir() + "ditu_tianzhuijushou.png")
 locationAfaliya = Picture(GetImgDir() + "ditu_afaliya2.png")
 locationNuoyipeila = Picture(GetImgDir() + "ditu_nuoyipeila.png")
+
 
 # 分解,出售,修理 单独使用吧
 class Location:
@@ -21,19 +25,15 @@ class Location:
         pass
 
     def get(self):
-        if locationGelanzhisen.Match():
+        if IsinAierwenfnagxian() and locationGelanzhisen.Match():
             return "格兰之森"
-
-        if locationTiankongzhichen.Match():
+        elif IsinHedunmaer() and locationTiankongzhichen.Match():
             return "天空之城"
-
-        if locationTianzhuijushou.Match():
+        elif IsinHedunmaer() and locationTianzhuijushou.Match():
             return "天锥巨兽"
-
-        if locationAfaliya.Match():
+        elif IsinAerfayingdi() and locationAfaliya.Match():
             return "阿法利亚"
-
-        if locationNuoyipeila.Match():
+        elif IsinAerfayingdi() and locationNuoyipeila.Match():
             return "诺伊佩拉"
 
         return ""

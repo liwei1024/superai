@@ -33,7 +33,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
-    GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead
+    GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead, IsLockedHp, UnLockHp
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -91,6 +91,9 @@ class Player:
 
         # 上次clear的时间点,用于防止频繁clear
         self.latestClear = None
+
+        # 上次发动锁血技能的时候
+        self.latestlockhp = None
 
     # 更改当前状态机
     def ChangeState(self, state):
@@ -413,6 +416,15 @@ class GlobalState(State):
         self.latesttime = None
 
     def Execute(self, player):
+        # 锁血处理
+        if IsLockedHp():
+            if player.latestlockhp is None:
+                player.latestlockhp = time.time()
+            elif time.time() - player.latestlockhp > 10.0:
+                logger.info("解除锁血")
+                UnLockHp()
+                player.latestlockhp = None
+
         # 视频处理
         if player.IsEmptyFor(FOR_SHIPIN):
             logger.info("视频状态")

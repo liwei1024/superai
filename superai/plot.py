@@ -12,9 +12,10 @@ logger = logging.getLogger(__name__)
 
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
-    CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc, SafeClear
+    CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc, SafeClear, \
+    GetQuadrant
 from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick, MouseLeftDown, MouseMoveR, \
-    MouseLeftUp, KongjianSleep
+    MouseLeftUp, KongjianSleep, LanSleep
 
 shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
 selectmen = Picture(GetImgDir() + "selectmen.png")
@@ -141,17 +142,17 @@ MoveSetting = {
                       shijiepic=Picture(GetImgDir() + "shijie_hedunmaer.png"), mousecoord=(336, 372),
                       desc="赫顿玛尔2"),
 
-    "洛巴赫3": MoveInfo(destpic=Picture(GetImgDir() + "ditu_luobahe3.png"), destcoord=(346, 160),
-                     shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(281, 258),
+    "洛巴赫3": MoveInfo(destpic=Picture(GetImgDir() + "ditu_luobahe3.png"), destcoord=(312, 160),
+                     shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(277, 261),
                      desc="洛巴赫3"),
-    "克伦特": MoveInfo(destpic=Picture(GetImgDir() + "dittu_kelunte.png"), destcoord=(474, 135),
+    "克伦特": MoveInfo(destpic=Picture(GetImgDir() + "dittu_kelunte.png"), destcoord=(459, 135),
                     shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(381, 259),
                     desc="克伦特"),
-    "阿法利亚": MoveInfo(destpic=Picture(GetImgDir() + "ditu_afaliya2.png"), destcoord=(752, 227),
+    "阿法利亚": MoveInfo(destpic=Picture(GetImgDir() + "ditu_afaliya2.png"), destcoord=(741, 227),
                      shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(522, 281),
                      desc="阿法利亚"),
     "鲁埃尔": MoveInfo(destpic=Picture(GetImgDir() + "ditu_luaier.png"), destcoord=(760, 123),
-                    shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(405, 257),
+                    shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(407, 257),
                     desc="鲁埃尔"),
     "帕丽丝": MoveInfo(destpic=Picture(GetImgDir() + "ditu_palisi.png"), destcoord=(521, 160),
                     shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(302, 261),
@@ -168,6 +169,20 @@ MoveSetting = {
     "诺伊佩拉": MoveInfo(destpic=Picture(GetImgDir() + "ditu_nuoyipeila.png"), destcoord=(982, 182),
                      shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(580, 425),
                      desc="诺伊佩拉"),
+    "米内特": MoveInfo(destpic=Picture(GetImgDir() + "ditu_mineite.png"), destcoord=(1228, 231),
+                    shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(486, 407),
+                    desc="米内特"),
+    "夏普伦": MoveInfo(destpic=Picture(GetImgDir() + "ditu_xiapulun.png"), destcoord=(316, 215),
+                    shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(367, 488),
+                    desc="夏普伦"),
+
+    "米内特2": MoveInfo(destpic=Picture(GetImgDir() + "ditu_mineite2.png"), destcoord=(1001, 141),
+                     shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(424, 260),
+                     desc="米内特2"),
+
+    "米内特3": MoveInfo(destpic=Picture(GetImgDir() + "ditu_mineite3.png"), destcoord=(1229, 231),
+                     shijiepic=Picture(GetImgDir() + "shijie_aerfa.png"), mousecoord=(486, 407),
+                     desc="米内特3"),
 }
 
 
@@ -206,7 +221,7 @@ def OpenTaskScene():
 
     if not taskScene.Match():
         logger.info("F1打开任务列表")
-        PressKey(VK_CODE["F1"]), KongjianSleep()
+        PressKey(VK_CODE["F1"]), LanSleep()
     return taskScene.Match()
 
 
@@ -216,7 +231,7 @@ def OpenShijieDitu():
 
     if not shijiedituScene.Match():
         logger.info("打开世界地图")
-        PressKey(VK_CODE["n"]), KongjianSleep()
+        PressKey(VK_CODE["n"]), LanSleep()
 
     return shijiedituScene.Match()
 
@@ -232,8 +247,13 @@ def CloseShijieDitu():
 def IsMoveToChengzhenPos(destpic, destcoord, desc):
     if destpic.Match():
         meninfo = GetMenInfo()
-        if IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 100):
+        if IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 20):
             return True
+        elif IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 50):
+            logger.warning("目的地: %s  在100范围内, 再移动一点点" % desc)
+            quad, _ = GetQuadrant(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1])
+            QuadKeyDownMap[quad](), RanSleep(0.2)
+            QuadKeyUpMap[quad]()
         else:
             logger.warning("目的地: %s [坐标]没有对比上" % desc)
     else:
@@ -262,7 +282,7 @@ def CoordMoveTo(shijitpic, mousecoord):
 # 移动到目的位置
 def MoveTo(npcname, player):
     moveinfo = MoveSetting[npcname]
-    if player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 5.0:
+    if player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 10.0:
 
         # 没有移动过或者超时
         logger.info("目标: %s 城镇位置: (%d,%d)  没有到达, 开始移动. 鼠标指向到 (%d, %d)" % (
@@ -416,8 +436,7 @@ def AttacktaskFoo(fubenname):
             SubmitTask(player)
             return
 
-        moveinfo = MoveSetting[dituname]
-        if IsMoveToChengzhenPos(moveinfo.destpic, moveinfo.destcoord, moveinfo.desc):
+        if HasMoveTo(dituname):
             Clear()
             # 左右调整进入地图选择界面
             if GoToSelect(quadMap[dituname]):
@@ -474,17 +493,32 @@ def MeetNpcFoo(npcname):
 
 # 是否在艾尔文防线
 def IsinAierwenfnagxian():
-    return wenziaierwenfangxian.Match()
+    if wenziaierwenfangxian.Match():
+        logger.info("在艾尔文防线")
+        return True
+    else:
+        logger.warning("不在艾尔文防线")
+        return False
 
 
 # 是否在赫顿玛尔
 def IsinHedunmaer():
-    return wenzihedunmaer.Match() or wenzixihaian.Match()
+    if wenzihedunmaer.Match() or wenzixihaian.Match():
+        logger.info("在赫顿玛尔")
+        return True
+    else:
+        logger.warning("不在赫顿玛尔")
+        return False
 
 
 # 是否在阿尔法营地
 def IsinAerfayingdi():
-    return wenziaerfayingdi.Match() or wenzianheicheng.Match()
+    if wenziaerfayingdi.Match() or wenzianheicheng.Match():
+        logger.info("在阿尔法营地")
+        return True
+    else:
+        logger.warning("不在阿尔法营地")
+        return False
 
 
 # 转职任务
@@ -546,7 +580,7 @@ def 守护森林的战斗(player):
         AttacktaskFoo("暗黑雷鸣废墟")(player)
 
 
-# 艾尔文防线 -> 赫顿玛尔   (艾尔文防线移动到边界点,下一个场景直接完成)
+# 艾尔文防线 -> 赫顿玛尔
 def 赫顿玛尔的骚乱(player):
     SafeClear(player)
 
@@ -556,7 +590,6 @@ def 赫顿玛尔的骚乱(player):
             return
         for i in range(30):
             if IsinHedunmaer():
-                logger.info("到达了")
                 break
             logger.info("按键前往赫顿玛尔")
             QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
@@ -572,7 +605,7 @@ def 赫顿玛尔的骚乱(player):
         logger.warning("我在哪,我要到哪里去?")
 
 
-# 赫顿玛尔 -> 阿尔法营地  (赫顿玛尔移动到边界点,下一个场景移动到NPC)
+# 赫顿玛尔 -> 阿尔法营地
 def 前往阿法利亚营地(player):
     SafeClear(player)
 
@@ -583,7 +616,6 @@ def 前往阿法利亚营地(player):
 
         for i in range(30):
             if IsinAerfayingdi():
-                logger.info("到达了")
                 break
 
             logger.info("按键前往阿尔法营地")
@@ -595,7 +627,7 @@ def 前往阿法利亚营地(player):
         logger.warning("我在哪,我要到哪里去?")
 
 
-# 阿尔法营地 -> 赫顿玛尔 (阿尔法营地移动到边界点,下一个场景移动到NPC)
+# 阿尔法营地 -> 赫顿玛尔
 def 战火虽已平息(player):
     SafeClear(player)
 
@@ -605,7 +637,6 @@ def 战火虽已平息(player):
             return
         for i in range(30):
             if IsinHedunmaer():
-                logger.info("到达了")
                 break
             logger.info("按键前往赫顿玛尔")
             QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
@@ -616,7 +647,7 @@ def 战火虽已平息(player):
         logger.warning("我在哪,我要到哪里去?")
 
 
-# 赫顿玛尔 -> 阿尔法营地 (赫顿玛尔移动到边界点,下一个场景移动到NPC)
+# 赫顿玛尔 -> 阿尔法营地
 def 被带走的俩人(player):
     SafeClear(player)
 
@@ -626,7 +657,6 @@ def 被带走的俩人(player):
             return
         for i in range(30):
             if IsinAerfayingdi():
-                logger.info("到达了")
                 break
             logger.info("按键前往阿尔法营地")
             QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
@@ -635,6 +665,71 @@ def 被带走的俩人(player):
         MeetNpcFoo("帕丽丝")(player)
     else:
         logger.warning("我在哪,我要到哪里去?")
+
+
+# 阿尔法营地 -> 赫顿玛尔
+def 贝尔玛尔的炼金术师(player):
+    SafeClear(player)
+
+    if IsinAerfayingdi():
+        if not HasMoveTo("阿尔法-赫顿玛尔"):
+            MoveTo("阿尔法-赫顿玛尔", player)
+            return
+        for i in range(30):
+            if IsinHedunmaer():
+                break
+            logger.info("按键前往赫顿玛尔")
+            QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
+            QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
+    elif IsinHedunmaer():
+        MeetNpcFoo("诺顿")(player)
+    else:
+        logger.warning("我在哪,我要到哪里去?")
+
+
+# 赫顿玛尔 -> 阿尔法营地
+def 远古王国的遗迹(player):
+    SafeClear(player)
+
+    if IsinHedunmaer():
+        if not HasMoveTo("赫顿玛尔2"):
+            MoveTo("赫顿玛尔2", player)
+            return
+        for i in range(30):
+            if IsinAerfayingdi():
+                break
+            logger.info("按键前往阿尔法营地")
+            QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
+            QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
+    elif IsinAerfayingdi():
+        AttacktaskFoo("王的遗迹")(player)
+    else:
+        logger.warning("我在哪,我要到哪里去?")
+
+
+# 阿尔法营地 -> 赫顿玛尔
+def 获救的俩人(player):
+    SafeClear(player)
+
+    if IsinAerfayingdi():
+        if not HasMoveTo("阿尔法-赫顿玛尔"):
+            MoveTo("阿尔法-赫顿玛尔", player)
+            return
+        for i in range(30):
+            if IsinHedunmaer():
+                break
+            logger.info("按键前往赫顿玛尔")
+            QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
+            QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
+    elif IsinHedunmaer():
+        MeetNpcFoo("斯卡迪")(player)
+    else:
+        logger.warning("我在哪,我要到哪里去?")
+
+
+# 赫顿玛尔 -> 雪山
+def 歌兰蒂斯的召唤(player):
+    pass
 
 
 # 同名任务
@@ -691,7 +786,8 @@ fubenMap = {
     "天空之城": ["龙人之塔", "人偶玄关", "石巨人塔", "黑暗悬廊", "城主宫殿", "悬空城"],
     "天帷巨兽": ["GBL教的神殿", "树精丛林", "炼狱", "极昼", "第一脊椎", "天帷禁地", "第二脊椎"],
     "阿法利亚": ["浅栖之地", "蜘蛛洞穴", "蜘蛛王国", "英雄冢", "暗精灵墓地", "熔岩穴", "暗黑城入口", "暗黑城"],
-    "诺伊佩拉": ["暴君的祭坛", "黄金矿洞"],
+    "诺伊佩拉": ["暴君的祭坛", "黄金矿洞", "远古墓穴深处", "王的遗迹", "诺伊佩拉"],
+
 }
 
 quadMap = {
@@ -742,6 +838,9 @@ IdxMapMap = {
     # 37
     "暴君的祭坛": 0,
     "黄金矿洞": 1,
+    "远古墓穴深处": 2,
+    "王的遗迹": 3,
+    "诺伊佩拉": 3,
 }
 
 plotMap = {
@@ -868,6 +967,27 @@ plotMap = {
     "寻找真正的祭坛": AttacktaskFoo("暴君的祭坛"),
     "充满黄金的地方": AttacktaskFoo("黄金矿洞"),
     "维迪尔的要求": AttacktaskFoo("黄金矿洞"),
+    "黄金矿洞内部": AttacktaskFoo("黄金矿洞"),
+    "跟随米内特": AttacktaskFoo("远古墓穴深处"),
+    "远古的诅咒之地": AttacktaskFoo("远古墓穴深处"),
+    "沉睡的恶魔": AttacktaskFoo("远古墓穴深处"),
+    "暗精灵警备队员": AttacktaskFoo("远古墓穴深处"),
+    "目击者之语": MeetNpcFoo("米内特"),
+    "询问夏普伦": MeetNpcFoo("夏普伦"),
+    "求药": MeetNpcFoo("米内特2"),
+    "贝尔玛尔的炼金术师": 贝尔玛尔的炼金术师,
+    "诺顿的手艺": MeetNpcFoo("诺顿"),
+    "远古王国的遗迹": 远古王国的遗迹,
+    "帕丽丝呢": AttacktaskFoo("王的遗迹"),
+    "抵达诺伊佩拉": AttacktaskFoo("诺伊佩拉"),
+    "诺伊佩拉的人们": AttacktaskFoo("诺伊佩拉"),
+    "悲剧的罪魁祸首": AttacktaskFoo("诺伊佩拉"),
+    "返回暗黑城": MeetNpcFoo("米内特3"),
+    "向长老汇报": MeetNpcFoo("夏普伦"),
+    "梅娅女王的感谢": MeetNpcFoo("王宫外"),
+    "获救的俩人": 获救的俩人,
+    "两国和解": MeetNpcFoo("斯卡迪"),
+    "歌兰蒂斯的召唤": 歌兰蒂斯的召唤,
 }
 
 
