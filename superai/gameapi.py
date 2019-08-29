@@ -1247,6 +1247,12 @@ def NearestGood(player):
     return min(goods, key=lambda good: distance(good.x, good.y, menInfo.x, menInfo.y))
 
 
+# 负重空间够
+def IsFuzhongGou():
+    meninfo = GetMenInfo()
+    return meninfo.fuzhongcur / meninfo.fuzhongmax <= 0.95
+
+
 # 获取buf 二次包装
 def GetBuffWrap():
     return []
@@ -1404,6 +1410,14 @@ def GetNextDoorWrap():
     if "冰霜幽暗密林" in mapinfo.name and mapinfo.curx == 0 and mapinfo.cury == 0:
         return mapinfo.right
     return GetNextDoor()
+
+
+# 获取当前地图idx
+def GetCurmapidx():
+    if IsManInMap():
+        mapinfo = GetMapInfo()
+        return mapinfo.curx, mapinfo.cury
+    return 0, 0
 
 
 # 以下地图 弹出窗口也可以移动

@@ -33,7 +33,8 @@ from superai.gameapi import GameApiInit, FlushPid, \
     CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
-    GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead, IsLockedHp, UnLockHp
+    GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead, IsLockedHp, UnLockHp, IsFuzhongGou, \
+    Zuobiaoyidong, Autoshuntu, GetCurmapidx
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -94,6 +95,15 @@ class Player:
 
         # 上次发动锁血技能的时候
         self.latestlockhp = None
+
+        # 上次所检查地图卡死时间 / 上次所在的地图
+        self.latestfucktime = None
+        self.latestmap = None
+
+    # 重置地图卡死信息
+    def ResetStuckInfo(self):
+        self.latestfucktime = None
+        self.latestmap = None
 
     # 更改当前状态机
     def ChangeState(self, state):
@@ -357,6 +367,7 @@ class Player:
         RanSleep(0.2)
         logger.info("进了新的房间")
         self.NewMapCache()
+        self.ResetStuckInfo()
         self.ChangeState(StandState())
 
     # 是否等级变化
@@ -489,7 +500,6 @@ class GlobalState(State):
                 self.beginx, self.beginy = GetMenXY()
 
             # 多久时间判断一次
-
             checktime = 0.5
             if len(player.pathfindinglst) > 0:
                 checktime = 1.5
@@ -516,6 +526,17 @@ class GlobalState(State):
                     logger.info("坐标在移动")
         else:
             self.Reset()
+
+        # 卡死很长时间,放大招!
+        if IsManInMap():
+            if player.latestfucktime is None:
+                player.latestfucktime = time.time()
+                player.latestmap = GetCurmapidx()
+            elif time.time() - player.latestfucktime > 30.0:
+                if player.latestmap == GetCurmapidx():
+                    logger.warning("出现问题,纠正一下!")
+                    player.ChangeState(StuckShit())
+                player.ResetStuckInfo()
 
 
 # 初始化
@@ -716,6 +737,7 @@ class FirstInMap(State):
         player.skills.Update()
 
         player.NewMapCache()
+        player.ResetStuckInfo()
         player.ChangeState(StandState())
 
 
@@ -728,7 +750,7 @@ class StandState(State):
         if HaveMonsters():
             player.ChangeState(SeekAndAttackMonster())
             return
-        elif HaveGoods(player):
+        elif HaveGoods(player) and IsFuzhongGou():
             player.ChangeState(SeekAndPickUp())
             return
         elif HaveBuffs():
@@ -740,7 +762,7 @@ class StandState(State):
         elif IsFuBenPass():
             # 打死boss后判断下物品
             RanSleep(0.2)
-            if HaveGoods(player):
+            if HaveGoods(player) and IsFuzhongGou():
                 player.ChangeState(SeekAndPickUp())
                 return
             else:
@@ -781,7 +803,7 @@ class SeekAndAttackMonster(State):
             return
 
         # 怪物在太远的距离, 有物品捡物
-        if SpecifyMonsterIsToofar(obj) and HaveGoods(player):
+        if SpecifyMonsterIsToofar(obj) and HaveGoods(player) and IsFuzhongGou():
             player.ChangeState(SeekAndPickUp())
             return
 
@@ -957,6 +979,23 @@ class DeadState(State):
             return
 
         PressX(), RanSleep(0.3)
+
+
+# 卡点模式
+class StuckShit(State):
+    def Execute(self, player):
+        player.UpLatestKey()
+
+        if HaveMonsters():
+            obj = NearestMonsterWrap()
+            Zuobiaoyidong(obj.x, obj.y, 0)
+            player.ChangeState(Setup())
+        elif not IsCurrentInBossFangjian():
+            Autoshuntu()
+            player.ChangeState(Setup())
+        else:
+            logger.warning("不知道该怎么办,联系作者吧")
+            player.ChangeState(Setup())
 
 
 # 做任务状态机
