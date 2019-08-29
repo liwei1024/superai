@@ -64,6 +64,9 @@ class DealEquip:
 
         pos = self.GetFenjieJiPos()
 
+        if pos is None:
+            return
+
         MouseMoveTo(pos[0], pos[1]), KongjianSleep()
         MouseLeftClick(), KongjianSleep()
         MouseMoveR(56, 54), KongjianSleep()
@@ -105,6 +108,10 @@ class DealEquip:
 
         logger.info("出售所有")
         pos = self.GetFenjieJiPos()
+
+        if pos is None:
+            return
+
         MouseMoveTo(pos[0], pos[1]), KongjianSleep()
         MouseLeftClick(), KongjianSleep()
         MouseMoveR(56, 32), KongjianSleep()
@@ -132,6 +139,9 @@ class DealEquip:
 
         logger.info("修理所有")
         pos = self.GetFenjieJiPos()
+
+        if pos is None:
+            return
 
         MouseMoveTo(pos[0], pos[1]), KongjianSleep()
         MouseLeftClick(), KongjianSleep()

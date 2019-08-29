@@ -1250,7 +1250,11 @@ def NearestGood(player):
 # 负重空间够
 def IsFuzhongGou():
     meninfo = GetMenInfo()
-    return meninfo.fuzhongcur / meninfo.fuzhongmax <= 0.95
+
+    if meninfo.fuzhongmax > 0.0:
+        return meninfo.fuzhongcur / meninfo.fuzhongmax <= 0.95
+    
+    return True
 
 
 # 获取buf 二次包装

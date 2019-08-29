@@ -96,6 +96,9 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光盾击", "palading_shenguangdunji.png"))
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "烈光", "palading_lieguang.png"))
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "信仰之念", "palding_xinyangzhinian.png"))
+        if meninfo.level >= 35:
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光闪耀", "palading_shenguangshanyao.png"))
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光闪影击", "palading_shenguangshanyingji.png"))
 
     # 圣职 (15级前)
     def shengzhiInit(self):
@@ -124,6 +127,15 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("shengzhizhe", "断头台", "youmozhe_duantoutai.png"))
             self.learnstrategy.append(OccupationSkill("shengzhizhe", "七宗罪", "youmozhe_qizongzui.png"))
             self.learnstrategy.append(OccupationSkill("shengzhizhe", "欲望之手", "youmozhe_yuwangzhishou.png"))
+        if meninfo.level >= 25:
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "傲慢之堕", "youmozhe_aomanzhiduo.png"))
+        if meninfo.level >= 30:
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "屠戮回旋斩", "youmozhe_tuchuolunhuizhan.png"))
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "怠惰之息", "youmozhe_daiduozhixi.png"))
+
+            self.DelSkill("审判捶击")
+            self.DelSkill("钩颈斩")
+            self.DelSkill("罪业加身")
 
     # 魔枪 (15级前)
     def moqiangInit(self):
@@ -159,6 +171,10 @@ class Occupationkills:
         if meninfo.level >= 35:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "暗蚀螺旋枪", "anqiang_anheiluoxuanqiang.png"))
             self.learnstrategy.append(OccupationSkill("moqiangshi", "连锁侵蚀", "anqiang_liansuoqinshi.png"))
+        if meninfo.level >= 40:
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "坠蚀之雨", "anqiang_zuishizhiyu.png"))
+
+
 
     # 找不到图片,滚轮用
     def FindedPic(self, pic):

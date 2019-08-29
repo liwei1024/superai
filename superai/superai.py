@@ -382,7 +382,7 @@ class Player:
         if self.latestlevel == 0:
             # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
-            return True
+            return False
         elif self.latestlevel != meninfo.level:
             # 变化了等级
             self.latestlevel = meninfo.level
@@ -716,12 +716,11 @@ def CanbeMovTest():
 # 初次进图,加buff
 class FirstInMap(State):
     def Execute(self, player):
+        if IsManInChengzhen():
+            player.ChangeState(InChengzhen())
+            return
 
         if player.skills.HaveBuffCanBeUse():
-            if not CanbeMovTest():
-                logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机"), RanSleep(0.5)
-                return
-
             if not CanbeMovTest():
                 logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机"), RanSleep(0.5)
                 return
