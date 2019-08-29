@@ -935,6 +935,7 @@ def GetCurSelectIdx():
 def GetXingyunxing():
     xingyunxing = Xingyunxing()
     lib.ExGetXingyunxing(pointer(xingyunxing))
+    xingyunxing.num = 100  # TODO 更新了,不好逆向TMD
     return xingyunxing
 
 

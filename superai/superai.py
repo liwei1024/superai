@@ -302,12 +302,12 @@ class Player:
             menCorrectCoord = idxToZuobiao(CoordToManIdx(menx, meny, self.d.mapw // 10, self.ob), self.d.mapw // 10)
 
             # 如果修正过的坐标本身就没达到. 往那走一些
-            if not IsClosedTo(menx, meny, menCorrectCoord.x, menCorrectCoord.y):
-                logger.warning(
-                    "人物当前坐标(%d, %d) 没达到修正过的坐标(%d, %d), 调整" % (menx, meny, menCorrectCoord.x, menCorrectCoord.y))
-                dummy = "" if dummy is None else dummy
-                self.Seek(menCorrectCoord.x, menCorrectCoord.y, obj, dummy=dummy + "(调整修正位置)")
-                return
+            # if not IsClosedTo(menx, meny, menCorrectCoord.x, menCorrectCoord.y):
+            #     logger.warning(
+            #         "人物当前坐标(%d, %d) 没达到修正过的坐标(%d, %d), 调整" % (menx, meny, menCorrectCoord.x, menCorrectCoord.y))
+            #     dummy = "" if dummy is None else dummy
+            #     self.Seek(menCorrectCoord.x, menCorrectCoord.y, obj, dummy=dummy + "(调整修正位置)")
+            #     return
 
             secondPoint = idxToZuobiao(self.pathfindinglst[1], self.d.mapw // 10)
             flag = self.ob.CanTwoPointBeMove(menCorrectCoord, secondPoint)
