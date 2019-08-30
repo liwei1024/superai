@@ -44,7 +44,7 @@ class DealEquip:
     def GetFenjieJiPos(self):
         pos = None
         location = Location()
-        lo = location.get()
+        lo = location.GetFenjieLocation()
 
         if lo == "格兰之森":
             pos = fenjieGelanzhisen.Pos()

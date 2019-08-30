@@ -378,7 +378,7 @@ def main():
 
     GameWindowToTop()
 
-    MouseMoveTo(565, 183)
+    MouseMoveTo(288, 337)
 
 
 if __name__ == "__main__":

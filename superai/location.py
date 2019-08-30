@@ -58,7 +58,7 @@ class Location:
     def __init__(self):
         pass
 
-    def get(self):
+    def GetFenjieLocation(self):
         if IsinAierwenfnagxian() and locationGelanzhisen.Match():
             return "格兰之森"
         elif IsinHedunmaer() and locationTiankongzhichen.Match():
@@ -72,6 +72,15 @@ class Location:
 
         return ""
 
+    def GetLocation(self):
+        if IsinAierwenfnagxian():
+            return "艾尔文防线"
+        elif IsinHedunmaer():
+            return "赫顿玛尔"
+        elif IsinAerfayingdi():
+            return "阿法利亚"
+
+        return ""
 
 def main():
     pass
