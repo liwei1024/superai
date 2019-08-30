@@ -43,16 +43,18 @@ class DealEquip:
     # 获取到分解机位置
     def GetFenjieJiPos(self):
         pos = None
-        lo = Location()
-        if lo.get() == "格兰之森":
+        location = Location()
+        lo = location.get()
+
+        if lo == "格兰之森":
             pos = fenjieGelanzhisen.Pos()
-        elif lo.get() == "天空之城":
+        elif lo == "天空之城":
             pos = fenjieTiankongzhicheng.Pos()
-        elif lo.get() == "天锥巨兽":
+        elif lo == "天锥巨兽":
             pos = fenjieTianzhuijushou.Pos()
-        elif lo.get() == "阿法利亚":
+        elif lo == "阿法利亚":
             pos = fenjieAfaliya.Pos()
-        elif lo.get() == "诺伊佩拉":
+        elif lo == "诺伊佩拉":
             pos = fenjieNuoyipeila.Pos()
         return pos
 

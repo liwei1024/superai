@@ -2,14 +2,14 @@ import os
 import sys
 import time
 
-from superai.equip import OpenBagScene, ZhunangbeiPos, XiaohaoPos, bagScene, CloseBagScene
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
 
 logger = logging.getLogger(__name__)
 
+from superai.equip import OpenBagScene, ZhunangbeiPos, XiaohaoPos, bagScene, CloseBagScene
+from superai.location import IsinAierwenfnagxian, IsinHedunmaer, IsinAerfayingdi
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
     CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc, SafeClear, \
@@ -36,13 +36,6 @@ dituAfaliya = Picture(GetImgDir() + "ditu_afaliya.png")
 taskdone = Picture(GetImgDir() + "task_done.png")
 aganzuowupin = Picture(GetImgDir() + "aganzuo_wupin.png", 243, 560, 28, 28)
 aganzuowupin2 = Picture(GetImgDir() + "aganzuo_wupin2.png")
-
-wenziaierwenfangxian = Picture(GetImgDir() + "wenzi_aierwenfangxian.png", 610, 22, 182, 25)
-wenzihedunmaer = Picture(GetImgDir() + "wenzi_hedunmaer.png", 610, 22, 182, 25)
-wenziaerfayingdi = Picture(GetImgDir() + "wenzi_aerfayingdi.png", 610, 22, 182, 25)
-wenzianheicheng = Picture(GetImgDir() + "wenzi_anheicheng.png", 610, 22, 182, 25)
-wenzixihaian = Picture(GetImgDir() + "wenzi_xihaian.png", 610, 22, 182, 25)
-wenzisidunxueyu = Picture(GetImgDir() + "wenzi_sidunxueyu.png", 610, 22, 182, 25)
 
 Wupin6Pos = (255, 577)
 
@@ -207,6 +200,10 @@ MoveSetting = {
 
 }
 
+# 有向图
+class Graph:
+    def __init__(self, V, W):
+        pass
 
 class TaskCtx:
     def __init__(self):
@@ -522,36 +519,6 @@ def MeetNpcFoo(npcname):
                 MoveTo(npcname, player)
 
     return foo
-
-
-# 是否在艾尔文防线
-def IsinAierwenfnagxian():
-    if wenziaierwenfangxian.Match():
-        logger.info("在艾尔文防线")
-        return True
-    else:
-        logger.warning("不在艾尔文防线")
-        return False
-
-
-# 是否在赫顿玛尔
-def IsinHedunmaer():
-    if wenzihedunmaer.Match() or wenzixihaian.Match():
-        logger.info("在赫顿玛尔")
-        return True
-    else:
-        logger.warning("不在赫顿玛尔")
-        return False
-
-
-# 是否在阿尔法营地
-def IsinAerfayingdi():
-    if wenziaerfayingdi.Match() or wenzianheicheng.Match():
-        logger.info("在阿尔法营地")
-        return True
-    else:
-        logger.warning("不在阿尔法营地")
-        return False
 
 
 # 15级1转
@@ -915,7 +882,7 @@ IdxMapMap = {
 }
 
 plotMap = {
-    # 1-16 格兰之森
+    # 01-16 艾尔文防线
     "林纳斯的请求": AttacktaskFoo("幽暗密林"),
     "再访林纳斯": MeetNpcFoo("林纳斯"),
     "传说中的白化变异哥布林": AttacktaskFoo("幽暗密林"),
@@ -931,8 +898,7 @@ plotMap = {
     "转职祝贺": MeetNpcFoo("林纳斯"),
     "赛丽亚的决心": MeetNpcFoo("林纳斯"),
     "朝着新的冒险": MeetNpcFoo("艾尔文南"),
-
-    # 17-24
+    # 17-30 赫顿玛尔
     "赫顿玛尔的骚乱": 赫顿玛尔的骚乱,
     "月光酒馆": MeetNpcFoo("月光酒馆"),
     "挡路的帝国军队": MeetNpcFoo("挡路的帝国军队"),
@@ -969,7 +935,6 @@ plotMap = {
     "向斯卡迪女王汇报": MeetNpcFoo("斯卡迪"),
     "莎兰的建议": MeetNpcFoo("莎兰"),
 
-    # 24 -
     "告别和另一段冒险": MeetNpcFoo("奥菲利亚"),
     # "长脚罗特斯": MeetNpcFoo("巴恩"),
     "长脚罗特斯": 长脚罗特斯(),
@@ -1003,6 +968,7 @@ plotMap = {
     "商人的情报": MeetNpcFoo("后街"),
     "宣战": MeetNpcFoo("布告"),
     "忐忑不安的人们": MeetNpcFoo("洛巴赫2"),
+    # 30-41 阿尔法营地
     "前往阿法利亚营地": 前往阿法利亚营地,
     "暗精灵的传令使": MeetNpcFoo("克伦特"),
     "调查传染病": AttacktaskFoo("浅栖之地"),
@@ -1059,14 +1025,13 @@ plotMap = {
     "获救的俩人": 获救的俩人,
     "两国和解": MeetNpcFoo("斯卡迪"),
     "歌兰蒂斯的召唤": 歌兰蒂斯的召唤,
-
-    # 雪山 41
+    # 41-46 艾尔文防线-雪山
     "住在雪山的班图族": MeetNpcFoo("巴尔雷娜"),
     "班图女人——巴尔雷娜": AttacktaskFoo("山脊"),
     "勇士的证明": AttacktaskFoo("山脊"),
     "敏泰的哥哥——拉比纳": AttacktaskFoo("山脊"),
     "雪山隐藏的秘密": 雪山隐藏的秘密(),
-    "班图族的立场": 班图族的立场(),
+    "班图族的立场": 班图族的立场,
     "冰冷的预言": MeetNpcFoo("艾丽丝"),
     "可疑的委托": MeetNpcFoo("博肯"),
     "从容的班图人": MeetNpcFoo("雷诺"),
@@ -1091,7 +1056,7 @@ plotMap = {
     "冰龙斯卡萨": AttacktaskFoo("斯卡萨之巢"),
     "漫长战争的尽头": AttacktaskFoo("奥尔卡"),
     "博肯的问候": MeetNpcFoo("博肯"),
-    # 诺斯玛尔46-49
+    # 46-49 赫顿玛尔-后街
     "重逢与新的相遇": MeetNpcFoo("巨剑阿甘左"),
     "天界使者": MeetNpcFoo("马琳·基希卡"),
     "前往诺斯玛尔": MeetNpcFoo("后街"),
@@ -1120,7 +1085,7 @@ plotMap = {
     "痛苦之村列瑟芬": AttacktaskFoo("痛苦之村列瑟芬"),
     "面对使徒狄瑞吉": AttacktaskFoo("痛苦之村列瑟芬"),
     "依然存在的不详之感": AttacktaskFoo("痛苦之村列瑟芬"),
-    # 亚诺法森林50-53
+    # 50-61 镜像
     "回归阿拉德": MeetNpcFoo("麦瑟·莫纳亨"),
     "黑色噩梦笼罩下的阿拉德": MeetNpcFoo("麦瑟·莫纳亨"),
     "为了阻止次元": MeetNpcFoo("巨剑阿甘左"),
@@ -1146,7 +1111,7 @@ plotMap = {
     "毁灭纪碎片": AttacktaskFoo("遗忘之森"),
     "拜访摩根": MeetNpcFoo("炼金术师摩根"),
     "前往赫顿玛尔废墟": MeetNpcFoo("帕丽丝"),
-    # 厄运之城54-57
+
     "被毁灭纪摧毁的地方": AttacktaskFoo("蘑菇庄园"),
     "收集蜂蜜": AttacktaskFoo("蘑菇庄园"),
     "操纵蘑菇的蚂蚁": AttacktaskFoo("蚁后的巢穴"),
@@ -1170,7 +1135,7 @@ plotMap = {
     "麦瑟的召唤": AttacktaskFoo("绝望的棋局"),
     "下一个目的地": MeetNpcFoo("赛丽亚"),
     "准备离开": MeetNpcFoo("帕丽斯"),
-    # 逆流瀑布58-61_
+
     "另一个次元的天帷巨兽": MeetNpcFoo("奥菲利亚·贝伊兰斯"),
     "教主奥菲利亚": MeetNpcFoo("伊沙杜拉"),
     "伊沙杜拉的请求": AttacktaskFoo("鲨鱼栖息地"),
@@ -1200,7 +1165,7 @@ plotMap = {
     "面对罗特斯": MeetNpcFoo("巨剑阿甘左"),
     "再遇长脚罗特斯": AttacktaskFoo("罗特斯的宫殿"),
     "返回赫顿玛尔": MeetNpcFoo("麦瑟·莫纳亨"),
-    # 安特贝鲁峡谷63-67
+    # 63-74 天界
     "洛巴赫的委托": MeetNpcFoo("斯卡迪女王"),
     "前往天界": MeetNpcFoo("巴恩·巴休特"),
     "邪龙之角": MeetNpcFoo("梅娅女王"),
@@ -1252,7 +1217,7 @@ plotMap = {
     "终极作战": AttacktaskFoo("追击歼灭战"),
     "大决战": AttacktaskFoo("追击歼灭战"),
     "马琳的问候": MeetNpcFoo("马琳·基希卡"),
-    # 海上列车71-74__
+
     "悬空的海港": MeetNpcFoo("贝伦·博内哥特"),
     "免费搭乘海上列车": AttacktaskFoo("列车上的海贼"),
     "可疑的美人鱼空空伊": AttacktaskFoo("列车上的海贼"),
@@ -1283,7 +1248,7 @@ plotMap = {
     "战争结束": AttacktaskFoo("卡勒特指挥部"),
     "皇女的问候": AttacktaskFoo("皇女艾丽婕"),
     "吉赛尔的行踪": MeetNpcFoo("梅尔文·里克特"),
-    # 时空之门75-80
+    # 75-80 时空之门
     # "斯卡迪女王": MeetNpcFoo("斯卡迪女王"),
     "天界的冒险故事": MeetNpcFoo("巨剑阿甘左"),
     "前往素喃": MeetNpcFoo("卡坤   需要材料钢铁片*50  黑曜石*30"),
@@ -1356,7 +1321,7 @@ plotMap = {
     "艾丽丝的觉悟 (2 / 3)": MeetNpcFoo("魔法师公会"),
     "艾丽丝的觉悟 (3 / 3)": AttacktaskFoo("艾丽丝的觉悟"),
     "以后的事": MeetNpcFoo("艾丽丝"),
-    # 能源中心81-83____
+    # 81-83 能源中心
     "艾丽丝的挽留": MeetNpcFoo("艾丽丝"),
     "再次前往天界": MeetNpcFoo("马琳·基希卡"),
     "前往斯曼工业基地": MeetNpcFoo("梅尔文·里克特"),
@@ -1411,7 +1376,7 @@ plotMap = {
     "第七使徒安徒恩": AttacktaskFoo("黑色火山内部"),
     "破坏心脏": AttacktaskFoo("安徒恩的心脏"),
     "胜利之后": AttacktaskFoo("鹰眼杰克特"),
-    # 寂静城85-86
+    # 85-86 寂静城
     "为了前往寂静城": MeetNpcFoo("皇女艾丽婕"),
     # "为了前往寂静城": MeetNpcFoo("纳维罗·尤尔根"),
     "抵达克洛诺斯岛的联合调查团": MeetNpcFoo("伊莎贝拉公主"),
@@ -1472,7 +1437,7 @@ plotMap = {
     "艾泽拉的警戒": MeetNpcFoo("伊莎贝拉公主"),
     "准备": AttacktaskFoo("湮灭之圣所"),
     "被遗弃的贝奇": AttacktaskFoo("湮灭之圣所"),
-    # 地轨中心87-90
+    # 87-95 地轨中心
     "终于抵达魔界": MeetNpcFoo("伊莎贝拉公主"),
     "杂乱的开始": AttacktaskFoo("时间广场"),
     "小魔女斯库尔蒂": AttacktaskFoo("时间广场"),
@@ -1554,7 +1519,6 @@ plotMap = {
     "皇女艾丽婕的委托": MeetNpcFoo("皇女艾丽婕"),
     "向凯蒂报告": MeetNpcFoo("凯蒂"),
     "未来之路": AttacktaskFoo("红色魔女之森"),
-    # 哈林90-95
     "微弱的声音": AttacktaskFoo("中央公园外围森林"),
     "前往中央公园": MeetNpcFoo("凯蒂"),
     "逃走的孩子": MeetNpcFoo("派伊"),

@@ -15,7 +15,7 @@ from superai.equip import Equips
 from superai.plot import TaskCtx, HasPlot, plotMap
 from superai.learnskill import Occupationkills
 from superai.common import InitLog, GameWindowToTop
-from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, CoordToManIdx, SafeGetDAndOb
+from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, CoordToManIdx, SafeGetDAndOb, Zuobiao
 from superai.astartdemo import idxToXY
 
 from superai.flannfind import SetThreadExit, \
@@ -309,30 +309,21 @@ class Player:
         elif len(self.pathfindinglst) >= 2:
             # 路径规划过
             firstPoint = idxToXY(self.pathfindinglst[0], self.d.mapw // 10)
-            menCorrectCoord = idxToZuobiao(CoordToManIdx(menx, meny, self.d.mapw // 10, self.ob), self.d.mapw // 10)
-
-            # 如果修正过的坐标本身就没达到. 往那走一些
-            # if not IsClosedTo(menx, meny, menCorrectCoord.x, menCorrectCoord.y):
-            #     logger.warning(
-            #         "人物当前坐标(%d, %d) 没达到修正过的坐标(%d, %d), 调整" % (menx, meny, menCorrectCoord.x, menCorrectCoord.y))
-            #     dummy = "" if dummy is None else dummy
-            #     self.Seek(menCorrectCoord.x, menCorrectCoord.y, obj, dummy=dummy + "(调整修正位置)")
-            #     return
-
             secondPoint = idxToZuobiao(self.pathfindinglst[1], self.d.mapw // 10)
-            flag = self.ob.CanTwoPointBeMove(menCorrectCoord, secondPoint)
-            logger.info("检测 %s -> %s 是否连通下一个点: %d" % (menCorrectCoord, secondPoint, flag))
 
-            # 是否直接到达位置
+            menCoord = Zuobiao(menx, meny)
+            flag = False
+            if IsClosedTo(menCoord.x, menCoord.y, firstPoint[0], firstPoint[1]):
+                flag = True
+                logger.info("直接设置到达当前点 (%d, %d) (%d, %d)" % (
+                    menCoord.x, menCoord.y, firstPoint[0], firstPoint[1]))
+
             if not flag:
-                if IsClosedTo(menCorrectCoord.x, menCorrectCoord.y, firstPoint[0], firstPoint[1]):
-                    flag = True
-                    logger.info("直接设置到达当前点 (%d, %d) (%d, %d)" % (
-                        menCorrectCoord.x, menCorrectCoord.y, firstPoint[0], firstPoint[1]))
+                flag = self.ob.CanTwoPointBeMove(menCoord, secondPoint)
+                logger.info("检测 %s -> %s 是否连通下一个点: %d" % (menCoord, secondPoint, flag))
 
             if flag:
-                point = idxToXY(self.pathfindinglst[0], self.d.mapw // 10)
-                logger.info("到达了规划点 (%d, %d) 剩余 %d" % (point[0], point[1], len(self.pathfindinglst) - 1))
+                logger.info("到达了规划点 (%d, %d) 剩余 %d" % (firstPoint[0], firstPoint[1], len(self.pathfindinglst) - 1))
                 del self.pathfindinglst[0]
                 # self.SeekWithPathfinding(destx, desty, obj, dummy)
                 return
