@@ -136,7 +136,7 @@ class Equips:
                     self.xingyunwuqipos = (0, 109)
 
         else:
-            raise NotImplementedError("还未支持的职业")
+            raise NotImplementedError("还未支持的职业 %s" % occupationafter)
 
     # 身上没有装备
     def BodyEquiped(self, IDX):

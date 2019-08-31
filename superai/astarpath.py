@@ -125,6 +125,7 @@ def SafeGetDAndOb(menw, menh):
 # obstacle 包装
 class Obstacle:
     def __init__(self, d: GameObstacleData, menw, menh):
+
         self.menw = menw
         self.menh = menh
 
@@ -134,6 +135,10 @@ class Obstacle:
         self.mapCellWLen = d.mapw // 0x10
         self.mapCellHLen = d.maph // 0xc
         self.cellnum = self.mapCellWLen * self.mapCellHLen
+
+        if self.cellnum >= 1000 * 1000:
+            raise NotImplementedError("error")
+
         self.dixing = [False] * self.cellnum
 
         def dealcell(cell):

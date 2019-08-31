@@ -55,7 +55,7 @@ class Occupationkills:
             if occupationafter in ["帕拉丁"]:
                 self.paladingInit()
         else:
-            raise NotImplementedError("还未支持的职业")
+            raise NotImplementedError("还未支持的职业: %s" % occupationafter)
 
     # 删除必备技能
     def DelSkill(self, name):
@@ -136,6 +136,8 @@ class Occupationkills:
             self.DelSkill("审判捶击")
             self.DelSkill("钩颈斩")
             self.DelSkill("罪业加身")
+        if meninfo.level >= 35:
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "贪婪之刺", "youmozhe_tanlanzhici.png"))
 
     # 魔枪 (15级前)
     def moqiangInit(self):

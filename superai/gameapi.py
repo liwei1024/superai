@@ -1403,7 +1403,7 @@ def IsManJipao():
 # 是否死掉了
 def IsMenDead():
     meninfo = GetMenInfo()
-    return meninfo.hp <= 0
+    return meninfo.hp <= 1
 
 
 # 冰霜幽暗密林第一个门有冰柱挡住
@@ -1739,6 +1739,7 @@ skillSettingMap = {
 
     # 四姨
     "七宗罪": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4, thenpress=VK_CODE["left_arrow"]),
+    "贪婪之刺": SkillData(type=SkillType.Gongji, delaytime=0.2, afterdelay=0.4, lockhp=True),
 
     # 吸怪,蓄力
     "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),

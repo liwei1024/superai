@@ -338,9 +338,15 @@ class Player:
 
     # 每次进图缓存一下当前的 1. 地形 2. 障碍 3. 门位置.
     def NewMapCache(self):
+        if not IsManInMap():
+            return
+
         t1 = time.time()
         meninfo = GetMenInfo()
-        self.d, self.ob = SafeGetDAndOb(meninfo.w, meninfo.h)
+        try:
+            self.d, self.ob = SafeGetDAndOb(meninfo.w, meninfo.h)
+        except:
+            logger.warning("获取障碍物发生错误")
 
         if not IsCurrentInBossFangjian():
             door = GetNextDoorWrap()
@@ -475,7 +481,7 @@ class GlobalState(State):
 
         # 在图内需要判断卡死的状态
         MapStateList = [SeekAndPickUp, PickBuf, SeekAndAttackMonster, DoorOpenGotoNext, DoorStuckGoToPrev,
-                        FuckDuonierState]
+                        FuckDuonierState, StandState]
 
         # 防止卡死目前只判断几种情况
         def MapStateCheck(curstate):
@@ -485,7 +491,7 @@ class GlobalState(State):
             return False
 
         # 特定状态下才进行判断卡死
-        if MapStateCheck(player.stateMachine.currentState):
+        if IsManInMap():
             if self.latesttime is None:
                 self.latesttime = time.time()
                 self.beginx, self.beginy = GetMenXY()
@@ -577,14 +583,18 @@ class InChengzhen(State):
             return
 
         # 负重超过80%,分解 (需要先到副本外)
-        if meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65 and deal.GetFenjieJiPos() is not None:
-            player.ChangeState(FenjieEquip())
-            return
+        if meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65:
+            pos = deal.GetFenjieJiPos()
+            if pos is not None and pos != (0, 0):
+                player.ChangeState(FenjieEquip())
+                return
 
         # 耐久小于25%,修理 (需要先到副本外)
-        if deal.NeedRepair() and deal.GetFenjieJiPos() is not None:
-            player.ChangeState(RepairEquip())
-            return
+        if deal.NeedRepair():
+            pos = deal.GetFenjieJiPos()
+            if pos is not None and pos != (0, 0):
+                player.ChangeState(RepairEquip())
+                return
 
         # 做剧情任务
         if HasPlot():
@@ -734,10 +744,13 @@ class FirstInMap(State):
 # 图内站立
 class StandState(State):
     def Execute(self, player):
-        if IsJiZhouSpecifyState():
+        if IsMenDead():
+            player.ChangeState(DeadState())
+            return
+        elif IsJiZhouSpecifyState():
             player.ChangeState(FuckDuonierState())
             return
-        if HaveMonsters():
+        elif HaveMonsters():
             player.ChangeState(SeekAndAttackMonster())
             return
         elif HaveGoods(player) and IsFuzhongGou():
@@ -764,9 +777,6 @@ class StandState(State):
             # player.ChangeState(DoorDidnotOpen())
         elif IsManInChengzhen():
             player.ChangeState(InChengzhen())
-            return
-        elif IsMenDead():
-            player.ChangeState(DeadState())
             return
         else:
             if IsCurrentInBossFangjian():
@@ -960,7 +970,7 @@ class DoorStuckGoToPrev(State):
 class DeadState(State):
     def Execute(self, player):
         meninfo = GetMenInfo()
-        if meninfo.hp > 0:
+        if meninfo.hp > 1:
             player.ChangeState(Setup())
             return
 
@@ -979,13 +989,13 @@ class StuckShit(State):
         if HaveMonsters():
             obj = NearestMonsterWrap()
             Zuobiaoyidong(obj.x, obj.y, 0)
-            player.ChangeState(Setup())
+            player.ChangeState(StandState())
         elif not IsCurrentInBossFangjian():
             Autoshuntu()
-            player.ChangeState(Setup())
+            player.ChangeState(StandState())
         else:
             logger.warning("不知道该怎么办,联系作者吧")
-            player.ChangeState(Setup())
+            player.ChangeState(StandState())
 
 
 # 做任务状态机

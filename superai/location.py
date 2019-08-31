@@ -14,6 +14,8 @@ locationTiankongzhichen = Picture(GetImgDir() + "ditu_tiankongzhicheng.png")
 locationTianzhuijushou = Picture(GetImgDir() + "ditu_tianzhuijushou.png")
 locationAfaliya = Picture(GetImgDir() + "ditu_afaliya2.png")
 locationNuoyipeila = Picture(GetImgDir() + "ditu_nuoyipeila.png")
+locationXueshan = Picture(GetImgDir() + "ditu_xueshan.png")
+locationNuosimaer = Picture(GetImgDir() + "ditu_nuosimaer.png")
 
 wenziaierwenfangxian = Picture(GetImgDir() + "wenzi_aierwenfangxian.png", 610, 22, 182, 25)
 wenzihedunmaer = Picture(GetImgDir() + "wenzi_hedunmaer.png", 610, 22, 182, 25)
@@ -22,6 +24,18 @@ wenzianheicheng = Picture(GetImgDir() + "wenzi_anheicheng.png", 610, 22, 182, 25
 wenzixihaian = Picture(GetImgDir() + "wenzi_xihaian.png", 610, 22, 182, 25)
 wenzisidunxueyu = Picture(GetImgDir() + "wenzi_sidunxueyu.png", 610, 22, 182, 25)
 
+sailiya = Picture(GetImgDir() + "ditu_sailiya.png")
+
+
+# 是否在赛丽亚访问
+def IsinSailiya():
+    if sailiya.Match():
+        logger.info("在赛丽亚房间")
+        return True
+    else:
+        # logger.warning("不在赛丽亚房间")
+        return False
+
 
 # 是否在艾尔文防线
 def IsinAierwenfnagxian():
@@ -29,7 +43,7 @@ def IsinAierwenfnagxian():
         logger.info("在艾尔文防线")
         return True
     else:
-        logger.warning("不在艾尔文防线")
+        # logger.warning("不在艾尔文防线")
         return False
 
 
@@ -39,7 +53,7 @@ def IsinHedunmaer():
         logger.info("在赫顿玛尔")
         return True
     else:
-        logger.warning("不在赫顿玛尔")
+        # logger.warning("不在赫顿玛尔")
         return False
 
 
@@ -49,7 +63,7 @@ def IsinAerfayingdi():
         logger.info("在阿尔法营地")
         return True
     else:
-        logger.warning("不在阿尔法营地")
+        # logger.warning("不在阿尔法营地")
         return False
 
 
@@ -61,14 +75,19 @@ class Location:
     def GetFenjieLocation(self):
         if IsinAierwenfnagxian() and locationGelanzhisen.Match():
             return "格兰之森"
+        if IsinAierwenfnagxian() and locationXueshan.Match():
+            return "雪山"
         elif IsinHedunmaer() and locationTiankongzhichen.Match():
             return "天空之城"
         elif IsinHedunmaer() and locationTianzhuijushou.Match():
             return "天锥巨兽"
+        elif IsinHedunmaer() and locationNuosimaer.Match():
+            return "诺斯玛尔"
         elif IsinAerfayingdi() and locationAfaliya.Match():
             return "阿法利亚"
         elif IsinAerfayingdi() and locationNuoyipeila.Match():
             return "诺伊佩拉"
+
 
         return ""
 
@@ -79,8 +98,8 @@ class Location:
             return "赫顿玛尔"
         elif IsinAerfayingdi():
             return "阿法利亚"
-
         return ""
+
 
 def main():
     pass

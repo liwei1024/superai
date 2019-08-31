@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from superai.equip import OpenBagScene, ZhunangbeiPos, XiaohaoPos, bagScene, CloseBagScene
-from superai.location import IsinAierwenfnagxian, IsinHedunmaer, IsinAerfayingdi, Location
+from superai.location import IsinAierwenfnagxian, IsinHedunmaer, IsinAerfayingdi, Location, IsinSailiya
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
     CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc, SafeClear, \
@@ -71,15 +71,13 @@ NpcInfos = {
             "巴尔雷娜": MoveInfo(destcoord=("ditu_baerleina.png", 453, 400), mousecoord=(543, 138)),
             "雪山": MoveInfo(destcoord=("ditu_xueshan.png", 183, 428), mousecoord=(468, 138)),
             "奥尔卡": MoveInfo(destcoord=("ditu_aoerka.png", 1541, 715), mousecoord=(609, 172)),
-            "歌兰蒂斯·格拉西亚": MoveInfo(destcoord=("ditu_gelandisi2.png", 2415, 176), mousecoord=(396, 333)),
-            "博肯": MoveInfo(destcoord=("ditu_boken2.png", 1100, 188), mousecoord=(328, 335)),
             "雷诺": MoveInfo(destcoord=("ditu_leinuo.png", 755, 400), mousecoord=(561, 140)),
         }
     },
 
     "赫顿玛尔": {
         "check": IsinHedunmaer,
-        "pic": Picture(GetImgDir() + "shijie_shijie_hedunmaer.png"),
+        "pic": Picture(GetImgDir() + "shijie_hedunmaer.png"),
         "npcs": {
             "月光酒馆": MoveInfo(destcoord=("ditu_yueguangjiuguan.png", 758, 216), mousecoord=(189, 219)),
             "挡路的帝国军队": MoveInfo(destcoord=("ditu_dangludiguo.png", 2308, 319), mousecoord=(612, 285)),
@@ -94,15 +92,20 @@ NpcInfos = {
             "索西雅": MoveInfo(destcoord=("ditu_suoxiya.png", 125, 266), mousecoord=(151, 212)),
             "凯丽": MoveInfo(destcoord=("ditu_kaili.png", 2741, 188), mousecoord=(412, 335)),
             "斯卡迪": MoveInfo(destcoord=("ditu_sikadi.png", 440, 205), mousecoord=(334, 234)),
-            "奥菲利亚": MoveInfo(destcoord=("ditu_aofeiliya.png", 861, 183), mousecoord=(533, 369)),
+            "奥菲利亚": MoveInfo(destcoord=("ditu_aofeiliya.png", 860, 183), mousecoord=(533, 370)),
             "卡坤": MoveInfo(destcoord=("ditu_kakun.png", 1077, 175), mousecoord=(543, 367)),
             "天帷巨兽": MoveInfo(destcoord=("ditu_tianzhuijushou.png", 712, 306), mousecoord=(647, 399)),
             "赫顿玛尔": MoveInfo(destcoord=("ditu_hedunmaer2.png", 1430, 188), mousecoord=(346, 335)),
             "阿甘左": MoveInfo(destcoord=("ditu_aganzuo.png", 1096, 188), mousecoord=(210, 213)),
             "后街": MoveInfo(destcoord=("ditu_houjie.png", 578, 244), mousecoord=(221, 300)),
             "布告": MoveInfo(destcoord=("ditu_bugaolan.png", 926, 213), mousecoord=(320, 339)),
-            "赫顿玛尔2": MoveInfo(destcoord=("hedunmaer2.png", 1254, 417), mousecoord=(336, 372)),
-            "赫顿玛尔3": MoveInfo(destcoord=("hedunmaer3.png", 319, 200), mousecoord=(319, 200)),
+            "赫顿玛尔2": MoveInfo(destcoord=("ditu_hedunmaer2.png", 1254, 417), mousecoord=(336, 372)),
+            "赫顿玛尔3": MoveInfo(destcoord=("ditu_hedunmaer3.png", 356, 207), mousecoord=(290, 338)),
+            "博肯": MoveInfo(destcoord=("ditu_boken2.png", 1100, 188), mousecoord=(328, 335)),
+            "马琳·基希卡": MoveInfo(destcoord=("ditu_malin.png", 230, 187), mousecoord=(503, 370)),
+            "后街2": MoveInfo(destcoord=("ditu_houjie2.png", 272, 243), mousecoord=(172, 367)),
+            "诺斯玛尔": MoveInfo(destcoord=("ditu_nuosimaer.png", 146, 274), mousecoord=(66, 366)),
+            "歌兰蒂斯·格拉西亚": MoveInfo(destcoord=("ditu_gelandisi2.png", 2415, 176), mousecoord=(396, 333)),
         }
     },
     "阿法利亚": {
@@ -110,7 +113,7 @@ NpcInfos = {
         "pic": Picture(GetImgDir() + "shijie_aerfa.png"),
         "npcs": {
             "洛巴赫3": MoveInfo(destcoord=("ditu_luobahe3.png", 312, 160), mousecoord=(277, 261)),
-            "克伦特": MoveInfo(destcoord=("dittu_kelunte.png", 459, 135), mousecoord=(381, 259)),
+            "克伦特": MoveInfo(destcoord=("ditu_kelunte.png", 459, 135), mousecoord=(381, 259)),
             "阿法利亚": MoveInfo(destcoord=("ditu_afaliya2.png", 741, 227), mousecoord=(522, 281)),
             "鲁埃尔": MoveInfo(destcoord=("ditu_luaier.png", 760, 123), mousecoord=(407, 257)),
             "帕丽丝": MoveInfo(destcoord=("ditu_palisi.png", 521, 160), mousecoord=(302, 261)),
@@ -176,6 +179,8 @@ def InitGraph():
             else:
                 for i in range(10):
                     if IsinHedunmaer():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
                         break
                     QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
                     QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
@@ -190,6 +195,8 @@ def InitGraph():
             else:
                 for i in range(10):
                     if IsinAierwenfnagxian():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
                         break
                     QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
                     QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
@@ -204,6 +211,8 @@ def InitGraph():
             else:
                 for i in range(10):
                     if IsinAerfayingdi():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
                         break
                     QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
                     QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
@@ -218,6 +227,8 @@ def InitGraph():
             else:
                 for i in range(10):
                     if IsinHedunmaer():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
                         break
                     QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
                     QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
@@ -270,12 +281,16 @@ class MapPaths:
 
         if not self.HasPathTo(v):
             return result, foos
+
+        # 终点 .. 起点
         x = v
         while x != self.s:
             result.append(x)
             x = self.edgeTo[x]
         result.append(self.s)
 
+        # 反转, 起点 .. 终点
+        result = list(reversed(result))
         for i in range(len(result) - 1):
             foos.append(self.g.fooMap[result[i], result[i + 1]])
 
@@ -350,7 +365,7 @@ def CloseShijieDitu():
 def GetDestinfo(destname):
     destinfo = None
 
-    for k, v in NpcInfos:
+    for k, v in NpcInfos.items():
         if destname in v["npcs"].keys():
             destinfo = v["npcs"][destname]
             break
@@ -365,7 +380,7 @@ def GetDestinfo(destname):
 def GetDestCheckFoo(destname):
     destgcheckFoo = None
 
-    for k, v in NpcInfos:
+    for k, v in NpcInfos.items():
         if destname in v["npcs"].keys():
             destgcheckFoo = v["check"]
             break
@@ -375,16 +390,44 @@ def GetDestCheckFoo(destname):
     return destgcheckFoo
 
 
+# 获取移动到位置的世界地图位置
+def GetDestShijie(destname):
+    shijie = None
+
+    for k, v in NpcInfos.items():
+        if destname in v["npcs"].keys():
+            shijie = k
+            break
+    if shijie is None:
+        raise NotImplementedError("地图尚未支持: %s" % destname)
+
+    return shijie
+
+
+# 获取移动到位置所用的世界地图
+def GetDestShijiePic(destname):
+    pic = None
+
+    for k, v in NpcInfos.items():
+        if destname in v["npcs"].keys():
+            pic = v["pic"]
+            break
+    if pic is None:
+        raise NotImplementedError("地图尚未支持: %s" % destname)
+
+    return pic
+
+
 # 是否移动城镇的位置
 def IsMoveToChengzhenPos(destpic, destcoord, desc):
     if destpic.Match():
         meninfo = GetMenInfo()
-        if IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 20):
+        if IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 10):
             return True
         elif IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 50):
-            logger.warning("目的地: %s  在100范围内, 再移动一点点" % desc)
+            logger.warning("目的地: %s  在50范围内, 再移动一点点" % desc)
             quad, _ = GetQuadrant(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1])
-            QuadKeyDownMap[quad](), RanSleep(0.15)
+            QuadKeyDownMap[quad](), RanSleep(0.05)
             QuadKeyUpMap[quad]()
         else:
             logger.warning("目的地: %s [坐标]没有对比上" % desc)
@@ -422,7 +465,8 @@ def MoveTo(destname, player):
             destinfo.destcoord[1], destinfo.mousecoord[0],
             destinfo.mousecoord[1]))
 
-        if CoordMoveTo(destinfo.destpic, destinfo.mousecoord):
+        shijiepic = GetDestShijiePic(destname)
+        if CoordMoveTo(shijiepic, destinfo.mousecoord):
             player.taskctx.latestmovepoint = time.time()
     else:
         logger.info("城镇移动中"), RanSleep(0.3)
@@ -461,7 +505,7 @@ def EnterMap(idx, player):
                 player.ChangeState(FirstInMap())
                 return
 
-            logger.info("等待进图... %d" % i), RanSleep(5)
+            logger.info("等待进图... %d" % i), RanSleep(0.5)
     else:
         logger.warning("没有选择对地图")
 
@@ -567,7 +611,7 @@ def HasMoveTo(destname):
 def GetMapInfo(fubenname):
     mapname, quad, idx = None, None, None
 
-    for k, v in FubenInfos:
+    for k, v in FubenInfos.items():
         if fubenname in v["fubens"].keys():
             mapname = k
             quad = v["quad"]
@@ -575,18 +619,16 @@ def GetMapInfo(fubenname):
             break
 
     if mapname is None or quad is None or idx is None:
-        raise NotImplementedError("副本数据未设置好")
+        raise NotImplementedError("副本数据未设置好: %s" % fubenname)
 
     return mapname, quad, idx
 
 
 # 返回一个打指定地图的函数
 def AttacktaskFoo(fubenname):
-    # 获取副本相关的信息 1. 地图名称 2. 方向
-
-    mapname, quad, idx = GetMapInfo(fubenname)
-
-    def foo(player, mapname=mapname, quad=quad, idx=idx):
+    def foo(player, fubenname=fubenname):
+        # 获取副本相关的信息 1. 地图名称 2. 方向
+        mapname, quad, idx = GetMapInfo(fubenname)
         if not IsTaskaccept():
             logger.info("没有主线任务被接受")
             AcceptMain()
@@ -600,7 +642,9 @@ def AttacktaskFoo(fubenname):
         if HasMoveTo(mapname):
             Clear()
             player.taskctx.latestmovepoint = None
-            # 左右调整进入地图选择界面
+
+            logger.info("到达了指定位置,选择地图")
+
             if GoToSelect(quad):
                 # 进入地图
                 EnterMap(idx, player)
@@ -608,23 +652,30 @@ def AttacktaskFoo(fubenname):
                 logger.warning("没有进入选择地图")
         else:
 
+            # 赛丽亚房间就退出来
+            if IsinSailiya():
+                QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
+                QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
+                return
+
             destcheckFoo = GetDestCheckFoo(mapname)
             if not destcheckFoo():
-                Clear()
 
                 loc = Location()
                 location = loc.GetLocation()
                 if location == "":
+                    Clear()
                     logger.warning("截图无法判断当前在哪里")
                     return
 
-                paths, foos = GetMapPaths(Mapid[location], Mapid[mapname])
+                shijie = GetDestShijie(mapname)
+                paths, foos = GetMapPaths(Mapid[location], Mapid[shijie])
 
                 if len(paths) < 2:
                     logger.warning("判断当前地图正确但是规划不正确")
                     return
 
-                if paths[0] == Mapid[mapname]:
+                if paths[0] == Mapid[shijie]:
                     logger.warning("当前路径已达到,不用规划")
                     return
 
@@ -660,30 +711,56 @@ def MeetNpcFoo(destname):
             QuadKeyUpMap[Quardant.SHANG](), KongjianSleep()
             PressKey(VK_CODE["spacebar"]), KongjianSleep()
         else:
+
             if HasMoveTo(destname):
                 Clear()
                 player.taskctx.latestmovepoint = None
                 logger.info("到达了指定位置,按space键")
+
+                if destname == "马琳·基希卡":
+                    QuadKeyDownMap[Quardant.ZUO](), RanSleep(0.5)
+                    QuadKeyUpMap[Quardant.ZUO](), RanSleep(0.5)
+
+                # 对话角色 微调整
+                meninfo = GetMenInfo()
+                destinfo = GetDestinfo(destname)
+                quad, _ = GetQuadrant(meninfo.chengzhenx, meninfo.chengzheny, destinfo.destcoord[0],
+                                      destinfo.destcoord[1])
+                QuadKeyDownMap[quad](), RanSleep(0.03)
+                QuadKeyUpMap[quad](), RanSleep(0.03)
+
+                if destname == "巴尔雷娜":  # TODO 雪山隐藏的秘密. 这里感觉还是有点危险
+                    if HasSpecifyAccept(3286) and HasSpecifyAccept(3614):
+                        global meetbaerleina
+                        meetbaerleina = True
+
                 PressKey(VK_CODE["spacebar"]), KongjianSleep()
             else:
 
+                # 赛丽亚房间就退出来
+                if IsinSailiya():
+                    QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
+                    QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
+                    return
+
                 destcheckFoo = GetDestCheckFoo(destname)
                 if not destcheckFoo():
-                    Clear()
 
                     loc = Location()
                     location = loc.GetLocation()
                     if location == "":
+                        Clear()
                         logger.warning("截图无法判断当前在哪里")
                         return
 
-                    paths, foos = GetMapPaths(Mapid[location], Mapid[destname])
+                    shijie = GetDestShijie(destname)
+                    paths, foos = GetMapPaths(Mapid[location], Mapid[shijie])
 
                     if len(paths) < 2:
                         logger.warning("判断当前地图正确但是规划不正确")
                         return
 
-                    if paths[0] == Mapid[destname]:
+                    if paths[0] == Mapid[shijie]:
                         logger.warning("当前路径已达到,不用规划")
                         return
 
@@ -727,7 +804,7 @@ def 守护森林的战斗(player):
             pic = zhuanzhiPalading
 
         if pic is None:
-            raise NotImplementedError("职业不支持")
+            raise NotImplementedError("职业不支持: %s" % meninfo.zhuanzhiqian)
 
         # 转职职业
         if not pic.Match():
@@ -765,12 +842,15 @@ def 长脚罗特斯():
     return foo
 
 
+meetbaerleina = False
+
+
 # 同名任务
 def 雪山隐藏的秘密():
     def foo(player):
-        if HasSpecifyAccept(3614):
+        if not meetbaerleina:
             MeetNpcFoo("巴尔雷娜")(player)
-        if HasSpecifyAccept(3286):
+        else:
             MeetNpcFoo("奥尔卡")(player)
 
     return foo
@@ -876,7 +956,20 @@ FubenInfos = {
     "雪山": {
         "quad": Quardant.ZUO,
         "fubens": {
-            "山脊": 0
+            "山脊": 0,
+            "雪山丛林": 1,
+            "冰心少年": 1,
+            "利库天井": 2,
+            "白色废墟": 3,
+            "布万加的修炼场": 4,
+            "斯卡萨之巢": 5,
+        }
+    },
+    "诺斯玛尔": {
+        "quad": Quardant.ZUO,
+        "fubens": {
+            "绿都格罗兹尼": 0,
+            "堕落的盗贼": 1
         }
     }
 }
@@ -1054,12 +1147,12 @@ plotMap = {
     "班图族站起来了": AttacktaskFoo("斯卡萨之巢"),
     "向公国求助": AttacktaskFoo("斯卡萨之巢"),
     "冰龙斯卡萨": AttacktaskFoo("斯卡萨之巢"),
-    "漫长战争的尽头": AttacktaskFoo("奥尔卡"),
+    "漫长战争的尽头": MeetNpcFoo("奥尔卡"),
     "博肯的问候": MeetNpcFoo("博肯"),
     # 46-49 赫顿玛尔-后街
-    "重逢与新的相遇": MeetNpcFoo("巨剑阿甘左"),
+    "重逢与新的相遇": MeetNpcFoo("阿甘左"),
     "天界使者": MeetNpcFoo("马琳·基希卡"),
-    "前往诺斯玛尔": MeetNpcFoo("后街"),
+    "前往诺斯玛尔": MeetNpcFoo("后街2"),
     "绿都格罗兹尼": AttacktaskFoo("绿都格罗兹尼"),
     "警惕的超能者们": AttacktaskFoo("绿都格罗兹尼"),
     "麦瑟·莫纳亨": AttacktaskFoo("绿都格罗兹尼"),

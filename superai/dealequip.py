@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from superai.common import InitLog, GameWindowToTop
-from superai.gameapi import GameApiInit, FlushPid, GetBagEquipObj, GetMenInfo, BODYPOS, Clear
+from superai.gameapi import GameApiInit, FlushPid, GetBagEquipObj, GetMenInfo, BODYPOS, Clear, GetEquipObj
 
 from superai.flannfind import Picture, GetImgDir
 from superai.location import Location
@@ -23,6 +23,8 @@ fenjiexiulijiScene = Picture(GetImgDir() + "fenjiexiuliji_scene.png")
 fenjieConfirm = Picture(GetImgDir() + "fenjie_confirm.png")
 fenjieAfaliya = Picture(GetImgDir() + "fenjieAfaliya.png")
 fenjieNuoyipeila = Picture(GetImgDir() + "fenjie_nuoyipeila.png")
+fenjieXueshan = Picture(GetImgDir() + "fenjie_xuieshan.png")
+fenjieNuosimaer = Picture(GetImgDir() + "fenjie_nuosimaer.png")
 sellButton = Picture(GetImgDir() + "sellbt.png")
 bagScene = Picture(GetImgDir() + "bagscene.png")
 repairButton = Picture(GetImgDir() + "repair.png")
@@ -48,10 +50,14 @@ class DealEquip:
 
         if lo == "格兰之森":
             pos = fenjieGelanzhisen.Pos()
+        if lo == "雪山":
+            pos = fenjieXueshan.Pos()
         elif lo == "天空之城":
             pos = fenjieTiankongzhicheng.Pos()
         elif lo == "天锥巨兽":
             pos = fenjieTianzhuijushou.Pos()
+        elif lo == "诺斯玛尔":
+            pos = fenjieNuosimaer.Pos()
         elif lo == "阿法利亚":
             pos = fenjieAfaliya.Pos()
         elif lo == "诺伊佩拉":
@@ -66,7 +72,7 @@ class DealEquip:
 
         pos = self.GetFenjieJiPos()
 
-        if pos is None:
+        if pos is None or pos == (0, 0):
             return
 
         MouseMoveTo(pos[0], pos[1]), KongjianSleep()
@@ -111,7 +117,7 @@ class DealEquip:
         logger.info("出售所有")
         pos = self.GetFenjieJiPos()
 
-        if pos is None:
+        if pos is None or pos == (0, 0):
             return
 
         MouseMoveTo(pos[0], pos[1]), KongjianSleep()
@@ -142,7 +148,7 @@ class DealEquip:
         logger.info("修理所有")
         pos = self.GetFenjieJiPos()
 
-        if pos is None:
+        if pos is None or pos == (0, 0):
             return
 
         MouseMoveTo(pos[0], pos[1]), KongjianSleep()
@@ -158,7 +164,7 @@ class DealEquip:
 
     # 是否需要被修理
     def NeedRepair(self):
-        equips = GetBagEquipObj()
+        equips = GetEquipObj()
         for v in equips:
             if v.bodypos in BODYPOS or v.bodypos == 12:
                 if v.curnaijiu / v.maxnaijiu < 0.25:
@@ -187,7 +193,7 @@ def main():
     GameWindowToTop()
 
     dq = DealEquip()
-    dq.FenjieAll()
+    print(dq.NeedRepair())
 
 
 if __name__ == '__main__':

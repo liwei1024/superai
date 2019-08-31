@@ -2,11 +2,14 @@ import sys
 import os
 import time
 
+
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
 import cv2
 import numpy as np
+
 
 from superai.common import InitLog
 from superai.yijianshu import MouseMoveTo, YijianshuInit, RanSleep
@@ -281,6 +284,9 @@ def main():
 
     # sifttest()
     # templatefindtest()
+
+    from superai.location import IsinSailiya
+    print(IsinSailiya())
 
 
 if __name__ == "__main__":
