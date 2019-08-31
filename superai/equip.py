@@ -75,6 +75,7 @@ levelNumMap = {
     20: 5,
     30: 10,
     40: 15,
+    50: 20,
 }
 
 ZhunangbeiPos = (-89, 193)
@@ -240,6 +241,10 @@ class Equips:
             return
 
         bagpos = bagScene.Pos()
+
+        MouseMoveTo(bagpos[0] - 91, bagpos[1] + 192), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+
         for v in CheckReplices:
             betterEquip = self.BagEquipBetter(v[0], v[1])
             if betterEquip is not None:

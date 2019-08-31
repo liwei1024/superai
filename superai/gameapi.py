@@ -270,13 +270,14 @@ class TaskObj(Structure):
         ("type2", c_uint32),
         ("fubenid", c_uint32),
         ("mainflag", c_uint32),
+        ("desc", c_wchar * 100),
     ]
 
     def __str__(self):
         return (
-                "[%d]对象: 0x%08X 名称: %s 类型: 0x%X id: %d 条件: %s 类型2: 0x%X 副本id: %d 主线flag: 0x%X" % (
+                "[%d]对象: 0x%08X 名称: %s 类型: 0x%X id: %d 条件: %s 类型2: 0x%X 副本id: %d 主线flag: 0x%X desc: %s" % (
             self.idx, self.object, self.name, self.type, self.id, self.coindition, self.type2, self.fubenid,
-            self.mainflag))
+            self.mainflag, self.desc))
 
 
 class AcceptedTaskObj(Structure):
@@ -291,13 +292,14 @@ class AcceptedTaskObj(Structure):
         ("type2", c_uint32),
         ("fubenid", c_uint32),
         ("mainflag", c_uint32),
+        ("desc", c_wchar * 100),
     ]
 
     def __str__(self):
         return (
-                "[%d]对象: 0x%08X 名称: %s 类型: 0x%X 还需要做: %d id: %d 条件: %s 类型2: 0x%X 副本id: %d 主线flag: 0x%X " % (
+                "[%d]对象: 0x%08X 名称: %s 类型: 0x%X 还需要做: %d id: %d 条件: %s 类型2: 0x%X 副本id: %d 主线flag: 0x%X desc: %s" % (
             self.idx, self.object, self.name, self.type, self.needdo, self.id, self.coindition, self.type2,
-            self.fubenid, self.mainflag))
+            self.fubenid, self.mainflag, self.desc))
 
 
 class ExGuoToMenZuoBiao(Structure):
@@ -1253,7 +1255,7 @@ def IsFuzhongGou():
 
     if meninfo.fuzhongmax > 0.0:
         return meninfo.fuzhongcur / meninfo.fuzhongmax <= 0.95
-    
+
     return True
 
 

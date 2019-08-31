@@ -106,6 +106,7 @@ NpcInfos = {
             "后街2": MoveInfo(destcoord=("ditu_houjie2.png", 272, 243), mousecoord=(172, 367)),
             "诺斯玛尔": MoveInfo(destcoord=("ditu_nuosimaer.png", 146, 274), mousecoord=(66, 366)),
             "歌兰蒂斯·格拉西亚": MoveInfo(destcoord=("ditu_gelandisi2.png", 2415, 176), mousecoord=(396, 333)),
+            "麦瑟·莫纳亨": MoveInfo(destcoord=("ditu_maise.png", 291, 223), mousecoord=(200, 291)),
         }
     },
     "阿法利亚": {
@@ -729,12 +730,13 @@ def MeetNpcFoo(destname):
                 QuadKeyDownMap[quad](), RanSleep(0.03)
                 QuadKeyUpMap[quad](), RanSleep(0.03)
 
-                if destname == "巴尔雷娜":  # TODO 雪山隐藏的秘密. 这里感觉还是有点危险
-                    if HasSpecifyAccept(3286) and HasSpecifyAccept(3614):
+                PressKey(VK_CODE["spacebar"]), KongjianSleep()
+
+                if destname == "巴尔雷娜":
+                    if HasSpecifyAccept(3286):
                         global meetbaerleina
                         meetbaerleina = True
 
-                PressKey(VK_CODE["spacebar"]), KongjianSleep()
             else:
 
                 # 赛丽亚房间就退出来
@@ -969,7 +971,11 @@ FubenInfos = {
         "quad": Quardant.ZUO,
         "fubens": {
             "绿都格罗兹尼": 0,
-            "堕落的盗贼": 1
+            "堕落的盗贼": 1,
+            "迷乱之村哈穆林": 2,
+            "血蝴蝶之舞": 3,
+            "疑惑之村": 4,
+            "痛苦之村列瑟芬": 5
         }
     }
 }
@@ -1165,8 +1171,8 @@ plotMap = {
     "发现幸存者": AttacktaskFoo("迷乱之村哈穆林"),
     "帮助诺诺拉逃脱": AttacktaskFoo("迷乱之村哈穆林"),
     "迷惑人心的歌声": AttacktaskFoo("迷乱之村哈穆林"),
-    "传染病治疗剂": MeetNpcFoo("诺顿·马西莫格"),
-    "惊讶的诺顿": MeetNpcFoo("诺顿·马西莫格"),
+    "传染病治疗剂": MeetNpcFoo("诺顿"),
+    "惊讶的诺顿": MeetNpcFoo("诺顿"),
     "把治疗剂交给诺诺拉": AttacktaskFoo("绿都格罗兹尼"),
     "另一个变异生物": AttacktaskFoo("血蝴蝶之舞"),
     "寻找幸存者": AttacktaskFoo("血蝴蝶之舞"),
@@ -1177,11 +1183,12 @@ plotMap = {
     "试图献祭的人": AttacktaskFoo("疑惑之村"),
     "痛苦之村列瑟芬": AttacktaskFoo("痛苦之村列瑟芬"),
     "面对使徒狄瑞吉": AttacktaskFoo("痛苦之村列瑟芬"),
-    "依然存在的不详之感": AttacktaskFoo("痛苦之村列瑟芬"),
+    "依然存在的不祥之感": AttacktaskFoo("痛苦之村列瑟芬"),
+
     # 50-61 镜像
     "回归阿拉德": MeetNpcFoo("麦瑟·莫纳亨"),
     "黑色噩梦笼罩下的阿拉德": MeetNpcFoo("麦瑟·莫纳亨"),
-    "为了阻止次元": MeetNpcFoo("巨剑阿甘左"),
+    "为了阻止次元": MeetNpcFoo("阿甘左"),
     "前往银色村庄": MeetNpcFoo("青之守护者塔娜"),
     "精灵生活的森林": AttacktaskFoo("炽晶森林"),
     # "营救赛丽亚": AttacktaskFoo("炽晶森林"),

@@ -43,7 +43,7 @@ class Occupationkills:
 
         if occupationbefore in ["魔枪士"]:
             self.moqiangInit()
-            if occupationafter in ["暗枪士"]:
+            if occupationafter in ["暗枪士", "狂怒恶鬼"]:
                 self.anqiangInit()
 
         elif occupationbefore in ["圣职者"]:
@@ -175,8 +175,6 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "连锁侵蚀", "anqiang_liansuoqinshi.png"))
         if meninfo.level >= 40:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "坠蚀之雨", "anqiang_zuishizhiyu.png"))
-
-
 
     # 找不到图片,滚轮用
     def FindedPic(self, pic):

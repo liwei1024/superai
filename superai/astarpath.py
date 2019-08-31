@@ -645,7 +645,9 @@ def GetPaths(d, ob, beginpos, endpos):
     begincellidx = CoordToManIdx(beginpos[0], beginpos[1], d.mapw // 10, ob)
     endcellidx = CoordToManIdx(endpos[0], endpos[1], d.mapw // 10, ob)
 
-    if ob.TouchedAnything(idxTohw(endcellidx, d.mapw // 10)):
+    if endpos == [0, 0]:
+        return [], NotImplementedError
+    elif ob.TouchedAnything(idxTohw(endcellidx, d.mapw // 10)):
         # 终点不能行走. 那也返回一个终点过去把
         lst = [begincellidx, endcellidx]
     elif begincellidx != endcellidx:

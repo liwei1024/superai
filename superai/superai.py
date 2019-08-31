@@ -219,6 +219,8 @@ class Player:
         menx, meny = GetMenXY()
         quad, rent = GetQuadrant(menx, meny, destx, desty)
 
+        # 方向是否有障碍物
+        self.ob.UpdateObstacle(GetObstacle())
         if self.ob.ManQuadHasObstacle(quad, menx, meny):
             self.ChaoxiangFangxiang(menx, destx)
             logger.info("方向上有障碍物, 攻击")
@@ -267,8 +269,6 @@ class Player:
         menx, meny = GetMenXY()
         menx, meny = int(menx), int(meny)
 
-        # 方向是否有障碍物
-        self.ob.UpdateObstacle(GetObstacle())
         quad, _ = GetQuadrant(menx, meny, destx, desty)
 
         if len(self.pathfindinglst) == 0:
@@ -993,6 +993,9 @@ class StuckShit(State):
         elif not IsCurrentInBossFangjian():
             Autoshuntu()
             player.ChangeState(StandState())
+        elif IsFuBenPass():
+            player.ChangeState(FubenOver())
+            return
         else:
             logger.warning("不知道该怎么办,联系作者吧")
             player.ChangeState(StandState())
