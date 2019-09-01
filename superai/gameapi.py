@@ -251,12 +251,13 @@ class SkillObj(Structure):
         ("cooling", c_uint32),
         ("sendtime", c_uint32),
         ("canbeused", c_bool),
+        ("level", c_uint32),
     ]
 
     def __str__(self):
         return (
-                "[%d] 对象: 0x%08X 名称: %s 冷却时间: %d 截止时间: %d 能否使用: %d" % (
-            self.idx, self.object, self.name, self.cooling, self.sendtime, self.canbeused))
+                "[%d] 对象: 0x%08X 名称: %s 冷却时间: %d 截止时间: %d 能否使用: %d 等级: %d" % (
+            self.idx, self.object, self.name, self.cooling, self.sendtime, self.canbeused, self.level))
 
 
 class TaskObj(Structure):
@@ -448,6 +449,8 @@ lib.ExGetBagEquipObj.argtypes = [POINTER(POINTER(BagObj)), POINTER(c_int)]
 lib.ExGetGetEquipObj.argtypes = [POINTER(POINTER(BagObj)), POINTER(c_int)]
 
 lib.ExGetSkillObj.argtypes = [POINTER(POINTER(SkillObj)), POINTER(c_int)]
+
+lib.ExGetAllSkillObj.argtypes = [POINTER(POINTER(SkillObj)), POINTER(c_int)]
 
 lib.ExGetTaskObj.argtypes = [POINTER(POINTER(TaskObj)), POINTER(c_int)]
 
@@ -832,6 +835,18 @@ def GetSkillObj():
     return outlst
 
 
+# 所有技能数组
+def GetAllSkillObj():
+    objs = POINTER(SkillObj)()
+    count = c_int(0)
+    lib.ExGetAllSkillObj(pointer(objs), pointer(count))
+    defer(lambda: (lib.Free(objs)))
+    outlst = []
+    for i in range(count.value):
+        outlst.append(copy.deepcopy(objs[i]))
+    return outlst
+
+
 # 任务数组
 def GetTaskObj():
     objs = POINTER(TaskObj)()
@@ -1016,6 +1031,14 @@ def PrintSkillObj():
     print("===========")
 
 
+def PrintAllSkillObj():
+    print("[所有技能对象]")
+    outlst = GetAllSkillObj()
+    for obj in outlst:
+        print(obj)
+    print("===========")
+
+
 def PrintTaskObj():
     print("[任务对象]")
     outlst = GetTaskObj()
@@ -1143,6 +1166,7 @@ def NearestMonster():
         obstacles = list(obstacles)
         if len(obstacles) > 0:
             monsters = obstacles
+
     return min(monsters, key=lambda mon: distance(mon.x, mon.y, menInfo.x, menInfo.y))
 
 
@@ -1176,7 +1200,18 @@ def GetBossObj():
         if len(doubleboss) > 0:
             return doubleboss[0]
 
-        return objs[0]
+        boss = objs[0]
+
+        meninfo = GetMenInfo()
+        mapinfo = GetMapInfo()
+        if meninfo.level < 51 and "斯卡萨之巢" in mapinfo.name:
+            if "领主 - 冰龙斯卡萨" == boss.name:
+                if boss.hp < 800000:
+                    boss.x = 1274
+                    boss.y = 745
+            return boss
+
+        return boss
 
 
 # 最近怪物对象wrap,boss房间boss,普通房间普通
@@ -1208,6 +1243,7 @@ def GetMonstersWrap():
     if IsLockedHp():
         monsters = filter(lambda mon: mon.hp > 1, monsters)
         monsters = list(monsters)
+
     return monsters
 
 
@@ -1466,6 +1502,37 @@ def CurSelectId():
     return selectidx.mapidx
 
 
+# 疲劳是否有
+def HavePilao():
+    meninfo = GetMenInfo()
+    return meninfo.maxpilao - meninfo.curpilao > 0
+
+
+# 蘑菇庄园这个奇葩地图
+def IsShitmoGu():
+    meninfo = GetMenInfo()
+    if 50 < meninfo.level < 57:
+        mapinfo = GetMapInfo()
+        if "蘑菇庄园" in mapinfo.name:
+            if mapinfo.curx == 0 and mapinfo.cury == 4:
+                return True
+
+    return False
+
+
+# 技能等级不是0或1, 学会了
+def IsSkillLearned(skillname):
+    skills = GetAllSkillObj()
+    for skill in skills:
+        if skill.name == skillname:
+            if skill.level in [0, 1]:
+                return False
+            else:
+                return True
+
+    return False
+
+
 # 技能对应的按键
 idxkeymap = {
     0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
@@ -1712,6 +1779,8 @@ skillSettingMap = {
     "黑暗化身": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
     "连锁侵蚀": SkillData(type=SkillType.Gongji, delaytime=0.2, afterdelay=0.4, lockhp=True),
     "暗蚀螺旋枪": SkillData(type=SkillType.Gongji, delaytime=0.2, afterdelay=0.4, lockhp=True),
+    "坠蚀之雨": SkillData(type=SkillType.Gongji, delaytime=0.2, afterdelay=0.4, v_w=400 / 2, h_w=40 / 2,
+                      too_close_v_w=140 / 2),
 
     # 女光剑
     "五气朝元": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
@@ -1745,6 +1814,10 @@ skillSettingMap = {
 
     # 吸怪,蓄力
     "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),
+
+    # 剑影
+    "双魂共鸣":   SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
+    "鬼步": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),
 
     # 帕拉丁
     "信仰之念": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
@@ -1820,6 +1893,7 @@ def main():
     PrintBagEquipObj()
     PrintEquipObj()
     PrintSkillObj()
+    PrintAllSkillObj()
     PrintTaskObj()
     PrintAccpetedTaskObj()
     PrintNextMen()

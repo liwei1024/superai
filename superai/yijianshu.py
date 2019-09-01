@@ -1,5 +1,6 @@
 import os
 import sys
+import threading
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -153,6 +154,7 @@ def KongjianSleep():
 def LanSleep():
     RanSleep(0.3)
 
+
 # 全局变量
 h = None
 x = None
@@ -303,8 +305,12 @@ def PressSkill(key, delay, afterdelay, thenpress=None, doublepress=False):
         lib.M_KeyUp2(h, thenpress)
 
     if doublepress:
-        lib.M_KeyDown2(h, key), KongjianSleep()
-        lib.M_KeyUp2(h, key), KongjianSleep()
+        def worker():
+            for i in range(5):
+                lib.M_KeyDown2(h, key), KongjianSleep()
+                lib.M_KeyUp2(h, key), KongjianSleep()
+
+        threading.Thread(target=worker).start()
 
 
 def PressHouTiao():
@@ -347,6 +353,10 @@ def MouseLeftDownFor(t):
     lib.M_LeftDown(h), RanSleep(t)
     lib.M_LeftUp(h)
 
+# 右键持续按键
+def MouseRightDownFor(t):
+    lib.M_RightDown(h), RanSleep(t)
+    lib.M_RightUp(h)
 
 # 左键双击
 def MouseLeftDoubleClick():
@@ -378,7 +388,7 @@ def main():
 
     GameWindowToTop()
 
-    MouseMoveTo(200, 291)
+    MouseMoveTo(329, 335)
 
 
 if __name__ == "__main__":

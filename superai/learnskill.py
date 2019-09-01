@@ -4,10 +4,10 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.yijianshu import PressKey, VK_CODE, MouseMoveTo, YijianshuInit, MouseLeftDown, RanSleep, MouseLeftClick, \
-    MouseLeftUp, MouseLeftDownFor, MouseMoveR, MouseWheel, KongjianSleep, LanSleep
+    MouseLeftUp, MouseLeftDownFor, MouseMoveR, MouseWheel, KongjianSleep, LanSleep, MouseRightDownFor
 from superai.common import InitLog, GameWindowToTop
 from superai.flannfind import Picture, GetImgDir
-from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj, Clear
+from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj, Clear, IsSkillLearned
 
 import logging
 
@@ -29,8 +29,20 @@ class OccupationSkill:
         self.zhieye = zhiye
         self.name = name
         self.nameEng = nameEng
+
         self.picutre = Picture("%s/%s/%s" % (GetImgDir(), zhiye, nameEng), dw=550)
+
+        if name == "烈日气息":
+            self.picutre = Picture("%s/%s/%s" % (GetImgDir(), zhiye, nameEng), dx=343, dy=0, dw=85, dh=600)  # TODO
+
         self.beidong = beidong
+
+    def GetPos(self):
+        pos = self.picutre.Pos()
+        pos = [pos[0], pos[1]]
+        if self.name == "烈日气息":
+            pos[0] = pos[0] + 343
+        return pos
 
 
 # 职业对应的加点策略
@@ -41,11 +53,12 @@ class Occupationkills:
         occupationbefore = meninfo.zhuanzhiqian
         occupationafter = meninfo.zhuanzhihou
 
+        self.deletedskills = []
+
         if occupationbefore in ["魔枪士"]:
             self.moqiangInit()
             if occupationafter in ["暗枪士", "狂怒恶鬼"]:
                 self.anqiangInit()
-
         elif occupationbefore in ["圣职者"]:
             self.shengzhiInit()
             if occupationafter in ["诱魔者"]:
@@ -54,6 +67,18 @@ class Occupationkills:
             self.shouhuInit()
             if occupationafter in ["帕拉丁"]:
                 self.paladingInit()
+        elif occupationbefore in ["格斗家"]:
+            self.gedouInit()
+            if occupationafter in ["气功师"]:
+                self.nvqigongInit()
+        elif occupationbefore in ["鬼剑士"]:
+            self.guijianshiInit()
+            if occupationafter in ["剑影"]:
+                self.jianyingInit()
+        elif occupationbefore in ["枪剑士"]:
+            self.qiangjianshiInit()
+            if occupationafter in ["源能专家"]:
+                self.yuannengInit()
         else:
             raise NotImplementedError("还未支持的职业: %s" % occupationafter)
 
@@ -62,10 +87,103 @@ class Occupationkills:
         if self.learnstrategy:
             for v in self.learnstrategy:
                 if v.name == name:
+                    self.deletedskills.append(v)
                     self.learnstrategy.remove(v)
                     return
 
-    # 守护者(15级前)
+    # 枪剑士
+    def qiangjianshiInit(self):
+        self.learnstrategy = []
+        meninfo = GetMenInfo()
+        if meninfo.level >= 1:
+            self.learnstrategy.append(OccupationSkill("qiangjianshi", "穿透射击", "qiangjianshi_chuantousheji.png"))
+        if meninfo.level >= 5:
+            self.learnstrategy.append(OccupationSkill("qiangjianshi", "重劈", "qiangjianshi_zhongpi.png"))
+        if meninfo.level >= 15:
+            self.learnstrategy.append(OccupationSkill("qiangjianshi", "源光斩", "qiangjianshi_yuanguangzhan.png"))
+            self.learnstrategy.append(OccupationSkill("qiangjianshi", "瞬击", "qiangjianshi_shunji.png"))
+
+    # 源能专家
+    def yuannengInit(self):
+        meninfo = GetMenInfo()
+        if meninfo.level >= 15:
+            self.learnstrategy.append(OccupationSkill("qiangjianshi", "旋转源能波", "qiangjianshi_xuanzhuanyuannnengbo.png"))
+        if meninfo.level >= 20:
+            self.DelSkill("重劈")
+
+            self.learnstrategy.append(
+                OccupationSkill("qiangjianshi", "源力剑精通", "yuanneng_jianjingtong.png", beidong=True))
+            self.learnstrategy.append(OccupationSkill("qiangjianshi", "镭射源能枪", "yuanneng_leishe.png"))
+        if meninfo.level >= 25:
+            self.DelSkill("穿透射击")
+
+    # 鬼剑士
+    def guijianshiInit(self):
+        self.learnstrategy = []
+        meninfo = GetMenInfo()
+        if meninfo.level >= 1:
+            self.learnstrategy.append(OccupationSkill("guijianshi", "鬼斩", "guijianshi_guizhan.png"))
+            self.learnstrategy.append(OccupationSkill("guijianshi", "上挑", "guijianshi_shangtiao.png", beidong=True))
+        if meninfo.level >= 10:
+            self.learnstrategy.append(OccupationSkill("guijianshi", "裂波斩", "guijianshi_liebozhan.png"))
+        if meninfo.level >= 15:
+            self.learnstrategy.append(OccupationSkill("guijianshi", "鬼连斩", "guijianshi_guilianzhan.png"))
+            self.learnstrategy.append(OccupationSkill("guijianshi", "地裂 · 波动剑", "guijianshi_bodongjian.png"))
+
+    # 剑影
+    def jianyingInit(self):
+        meninfo = GetMenInfo()
+        if meninfo.level >= 15:
+            self.learnstrategy.append(OccupationSkill("guijianshi", "鬼步", "jianying_guibu.png"))
+
+        if meninfo.level >= 20:
+            self.DelSkill("上挑")
+            self.learnstrategy.append(
+                OccupationSkill("guijianshi", "剑影太刀精通", "jianying_taidaojingtong.png", beidong=True))
+            self.learnstrategy.append(OccupationSkill("guijianshi", "幻鬼 : 一闪", "jianying_huanguiyishan.png"))
+        if meninfo.level >= 25:
+            self.DelSkill("鬼斩")
+            self.DelSkill("裂波斩")
+            self.learnstrategy.append(
+                OccupationSkill("guijianshi", "幻鬼之力", "jianying_huanguizhili.png", beidong=True))
+
+            self.learnstrategy.append(OccupationSkill("guijianshi", "鬼连牙", "jianying_guilianya.png"))
+            self.learnstrategy.append(OccupationSkill("guijianshi", "幻鬼 : 连斩", "jianying_huanguilianzhan.png"))
+        if meninfo.level >= 30:
+            self.learnstrategy.append(OccupationSkill("guijianshi", "双魂共鸣", "jianying_shuanghungongming.png"))
+            self.learnstrategy.append(OccupationSkill("guijianshi", "鬼连斩 : 极", "jianying_guilianzhanji.png", beidong=True))
+            self.learnstrategy.append(OccupationSkill("guijianshi", "共鸣 : 离魂一闪", "jianying_lihunyishan.png"))
+        if meninfo.level >= 35:
+            self.learnstrategy.append(OccupationSkill("guijianshi", "魂破斩", "jianying_hunpozhan.png"))
+            self.learnstrategy.append(OccupationSkill("guijianshi", "共鸣 : 鬼灵斩", "jianying_guilingzhan.png"))
+
+    # 格斗家
+    def gedouInit(self):
+        self.learnstrategy = []
+        meninfo = GetMenInfo()
+        if meninfo.level >= 1:
+            self.learnstrategy.append(OccupationSkill("gedoujia", "前踢", "gedou_qianti.png"))
+        if meninfo.level >= 5:
+            self.learnstrategy.append(OccupationSkill("gedoujia", "下段踢", "gedou_xiaduanti.png"))
+        if meninfo.level >= 15:
+            self.learnstrategy.append(OccupationSkill("gedoujia", "背摔", "gedou_beishuai.png"))
+
+    # 女气功
+    def nvqigongInit(self):
+        meninfo = GetMenInfo()
+        if meninfo.level >= 15:
+            self.learnstrategy.append(OccupationSkill("gedoujia", "光之兵刃", "qigong_guangzhibingren.png"))
+            self.learnstrategy.append(OccupationSkill("gedoujia", "雷霆背摔", "qidong_leitingbeishuai.png", beidong=True))
+        if meninfo.level >= 20:
+            self.learnstrategy.append(OccupationSkill("gedoujia", "分身", "gedou_fenshen.png"))
+            self.learnstrategy.append(OccupationSkill("gedoujia", "幻影爆碎", "qigong_huanyingbaosui.png", beidong=True))
+            self.learnstrategy.append(OccupationSkill("gedoujia", "烈日气息", "qigong_lieriqixi.png"))
+        if meninfo.level >= 30:
+            self.learnstrategy.append(OccupationSkill("gedoujia", "念气环绕", "qigong_nianqihuanrao.png", beidong=True))
+        if meninfo.level >= 35:
+            self.learnstrategy.append(OccupationSkill("gedoujia", "狮子吼", "qigong_shizihou.png"))
+
+    # 守护者
     def shouhuInit(self):
         self.learnstrategy = []
         meninfo = GetMenInfo()
@@ -76,7 +194,7 @@ class Occupationkills:
         if meninfo.level >= 10:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "致命突刺", "shouhu_zhimingci.png"))
 
-    # 帕拉丁(转职后)
+    # 帕拉丁
     def paladingInit(self):
         meninfo = GetMenInfo()
         if meninfo.level >= 15:
@@ -100,7 +218,7 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光闪耀", "palading_shenguangshanyao.png"))
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光闪影击", "palading_shenguangshanyingji.png"))
 
-    # 圣职 (15级前)
+    # 圣职
     def shengzhiInit(self):
         self.learnstrategy = []
         meninfo = GetMenInfo()
@@ -115,7 +233,7 @@ class Occupationkills:
             # self.learnstrategy.append(OccupationSkill("shengzhizhe", "冲刺斩", "shengzhi_chongcizhan.png"))
             pass
 
-    # 四姨(转职后)
+    # 四姨
     def youmozheInit(self):
         meninfo = GetMenInfo()
         if meninfo.level >= 15:
@@ -139,7 +257,7 @@ class Occupationkills:
         if meninfo.level >= 35:
             self.learnstrategy.append(OccupationSkill("shengzhizhe", "贪婪之刺", "youmozhe_tanlanzhici.png"))
 
-    # 魔枪 (15级前)
+    # 魔枪
     def moqiangInit(self):
         self.learnstrategy = []
         meninfo = GetMenInfo()
@@ -150,7 +268,7 @@ class Occupationkills:
         if meninfo.level >= 15:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "扫堂枪", "moqiangshi_saotangqiang.png"))
 
-    # 暗枪 (转职后)
+    # 暗枪
     def anqiangInit(self):
         meninfo = GetMenInfo()
         if meninfo.level >= 15:
@@ -175,6 +293,14 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "连锁侵蚀", "anqiang_liansuoqinshi.png"))
         if meninfo.level >= 40:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "坠蚀之雨", "anqiang_zuishizhiyu.png"))
+        if meninfo.level >= 45:
+            self.DelSkill("侵蚀之矛")
+            self.DelSkill("双重投射")
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "暗蚀爆雷杀", "anqiang_anshibaoleisha.png"))
+        if meninfo.level >= 50:
+            self.learnstrategy.append(
+                OccupationSkill("moqiangshi", "黑暗支配者", "anqiang_heianzhipeizhe.png", beidong=True))
+            self.learnstrategy.append(OccupationSkill("moqiangshi", "无尽侵蚀 : 缚魂", "anqiang_wujinqinshi.png"))
 
     # 找不到图片,滚轮用
     def FindedPic(self, pic):
@@ -183,6 +309,13 @@ class Occupationkills:
             return False
         return True
 
+    # 有技能需要忘记
+    def NeedWangji(self):
+        for v in self.deletedskills:
+            if IsSkillLearned(v.name):
+                return True
+        return False
+
     # 加技能点
     def AddSkillPoints(self):
         if not self.OpenSkillScene():
@@ -190,10 +323,40 @@ class Occupationkills:
             return
 
         logger.info("技能栏已经打开")
+
+        needLearn = False
+        if self.NeedWangji():
+            logger.info("去掉不需要技能的加点")
+            MouseMoveTo(536, 360), KongjianSleep()
+            MouseWheel(30), KongjianSleep()
+
+            for v in self.deletedskills:
+                logger.info("开始忘记技能: %s", v.name)
+
+                if not IsSkillLearned(v.name):
+                    logger.info("技能: %s 不需要忘记" % v.name)
+                else:
+
+                    for i in range(3):
+                        if self.FindedPic(v.picutre):
+                            break
+                        MouseMoveTo(536, 360), KongjianSleep()
+                        MouseWheel(-3), KongjianSleep()
+
+                    if not self.FindedPic(v.picutre):
+                        logger.warning("找不到技能: %s" % v.name)
+                        continue
+
+                    pos = v.GetPos()
+                    needLearn = True
+                    logger.info("忘记,移动到相对位置: (%d,%d)" % (pos[0], pos[1]))
+                    MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                    MouseRightDownFor(2.0), KongjianSleep()
+
+        logger.info("开始学习技能")
         MouseMoveTo(536, 360), KongjianSleep()
         MouseWheel(30), KongjianSleep()
 
-        donotNeedLearn = 0
         for v in self.learnstrategy:
 
             logger.info("学习技能: %s" % v.name)
@@ -208,27 +371,26 @@ class Occupationkills:
                 logger.warning("找不到技能: %s" % v.name)
                 continue
 
-            pos = v.picutre.Pos()
+            pos = v.GetPos()
 
             # w, h = 30, 25
-            w, h = 50, 50
+            w, h = 50, 60
             halfw, halfh = w // 2, h // 2
             cannotLearn = Picture(GetImgDir() + "cannotlearn.png", dx=pos[0] - halfw, dy=pos[1] - halfh, dw=w, dh=h)
-
-            if cannotLearn.Match():
-                donotNeedLearn += 1
+            jingtong = Picture(GetImgDir() + "jingtong.png", dx=pos[0] - halfw, dy=pos[1] - halfh, dw=w, dh=h)
+            if cannotLearn.Match() or jingtong.Match():
                 logger.info("技能: %s 不需要学习", v.name)
-                continue
-
-            logger.info("移动到相对位置: (%d,%d)" % (pos[0], pos[1]))
-            MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-            MouseLeftDownFor(1.0), KongjianSleep()
+            else:
+                needLearn = True
+                logger.info("学习,移动到相对位置: (%d,%d)" % (pos[0], pos[1]))
+                MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                MouseLeftDownFor(1.0), KongjianSleep()
 
             # MouseMoveR(- (30 // 2 - 2), 0), KongjianSleep()
 
         logger.info("技能已学习完毕")
 
-        if donotNeedLearn != len(self.learnstrategy):
+        if needLearn:
             # 确认按钮
             learnpos = skillSceneLearn.Pos()
             MouseMoveTo(learnpos[0], learnpos[1]), KongjianSleep()
@@ -247,13 +409,21 @@ class Occupationkills:
     def CloseSkillScene(self):
         while skillScene.Match():
             logger.info("关闭技能栏")
-            PressKey(VK_CODE["k"]), KongjianSleep()
+            PressKey(VK_CODE["esc"]), KongjianSleep()
 
     # 在技能策略中
     def IsInLearnStrategy(self, name):
         for v in self.learnstrategy:
             if v.name == name:
                 return True
+        return False
+
+    # 是否是被动
+    def IsBeidong(self, name):
+        for v in self.learnstrategy:
+            if v.name == name:
+                if v.beidong:
+                    return True
         return False
 
     # 不是必备技能拖出去
@@ -264,7 +434,7 @@ class Occupationkills:
 
         curskills = GetSkillObj()
         for v in curskills:
-            if not self.IsInLearnStrategy(v.name):
+            if not self.IsInLearnStrategy(v.name) or self.IsBeidong(v.name):
                 logger.warning("技能: %s 不是当前应该用的技能,拖出去" % v.name)
 
                 # 向上移动, 脱离
@@ -302,6 +472,9 @@ class Occupationkills:
             logger.warning("打开技能栏失败")
             return
 
+        MouseMoveTo(536, 360), KongjianSleep()
+        MouseWheel(30), KongjianSleep()
+
         for v in self.learnstrategy:
             if v.beidong:
                 continue
@@ -310,7 +483,19 @@ class Occupationkills:
                 idx = self.GetEmptyPosIdx()
                 destpos = idxposmap[idx]
                 logger.info("技能: %s 没有装备 位置: %d 有空位 (%d, %d)", v.name, idx, destpos[0], destpos[1])
-                srcpos = v.picutre.Pos()
+
+                for i in range(3):
+                    if self.FindedPic(v.picutre):
+                        break
+                    MouseMoveTo(536, 360), KongjianSleep()
+                    MouseWheel(-3), KongjianSleep()
+
+                if not self.FindedPic(v.picutre):
+                    logger.warning("找不到技能: %s" % v.name)
+                    continue
+
+                srcpos = v.GetPos()
+
                 MouseMoveTo(srcpos[0], srcpos[1]), KongjianSleep()
                 MouseLeftDown(), KongjianSleep()
                 MouseMoveR(10, 10), KongjianSleep()

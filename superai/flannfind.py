@@ -2,14 +2,11 @@ import sys
 import os
 import time
 
-
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
 import cv2
 import numpy as np
-
 
 from superai.common import InitLog
 from superai.yijianshu import MouseMoveTo, YijianshuInit, RanSleep
@@ -146,6 +143,16 @@ class Picture:
         self.img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士", self.dx, self.dy, self.dw, self.dh)
         return FindPicturePos(self.img1, self.img2)
 
+    # 视频判断用
+    def IsBlack(self):
+        self.img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士", self.dx, self.dy, self.dw, self.dh)
+
+        for row in self.img2:
+            for color in row:
+                if color[0] != 0 or color[1] != 0 or color[2] != 0:
+                    return False
+        return True
+
 
 def sifttest():
     if len(sys.argv) < 2:
@@ -225,7 +232,7 @@ def GetImgDir():
 
 
 confirm = Picture(GetImgDir() + "confirm.png")
-shipinScene = Picture(GetImgDir() + "shipin_scene.png")
+shipinScene = Picture(GetImgDir() + "shipin_scene.png", 291, 541, 232, 28)
 
 gConfirmTop = False
 gShipinScene = False
@@ -260,7 +267,7 @@ def FlushImg():
     try:
         while not gFlushExit:
             gConfirmTop = True if confirm.Match() else False
-            # gShipinScene = True if shipinScene.Match() else False
+            gShipinScene = True if shipinScene.IsBlack() else False
             time.sleep(0.3)
     except Exception:
         logger.info("flushimg thread error ")
@@ -271,7 +278,6 @@ def main():
     InitLog()
     YijianshuInit()
 
-    print(shipinScene.Match())
     # moqiangshi_ciji = Picture(basedir + "/kongge.png")
     # pos = moqiangshi_ciji.Pos()
     # print(pos)
@@ -286,7 +292,7 @@ def main():
     # templatefindtest()
 
     from superai.location import IsinSailiya
-    print(IsinSailiya())
+    # print(IsinSailiya())
 
 
 if __name__ == "__main__":

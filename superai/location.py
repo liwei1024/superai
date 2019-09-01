@@ -16,6 +16,7 @@ locationAfaliya = Picture(GetImgDir() + "ditu_afaliya2.png")
 locationNuoyipeila = Picture(GetImgDir() + "ditu_nuoyipeila.png")
 locationXueshan = Picture(GetImgDir() + "ditu_xueshan.png")
 locationNuosimaer = Picture(GetImgDir() + "ditu_nuosimaer.png")
+locationYanuofasenlin = Picture(GetImgDir() + "ditu_yanuofasenlin.png")
 
 wenziaierwenfangxian = Picture(GetImgDir() + "wenzi_aierwenfangxian.png", 610, 22, 182, 25)
 wenzihedunmaer = Picture(GetImgDir() + "wenzi_hedunmaer.png", 610, 22, 182, 25)
@@ -23,6 +24,7 @@ wenziaerfayingdi = Picture(GetImgDir() + "wenzi_aerfayingdi.png", 610, 22, 182, 
 wenzianheicheng = Picture(GetImgDir() + "wenzi_anheicheng.png", 610, 22, 182, 25)
 wenzixihaian = Picture(GetImgDir() + "wenzi_xihaian.png", 610, 22, 182, 25)
 wenzisidunxueyu = Picture(GetImgDir() + "wenzi_sidunxueyu.png", 610, 22, 182, 25)
+wenzijingxiang = Picture(GetImgDir() + "wenzi_jingxiangalade.png", 610, 22, 182, 25)
 
 sailiya = Picture(GetImgDir() + "ditu_sailiya.png")
 
@@ -67,6 +69,13 @@ def IsinAerfayingdi():
         return False
 
 
+# 是否在镜像阿拉德
+def IsInJingxiangalade():
+    if wenzijingxiang.Match():
+        logger.info("在镜像阿拉德")
+        return True
+
+
 # 分解,出售,修理 单独使用吧
 class Location:
     def __init__(self):
@@ -87,8 +96,8 @@ class Location:
             return "阿法利亚"
         elif IsinAerfayingdi() and locationNuoyipeila.Match():
             return "诺伊佩拉"
-
-
+        elif IsInJingxiangalade() and locationYanuofasenlin.Match():
+            return "亚诺法森林"
         return ""
 
     def GetLocation(self):
@@ -98,6 +107,8 @@ class Location:
             return "赫顿玛尔"
         elif IsinAerfayingdi():
             return "阿法利亚"
+        elif IsInJingxiangalade():
+            return "镜像阿拉德"
         return ""
 
 

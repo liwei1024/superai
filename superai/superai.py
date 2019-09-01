@@ -15,7 +15,7 @@ from superai.equip import Equips
 from superai.plot import TaskCtx, HasPlot, plotMap
 from superai.learnskill import Occupationkills
 from superai.common import InitLog, GameWindowToTop
-from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, CoordToManIdx, SafeGetDAndOb, Zuobiao
+from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, SafeGetDAndOb, Zuobiao
 from superai.astartdemo import idxToXY
 
 from superai.flannfind import SetThreadExit, \
@@ -34,7 +34,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
     GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead, IsLockedHp, UnLockHp, IsFuzhongGou, \
-    Zuobiaoyidong, Autoshuntu, GetCurmapidx
+    Zuobiaoyidong, Autoshuntu, GetCurmapidx, HavePilao, GetMapInfo, IsShitmoGu
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -266,6 +266,10 @@ class Player:
 
     # 靠近(带寻路)
     def SeekWithPathfinding(self, destx, desty, obj=None, dummy=None):
+        if IsShitmoGu():
+            self.Seek(destx, desty, obj, dummy=dummy)
+            return
+
         menx, meny = GetMenXY()
         menx, meny = int(menx), int(meny)
 
@@ -350,7 +354,11 @@ class Player:
 
         if not IsCurrentInBossFangjian():
             door = GetNextDoorWrap()
-            self.doorx, self.doory = GetCorrectDoorXY(self.d.mapw, self.d.maph, door, self.ob)
+
+            if IsShitmoGu():
+                self.doorx, self.doory = door.x + door.w // 2, door.y + door.h // 2
+            else:
+                self.doorx, self.doory = GetCorrectDoorXY(self.d.mapw, self.d.maph, door, self.ob)
             logger.info("下一个门的坐标: (%d, %d) ->修正 (%d, %d) " % (door.x, door.y, self.doorx, self.doory))
 
         self.ClearPathfindingLst()
@@ -379,7 +387,7 @@ class Player:
         if self.latestlevel == 0:
             # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
-            return False
+            return True
         elif self.latestlevel != meninfo.level:
             # 变化了等级
             self.latestlevel = meninfo.level
@@ -411,6 +419,14 @@ class EmptyState:
         return self.forwhat == forwat
 
 
+# 有视频的包装
+def IsShiPinTopWrap():
+    if IsManInChengzhen():
+        return IsShipinTop()
+
+    return False
+
+
 # 全局状态机
 class GlobalState(State):
     def __init__(self):
@@ -436,13 +452,19 @@ class GlobalState(State):
         # 视频处理
         if player.IsEmptyFor(FOR_SHIPIN):
             logger.info("视频状态")
-            PressKey(VK_CODE["esc"]), KongjianSleep()
+            PressKey(VK_CODE["esc"]), RanSleep(0.3)
             PressKey(VK_CODE["spacebar"]), KongjianSleep()
-            if not IsShipinTop():
+            if not IsShiPinTopWrap():
                 player.RestoreContext()
             return
         # 对话处理
         elif player.IsEmptyFor(FOR_DUIHUA):
+
+            # 对话框有,但是被视频挡住了,临时切过去
+            if IsShipinTop():
+                player.ChangeState(EmptyState(FOR_SHIPIN))
+                return
+
             logger.info("对话状态")
             PressKey(VK_CODE["spacebar"]), KongjianSleep()
             if not IsWindowTop():
@@ -467,7 +489,7 @@ class GlobalState(State):
             return
 
         # 视频判断
-        if not player.IsEmptyFor(FOR_SHIPIN) and IsShipinTop():
+        if not player.IsEmptyFor(FOR_SHIPIN) and IsShiPinTopWrap():
             player.SaveAndChangeToEmpty(FOR_SHIPIN)
             return
         # 对话判断
@@ -480,15 +502,15 @@ class GlobalState(State):
             return
 
         # 在图内需要判断卡死的状态
-        MapStateList = [SeekAndPickUp, PickBuf, SeekAndAttackMonster, DoorOpenGotoNext, DoorStuckGoToPrev,
-                        FuckDuonierState, StandState]
+        # MapStateList = [SeekAndPickUp, PickBuf, SeekAndAttackMonster, DoorOpenGotoNext, DoorStuckGoToPrev,
+        #                 FuckDuonierState, StandState]
 
         # 防止卡死目前只判断几种情况
-        def MapStateCheck(curstate):
-            for state in MapStateList:
-                if isinstance(curstate, state):
-                    return True
-            return False
+        # def MapStateCheck(curstate):
+        #     for state in MapStateList:
+        #         if isinstance(curstate, state):
+        #             return True
+        #     return False
 
         # 特定状态下才进行判断卡死
         if IsManInMap():
@@ -535,6 +557,11 @@ class GlobalState(State):
                     player.ChangeState(StuckShit())
                 player.ResetStuckInfo()
 
+        # esc弹出 TODO, 不知道什么代码弹出来的
+        # if IsManInMap():
+        #     if IsEscTop():
+        #         PressKey(VK_CODE["esc"]), KongjianSleep()
+
 
 # 初始化
 class Setup(State):
@@ -568,9 +595,9 @@ class InChengzhen(State):
             return
 
         # 等级 >= 10, 身上,背包没有合适的幸运星武器
-        if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
-            player.ChangeState(HireEquip())
-            return
+        # if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
+        #     player.ChangeState(HireEquip())
+        #     return
 
         # 需要领取称号
         if eq.NeedGetChenghao():
@@ -596,6 +623,10 @@ class InChengzhen(State):
                 player.ChangeState(RepairEquip())
                 return
 
+        # 疲劳没了
+        if not HavePilao():
+            player.ChangeState(NoPilao())
+            return
         # 做剧情任务
         if HasPlot():
             player.ChangeState(TaskState())
@@ -720,6 +751,8 @@ class FirstInMap(State):
         if IsManInChengzhen():
             player.ChangeState(InChengzhen())
             return
+
+        player.skills.Update()
 
         if player.skills.HaveBuffCanBeUse():
             if not CanbeMovTest():
@@ -1020,7 +1053,21 @@ class TaskState(State):
                 # 做完任务切换setup
                 # player.ChangeState(Setup())
 
+                if IsManInChengzhen():
+                    eq = Equips()
+                    # 背包有更好的装备,更换装备
+                    if eq.DoesBagHaveBetterEquip():
+                        player.ChangeState(ChangeEquip())
+                        return
+
         RanSleep(0.1)
+
+
+# 没有疲劳,切换角色
+class NoPilao(State):
+    def Execute(self, player):
+        logger.warning("疲劳没有了")
+        RanSleep(1)
 
 
 def main():
