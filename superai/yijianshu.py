@@ -135,14 +135,11 @@ lib.M_MouseWheel.restype = c_int
 
 # 随机时间sleep
 def RanSleep(t):
-    ran = random.uniform(0, 0.005)
-    if random.uniform(0, 1) < 0.5:
-        if t - ran > 0.0:
-            t = t - ran
-        time.sleep(t)
-    else:
-        t = t + ran
-        time.sleep(t)
+    t = random.uniform(t - 0.02, t + 0.02)
+    if t < 0:
+        t = 0
+
+    time.sleep(t)
 
 
 # 操作控件后的sleep
@@ -328,6 +325,17 @@ def MouseMoveTo(x, y):
     centrex, centrey = win32gui.ClientToScreen(hwnd, (int(x), int(y)))
     relativex = centrex - curx
     relativey = centrey - cury
+
+    if x < 2:
+        relativex = random.uniform(relativex, relativex + 2)
+    else:
+        relativex = random.uniform(relativex - 2, relativex + 2)
+
+    if y < 2:
+        relativey = random.uniform(relativey, relativey + 2)
+    else:
+        relativey = random.uniform(relativey - 2, relativey + 2)
+
     lib.M_MoveR(h, int(relativex), int(relativey))
 
 
@@ -353,10 +361,12 @@ def MouseLeftDownFor(t):
     lib.M_LeftDown(h), RanSleep(t)
     lib.M_LeftUp(h)
 
+
 # 右键持续按键
 def MouseRightDownFor(t):
     lib.M_RightDown(h), RanSleep(t)
     lib.M_RightUp(h)
+
 
 # 左键双击
 def MouseLeftDoubleClick():

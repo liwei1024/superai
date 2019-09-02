@@ -481,10 +481,10 @@ def IsMoveToChengzhenPos(destpic, destcoord, desc):
         meninfo = GetMenInfo()
         if IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 10):
             return True
-        elif IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 50):
+        elif IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 100):
             logger.warning("目的地: %s  在50范围内, 再移动一点点" % desc)
             quad, _ = GetQuadrant(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1])
-            QuadKeyDownMap[quad](), RanSleep(0.05)  # TODO 判断语句调整了位置
+            QuadKeyDownMap[quad](), RanSleep(0.1)  # TODO 判断语句调整了位置
             QuadKeyUpMap[quad]()
         else:
             logger.warning("目的地: %s [坐标]没有对比上" % desc)
@@ -765,15 +765,18 @@ def MeetNpcFoo(destname):
             logger.info("空任务")
             return
 
-        if destname == "赛利亚":
+        if destname == "赛丽亚":
             # 返回角色再进入
             if BackAndEnter():
-                for i in range(3):
-                    meninfo = GetMenInfo()
-
-                    if not IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, 447, 163, 20):
-                        QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)  # TODO 写死了
-                        QuadKeyUpMap[Quardant.SHANG](), KongjianSleep()
+                
+                meninfo = GetMenInfo()
+                if not IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, 447, 163, 20):
+                    for i in range(3):
+                        meninfo = GetMenInfo()
+    
+                        if not IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, 447, 163, 20):
+                            QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)  # TODO 写死了
+                            QuadKeyUpMap[Quardant.SHANG](), KongjianSleep()
 
                 PressKey(VK_CODE["spacebar"]), KongjianSleep()
         else:
@@ -794,8 +797,8 @@ def MeetNpcFoo(destname):
                     # 对话角色 微调整
                     quad, _ = GetQuadrant(meninfo.chengzhenx, meninfo.chengzheny, destinfo.destcoord[0],
                                           destinfo.destcoord[1])
-                    QuadKeyDownMap[quad](), RanSleep(0.05)
-                    QuadKeyUpMap[quad](), RanSleep(0.05)
+                    QuadKeyDownMap[quad](), RanSleep(0.1)
+                    QuadKeyUpMap[quad](), RanSleep(0.1)
 
                 PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
@@ -861,7 +864,7 @@ def 守护森林的战斗(player):
 
         pos = taskShouhusenlin.Pos()
         MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        MouseLeftClick(), RanSleep(1)
 
         while IsWindowTop():
             PressKey(VK_CODE["spacebar"]), KongjianSleep()
@@ -1101,7 +1104,7 @@ plotMap = {
     "营救赛丽亚": 营救赛丽亚(),
     "通向森林深处的道路": AttacktaskFoo("烈焰格拉卡"),
     "森林的黑暗": AttacktaskFoo("暗黑雷鸣废墟"),
-    "大魔法阵是什么": MeetNpcFoo("赛利亚"),
+    "大魔法阵是什么": MeetNpcFoo("赛丽亚"),
     "前辈冒险家的建议": MeetNpcFoo("林纳斯"),
     "守护森林的战斗": 守护森林的战斗,
     "转职祝贺": MeetNpcFoo("林纳斯"),

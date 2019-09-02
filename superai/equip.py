@@ -188,6 +188,11 @@ class Equips:
         meninfo = GetMenInfo()
         suitlevel = (meninfo.level // 10) * 10
 
+        if v1.bodypos == WUQIPOS and "灵跃" in v1.name and v1.wuqitype in self.wuqistragy:
+            return True
+        elif v2.bodypos == WUQIPOS and "灵跃" in v2.name and v2.wuqitype in self.wuqistragy:
+            return False
+
         if v1.bodypos == WUQIPOS and v1.canbeusedlevel == suitlevel and "幸运星" in v1.name and v1.wuqitype in self.wuqistragy:
             return True
         elif v2.bodypos == WUQIPOS and v2.canbeusedlevel == suitlevel and "幸运星" in v2.name and v2.wuqitype in self.wuqistragy:
@@ -381,6 +386,9 @@ class Equips:
         for v in equips:
             if v.bodypos == 13:
                 return False
+
+        if len(equips) < 9:
+            return False
 
         # 所有装备是紫色才领
         for v in equips:

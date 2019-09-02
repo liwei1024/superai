@@ -39,6 +39,8 @@ from superai.gameapi import GameApiInit, FlushPid, \
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
 
+gdisable = False
+
 
 class StateMachine:
     def __init__(self, owner):
@@ -250,9 +252,8 @@ class Player:
             # 上次的按键在本次方向中没找到就弹起
             for keydown in latestDecompose:
                 if keydown not in currentDecompose:
-                    QuadKeyUpMap[keydown](), RanSleep(0.01)
-
-            self.DownKey(quad), RanSleep(0.02)
+                    QuadKeyUpMap[keydown]()
+            self.DownKey(quad), RanSleep(0.05)
             logger.info("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 保持部分移动方向 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
         else:
@@ -260,7 +261,7 @@ class Player:
             self.UpLatestKey()
             if jizou:
                 self.KeyJiPao(GetFangxiang(menx, destx))
-            self.DownKey(quad), RanSleep(0.02)
+            self.DownKey(quad), RanSleep(0.05)
             logger.info("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
 
@@ -488,18 +489,19 @@ class GlobalState(State):
                 player.RestoreContext()
             return
 
-        # 视频判断
-        if not player.IsEmptyFor(FOR_SHIPIN) and IsShiPinTopWrap():
-            player.SaveAndChangeToEmpty(FOR_SHIPIN)
-            return
-        # 对话判断
-        elif not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
-            player.SaveAndChangeToEmpty(FOR_DUIHUA)
-            return
-        # 确认按钮
-        elif not player.IsEmptyFor(FOR_CONFIRM) and IsConfirmTop():
-            player.SaveAndChangeToEmpty(FOR_CONFIRM)
-            return
+        if not gdisable:
+            # 视频判断
+            if not player.IsEmptyFor(FOR_SHIPIN) and IsShiPinTopWrap():
+                player.SaveAndChangeToEmpty(FOR_SHIPIN)
+                return
+            # 对话判断
+            elif not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
+                player.SaveAndChangeToEmpty(FOR_DUIHUA)
+                return
+            # 确认按钮
+            elif not player.IsEmptyFor(FOR_CONFIRM) and IsConfirmTop():
+                player.SaveAndChangeToEmpty(FOR_CONFIRM)
+                return
 
         # 在图内需要判断卡死的状态
         # MapStateList = [SeekAndPickUp, PickBuf, SeekAndAttackMonster, DoorOpenGotoNext, DoorStuckGoToPrev,
@@ -554,7 +556,8 @@ class GlobalState(State):
             elif time.time() - player.latestfucktime > 30.0:
                 if player.latestmap == GetCurmapidx():
                     logger.warning("出现问题,纠正一下!")
-                    player.ChangeState(StuckShit())
+                    if not gdisable:
+                        player.ChangeState(StuckShit())
                 player.ResetStuckInfo()
 
         # esc弹出 TODO, 不知道什么代码弹出来的
@@ -590,34 +593,34 @@ class InChengzhen(State):
             return
 
         # 等级发生变化, 技能加点
-        if player.HasLevelChanged():
+        if not gdisable and player.HasLevelChanged():
             player.ChangeState(SettingSkill())
             return
 
         # 等级 >= 10, 身上,背包没有合适的幸运星武器
-        # if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
+        # if not gdisable and meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
         #     player.ChangeState(HireEquip())
         #     return
 
         # 需要领取称号
-        if eq.NeedGetChenghao():
+        if not gdisable and eq.NeedGetChenghao():
             player.ChangeState(GetChenghao())
             return
 
         # 背包有更好的装备,更换装备
-        if eq.DoesBagHaveBetterEquip():
+        if not gdisable and eq.DoesBagHaveBetterEquip():
             player.ChangeState(ChangeEquip())
             return
 
         # 负重超过80%,分解 (需要先到副本外)
-        if meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65:
+        if not gdisable and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65:
             pos = deal.GetFenjieJiPos()
             if pos is not None and pos != (0, 0):
                 player.ChangeState(FenjieEquip())
                 return
 
         # 耐久小于25%,修理 (需要先到副本外)
-        if deal.NeedRepair():
+        if not gdisable and deal.NeedRepair():
             pos = deal.GetFenjieJiPos()
             if pos is not None and pos != (0, 0):
                 player.ChangeState(RepairEquip())
@@ -627,8 +630,9 @@ class InChengzhen(State):
         if not HavePilao():
             player.ChangeState(NoPilao())
             return
+
         # 做剧情任务
-        if HasPlot():
+        if not gdisable and HasPlot():
             player.ChangeState(TaskState())
             return
 
@@ -1021,7 +1025,8 @@ class StuckShit(State):
 
         if HaveMonsters():
             obj = NearestMonsterWrap()
-            Zuobiaoyidong(obj.x, obj.y, 0)
+            if obj is not None:
+                Zuobiaoyidong(obj.x, obj.y, 0)
             player.ChangeState(StandState())
         elif not IsCurrentInBossFangjian():
             Autoshuntu()
