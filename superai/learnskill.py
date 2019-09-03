@@ -151,7 +151,8 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("guijianshi", "幻鬼 : 连斩", "jianying_huanguilianzhan.png"))
         if meninfo.level >= 30:
             self.learnstrategy.append(OccupationSkill("guijianshi", "双魂共鸣", "jianying_shuanghungongming.png"))
-            self.learnstrategy.append(OccupationSkill("guijianshi", "鬼连斩 : 极", "jianying_guilianzhanji.png", beidong=True))
+            self.learnstrategy.append(
+                OccupationSkill("guijianshi", "鬼连斩 : 极", "jianying_guilianzhanji.png", beidong=True))
             self.learnstrategy.append(OccupationSkill("guijianshi", "共鸣 : 离魂一闪", "jianying_lihunyishan.png"))
         if meninfo.level >= 35:
             self.learnstrategy.append(OccupationSkill("guijianshi", "魂破斩", "jianying_hunpozhan.png"))
@@ -204,13 +205,12 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "天使光翼", "palading_tianshizhiyi.png", beidong=True))
         if meninfo.level >= 20:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "圣盾突击", "palading_shengduntiji.png"))
-
             self.DelSkill("命运之轮")
-            self.DelSkill("致命突刺")
-            self.DelSkill("强踢")
         if meninfo.level >= 25:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光喷涌", "palading_shenguangpenyong.png"))
         if meninfo.level >= 30:
+            self.DelSkill("强踢")
+            self.DelSkill("致命突刺")
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光盾击", "palading_shenguangdunji.png"))
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "烈光", "palading_lieguang.png"))
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "信仰之念", "palding_xinyangzhinian.png"))

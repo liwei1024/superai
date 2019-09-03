@@ -7,3 +7,6 @@ scikit-image
 scipy
 pypiwin32
 coloredlogs
+flask
+flask_jsonrpc
+flask_sqlalchemy
