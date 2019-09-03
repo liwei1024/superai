@@ -1055,9 +1055,6 @@ class TaskState(State):
             if v.name in plotMap.keys():
                 plotMap[v.name](player)
 
-                # 做完任务切换setup
-                # player.ChangeState(Setup())
-
                 if IsManInChengzhen():
                     eq = Equips()
                     # 背包有更好的装备,更换装备

@@ -15,9 +15,9 @@ from superai.location import IsinAierwenfnagxian, IsinHedunmaer, IsinAerfayingdi
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
     CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc, SafeClear, \
-    GetQuadrant
+    GetQuadrant, QuardantMap
 from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick, MouseLeftDown, MouseMoveR, \
-    MouseLeftUp, KongjianSleep, LanSleep
+    MouseLeftUp, KongjianSleep, LanSleep, ReleaseAllKey
 
 shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
 selectmen = Picture(GetImgDir() + "selectmen.png")
@@ -367,6 +367,9 @@ class TaskCtx:
         # 上一次完成任务单击时间
         self.latestsubmitpoint = None
 
+        # 上一次接受任务单击时间
+        self.latestacceptpoint = None
+
     def Clear(self):
         pass
         # self.latestmovepoint = None
@@ -482,10 +485,42 @@ def IsMoveToChengzhenPos(destpic, destcoord, desc):
         if IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 10):
             return True
         elif IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 100):
-            logger.warning("目的地: %s  在50范围内, 再移动一点点" % desc)
-            quad, _ = GetQuadrant(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1])
-            QuadKeyDownMap[quad](), RanSleep(0.1)  # TODO 判断语句调整了位置
-            QuadKeyUpMap[quad]()
+            # TODO 判断语句调整了位置
+
+            # 强制移动2s 靠近
+            logger.warning("目的地: %s  在100范围内, 再移动一会会" % desc)
+
+            latestdown = None
+
+            for i in range(20):
+                meninfo = GetMenInfo()
+                if IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 10):
+                    logger.info("目的地: %s 到达了" % desc)
+                    break
+
+                quad, _ = GetQuadrant(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1])
+
+                if latestdown:
+                    latestDecompose = QuardantMap[latestdown]
+                    currentDecompose = QuardantMap[quad]
+
+                    # 上次的按键在本次方向中没找到就弹起
+                    for keydown in latestDecompose:
+                        if keydown not in currentDecompose:
+                            QuadKeyUpMap[keydown]()
+
+                    QuadKeyDownMap[quad]()
+                    latestdown = quad
+                else:
+                    QuadKeyDownMap[quad]()
+                    latestdown = quad
+
+                RanSleep(0.05)
+
+            ReleaseAllKey()
+
+            meninfo = GetMenInfo()
+            return IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 10)
         else:
             logger.warning("目的地: %s [坐标]没有对比上" % desc)
     else:
@@ -615,22 +650,27 @@ def TaskOk():
 
 
 # 领取主线任务
-def AcceptMain():
-    if not OpenTaskScene():
-        logger.warning("没有出现任务框")
-        return
+def AcceptMain(player):
+    if player.taskctx.latestacceptpoint is None or time.time() - player.taskctx.latestacceptpoint > 8.0:
+        if not OpenTaskScene():
+            logger.warning("没有出现任务框")
+            return
 
-    if not taskkzhuxian.Match():
-        logger.warning("没有主线任务")
-        return
+        if not taskkzhuxian.Match():
+            logger.warning("没有主线任务")
+            return
 
-    if IsWindowTop():
-        logger.warning("有窗口弹出,退出领取主线任务")
-        return
+        if IsWindowTop():
+            logger.warning("有窗口弹出,退出领取主线任务")
+            return
 
-    pos = taskkzhuxian.Pos()
-    MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-    MouseLeftClick(), KongjianSleep()
+        pos = taskkzhuxian.Pos()
+        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+
+        player.taskctx.latestacceptpoint = time.time()
+    else:
+        logger.warning("接受任务不能多次点击,本次啥都不做")
 
 
 # 完成任务  (直接完成不能一直点,因为会有对话框弹出来,多次按任务对话框数据变0)
@@ -688,7 +728,7 @@ def AttacktaskFoo(fubenname):
         mapname, quad, idx = GetMapInfo(fubenname)
         if not IsTaskaccept():
             logger.info("没有主线任务被接受")
-            AcceptMain()
+            AcceptMain(player)
             return
 
         if TaskOk():
@@ -753,7 +793,7 @@ def MeetNpcFoo(destname):
     def foo(player, destname=destname):
         if not IsTaskaccept():
             logger.info("没有主线任务被接受")
-            AcceptMain()
+            AcceptMain(player)
             return
 
         if TaskOk():
@@ -768,12 +808,12 @@ def MeetNpcFoo(destname):
         if destname == "赛丽亚":
             # 返回角色再进入
             if BackAndEnter():
-                
+
                 meninfo = GetMenInfo()
                 if not IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, 447, 163, 20):
                     for i in range(3):
                         meninfo = GetMenInfo()
-    
+
                         if not IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, 447, 163, 20):
                             QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)  # TODO 写死了
                             QuadKeyUpMap[Quardant.SHANG](), KongjianSleep()
@@ -797,8 +837,8 @@ def MeetNpcFoo(destname):
                     # 对话角色 微调整
                     quad, _ = GetQuadrant(meninfo.chengzhenx, meninfo.chengzheny, destinfo.destcoord[0],
                                           destinfo.destcoord[1])
-                    QuadKeyDownMap[quad](), RanSleep(0.1)
-                    QuadKeyUpMap[quad](), RanSleep(0.1)
+                    QuadKeyDownMap[quad](), RanSleep(0.05)
+                    QuadKeyUpMap[quad](), RanSleep(0.05)
 
                 PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
