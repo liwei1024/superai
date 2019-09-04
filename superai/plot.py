@@ -492,7 +492,7 @@ def IsMoveToChengzhenPos(destpic, destcoord, desc):
 
             latestdown = None
 
-            for i in range(20):
+            for i in range(50):
                 meninfo = GetMenInfo()
                 if IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 10):
                     logger.info("目的地: %s 到达了" % desc)
@@ -515,7 +515,7 @@ def IsMoveToChengzhenPos(destpic, destcoord, desc):
                     QuadKeyDownMap[quad]()
                     latestdown = quad
 
-                RanSleep(0.05)
+                RanSleep(0.02)
 
             ReleaseAllKey()
 

@@ -1043,7 +1043,11 @@ def PrintTaskObj():
     print("[任务对象]")
     outlst = GetTaskObj()
     for obj in outlst:
-        print(obj)
+        try:
+            print(obj)
+        except Exception as e:
+            logger.warning(e)
+
     print("===========")
 
 
@@ -1247,7 +1251,7 @@ def GetMonstersWrap():
     return monsters
 
 
-UnuseFilterStr = "|肉干|砂砾|天空树果实|燃烧瓶|军用回旋镖|裂空镖|甜瓜|飞镖|轰雷树果实|越桔|神圣葡萄酒|轰爆弹|爆弹|燃烧瓶|精灵香精|魔力之花|石头|苎麻花叶|怒海霸主银币|解密礼盒|无尽的永恒|风化的碎骨|破旧的皮革|最下级砥石|最下级硬化剂|生锈的铁片|碎布片|回旋镖|天界珍珠|朗姆酒|飞盘|魔力之花|卡勒特指令书|入门HP药剂|入门MP药剂|普通HP药剂|普通MP药剂|飞盘2|邪恶药剂|圣杯|肉干"
+UnuseFilterStr = "飞盘 2|暗黑倾向药剂|命运硬币|肉干|砂砾|天空树果实|燃烧瓶|军用回旋镖|裂空镖|甜瓜|飞镖|轰雷树果实|越桔|神圣葡萄酒|轰爆弹|爆弹|燃烧瓶|精灵香精|魔力之花|石头|苎麻花叶|怒海霸主银币|解密礼盒|无尽的永恒|风化的碎骨|破旧的皮革|最下级砥石|最下级硬化剂|生锈的铁片|碎布片|回旋镖|天界珍珠|朗姆酒|飞盘|魔力之花|卡勒特指令书|入门HP药剂|入门MP药剂|普通HP药剂|普通MP药剂|飞盘2|邪恶药剂|圣杯|肉干"
 
 UnuseFilter = UnuseFilterStr.split("|")
 
@@ -1813,7 +1817,7 @@ skillSettingMap = {
     "贪婪之刺": SkillData(type=SkillType.Gongji, delaytime=0.2, afterdelay=0.4, lockhp=True),
 
     # 吸怪,蓄力
-    "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=0.5, doublepress=True),
+    "怠惰之息": SkillData(type=SkillType.Gongji, afterdelay=1.2, doublepress=True),
 
     # 剑影
     "双魂共鸣":   SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.8),
@@ -1821,6 +1825,9 @@ skillSettingMap = {
 
     # 帕拉丁
     "信仰之念": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    # 源能
+    "源能应用": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 }
 
 # 普通攻击

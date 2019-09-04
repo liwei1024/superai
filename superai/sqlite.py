@@ -87,9 +87,8 @@ def DbEventAppend(account, region, role, content):
 
 
 # 查询事件
-def DbEventSelect(account, region, role):
-    result = query_db("select timepoint, content from event where account =? and region = ? and role=?", (
-        account, region, role))
+def DbEventSelect():
+    result = query_db("select account, region, role, timepoint, content from event ")
     return result
 
 
@@ -145,11 +144,9 @@ def DbStateUpdate(account, region, role, curlevel=None, zhiye=None, curpilao=Non
 
 
 # 查询状态
-def DbStateSelect(account, region, role):
+def DbStateSelect():
     result = query_db(
-        "select curlevel, zhiye,curpilao, money,wuse, kicktime,kicklong, timepoint  from state"
-        " where account =? and region = ? and role=?",
-        (account, region, role))
+        "select account, region, role, curlevel, zhiye, curpilao, money, wuse, kicktime, kicklong, timepoint from state")
 
     return result
 
@@ -211,15 +208,9 @@ def DbItemAppend(account, region, role, moneyadd=None, wuseadd=None, timeadd=Non
 
 
 # 查询流水
-def DbItemSelect(account, region, role, yyyymmdd=None):
-    cstr = ""
-    c = ()
-    if yyyymmdd is not None:
-        cstr = "and yyyymmdd =?"
-        c = (yyyymmdd,)
+def DbItemSelect():
     result = query_db(
-        "select yyyymmdd, todaymoney, todaywuse, todaysumtime from item where account =? and region = ? and role=? %s" % cstr,
-        (account, region, role) + c)
+        "select account, region, role, yyyymmdd, todaymoney, todaywuse, todaysumtime from item")
     return result
 
 

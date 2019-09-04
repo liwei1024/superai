@@ -303,7 +303,7 @@ def PressSkill(key, delay, afterdelay, thenpress=None, doublepress=False):
 
     if doublepress:
         def worker():
-            for i in range(5):
+            for i in range(10):
                 lib.M_KeyDown2(h, key), KongjianSleep()
                 lib.M_KeyUp2(h, key), KongjianSleep()
 
@@ -326,15 +326,15 @@ def MouseMoveTo(x, y):
     relativex = centrex - curx
     relativey = centrey - cury
 
-    if x < 2:
-        relativex = random.uniform(relativex, relativex + 2)
-    else:
-        relativex = random.uniform(relativex - 2, relativex + 2)
-
-    if y < 2:
-        relativey = random.uniform(relativey, relativey + 2)
-    else:
-        relativey = random.uniform(relativey - 2, relativey + 2)
+    # if x < 2:
+    #     relativex = random.uniform(relativex, relativex + 2)
+    # else:
+    #     relativex = random.uniform(relativex - 2, relativex + 2)
+    #
+    # if y < 2:
+    #     relativey = random.uniform(relativey, relativey + 2)
+    # else:
+    #     relativey = random.uniform(relativey - 2, relativey + 2)
 
     lib.M_MoveR(h, int(relativex), int(relativey))
 

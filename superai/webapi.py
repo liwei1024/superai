@@ -21,22 +21,22 @@ def test():
 
 
 @jsonrpc.method('getEvent')
-def getEvent(account, region, role):
-    rows = DbEventSelect(account, region, role)
+def getEvent():
+    rows = DbEventSelect()
     jsonstr = json.dumps(rows, ensure_ascii=False)
     return jsonstr
 
 
 @jsonrpc.method('getState')
-def getState(account, region, role):
-    rows = DbStateSelect(account, region, role)
+def getState():
+    rows = DbStateSelect()
     jsonstr = json.dumps(rows, ensure_ascii=False)
     return jsonstr
 
 
 @jsonrpc.method('getItem')
-def getItem(account, region, role, yyyymmdd=None):
-    rows = DbItemSelect(account, region, role, yyyymmdd)
+def getItem():
+    rows = DbItemSelect()
     jsonstr = json.dumps(rows, ensure_ascii=False)
     return jsonstr
 

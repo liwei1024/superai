@@ -283,16 +283,21 @@ class Equips:
         MouseMoveTo(bagpos[0] - 91, bagpos[1] + 192), KongjianSleep()
         MouseLeftClick(), KongjianSleep()
 
-        for v in CheckReplices:
-            betterEquip = self.BagEquipBetter(v[0], v[1])
-            if betterEquip is not None:
-                logger.info("更换装备: %s", betterEquip)
-                pos = self.BagIdxToPos(betterEquip.idx - 9, bagpos)
-                MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                MouseLeftDown(), KongjianSleep()
-                MouseMoveTo(bagpos[0], bagpos[1] + 100), KongjianSleep()
-                MouseLeftUp(), KongjianSleep()
-                MouseLeftClick(), KongjianSleep()
+        def EquipBetter():
+            for v in CheckReplices:
+                betterEquip = self.BagEquipBetter(v[0], v[1])
+                if betterEquip is not None:
+                    logger.info("更换装备: %s", betterEquip)
+                    pos = self.BagIdxToPos(betterEquip.idx - 9, bagpos)
+                    MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                    MouseLeftDown(), KongjianSleep()
+                    MouseMoveTo(bagpos[0], bagpos[1] + 100), KongjianSleep()
+                    MouseLeftUp(), KongjianSleep()
+                    MouseLeftClick(), KongjianSleep()
+
+        # 两次调用. 防止魔方封印
+        EquipBetter()
+        EquipBetter()
 
     # 背包内是否有有更好的装备
     def DoesBagHaveBetterEquip(self):

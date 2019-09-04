@@ -8,7 +8,7 @@ create table if not exists event
     timepoint int,                               -- 时间点
     content   text                               -- 事件内容,json
 );
-create index if not exists event_idx1 on event (account, region, role, timepoint);
+create index if not exists event_idx1 on event (timepoint);
 
 -- 状态表 - 最终的最近的状态
 create table if not exists state
@@ -26,7 +26,6 @@ create table if not exists state
     kicklong  int,                               -- 封号持续时间
     timepoint int                                -- 数据更新时间
 );
-create index if not exists state_idx1 on state (account, region, role);
 
 -- 流水表 - 每天的最新的单项数据的累积
 create table if not exists item
@@ -40,4 +39,5 @@ create table if not exists item
     todaywuse    int,                               -- 今日收益无色
     todaysumtime int                                -- 今日累积花的时间
 );
-create index if not exists item_idx1 on item (account, region, role, yyyymmdd);
+create index if not exists item_idx1 on item (yyyymmdd);
+

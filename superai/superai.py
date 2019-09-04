@@ -722,6 +722,11 @@ class FubenOver(State):
             player.ChangeState(InChengzhen())
             return
 
+        if IsShipinTop():
+            PressKey(VK_CODE["esc"]), RanSleep(0.3)
+            PressKey(VK_CODE["spacebar"]), KongjianSleep()
+            return
+
 
 # 测试计数器 (无关大局)
 testi = 0
@@ -1026,9 +1031,11 @@ class StuckShit(State):
         if HaveMonsters():
             obj = NearestMonsterWrap()
             if obj is not None:
+                RanSleep(1.0)
                 Zuobiaoyidong(obj.x, obj.y, 0)
             player.ChangeState(StandState())
         elif not IsCurrentInBossFangjian():
+            RanSleep(1.0)
             Autoshuntu()
             player.ChangeState(StandState())
         elif IsFuBenPass():
