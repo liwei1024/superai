@@ -1,39 +1,108 @@
+import sys
+sys.coinit_flags = 0
+import pythoncom
 import wmi
 import platform
+import psutil
 
 
 # 操作系统
 def sysVersion():
+    pythoncom.CoInitialize()
+
     c = wmi.WMI()
-    sysinfo = c.Win32_OperatingSystem()
-    if len(sysinfo) < 1:
+
+    obj = c.Win32_OperatingSystem()
+    if len(obj) < 1:
         raise NotImplementedError("取操作系统信息错误")
-    sysinfo = sysinfo[0]
-    return "Version: %s %s %s" % (sysinfo.Caption, sysinfo.OSArchitecture, sysinfo.BuildNumber)
+    obj = obj[0]
+
+    result = {
+        "version": obj.Caption,
+        "osarch": obj.OSArchitecture,
+        "build number": obj.BuildNumber,
+    }
+
+
+    pythoncom.CoUninitialize()
+    return result
+
+
+# cpu
+def cpuInfo():
+    pythoncom.CoInitialize()
+
+    c = wmi.WMI()
+    obj = c.Win32_Processor()
+    if len(obj) < 1:
+        raise NotImplementedError("取cpu信息错误")
+    obj = obj[0]
+
+    result = {
+        "cpuname": obj.Name.strip(),
+        "usage": psutil.cpu_percent(interval=None),
+    }
+
+    pythoncom.CoUninitialize()
+
+    return result
+
+
+# memory
+def memInfo():
+    obj = psutil.virtual_memory()
+
+    result = {
+        "used": obj.used,
+        "total": obj.total,
+    }
+
+    return result
+
 
 # 磁盘
 def diskInfo():
+    pythoncom.CoInitialize()
+
     c = wmi.WMI()
-    # 设备名称
-    for physical_disk in c.Win32_DiskDrive():
+    obj = c.Win32_DiskDrive()
+    if len(obj) < 1:
+        raise NotImplementedError("读取磁盘信息错误")
 
-        # 序列号
-        print(physical_disk.SerialNumber)
+    obj = obj[0]
+    obj2 = psutil.disk_usage('/')
 
-        for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
-            for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
-                print(physical_disk.Caption, partition.Caption, logical_disk.Caption)
+    result = {
+        "serialnumber": obj.SerialNumber,
+        "used": obj2.used,
+        "total": obj2.total
+    }
 
-    # 磁盘信息
-    for disk in c.Win32_LogicalDisk(DriveType=3):
-        print(disk.Caption, "%0.2f%% free" % (100.0 * int(disk.FreeSpace) / int(disk.Size)))
+    pythoncom.CoUninitialize()
 
+    return result
+
+
+# 网卡/ip信息
+def networkInfo():
+    obj = psutil.net_if_addrs()
+    result = {}
+    for key, v in obj.items():
+        if "WLAN" in key:
+            result[key] = {
+                "ip": v[1].address,
+                "mac": v[0].address
+            }
+
+    return result
 
 
 def main():
-    print(sysVersion())
-
-    diskInfo()
+    print("system: " + str(sysVersion()))
+    # print("cpu: " + str(cpuInfo()))
+    # print("mem: " + str(memInfo()))
+    # print("disk: " + str(diskInfo()))
+    # print("net: " + str(networkInfo()))
 
 
 if __name__ == '__main__':

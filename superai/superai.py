@@ -34,7 +34,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
     GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead, IsLockedHp, UnLockHp, IsFuzhongGou, \
-    Zuobiaoyidong, Autoshuntu, GetCurmapidx, HavePilao, GetMapInfo, IsShitmoGu
+    Zuobiaoyidong, Autoshuntu, GetCurmapXy, HavePilao, GetMapInfo, IsShitmoGu, BagHasFenjieEquip
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -101,6 +101,12 @@ class Player:
         # 上次所检查地图卡死时间 / 上次所在的地图
         self.latestfucktime = None
         self.latestmap = None
+
+        # 上次的所在小地图位置
+        self.latestpos = None
+
+        # 上次更新障碍物时间(不要太快影响走路效率)
+        self.latestobtime = None
 
     # 重置地图卡死信息
     def ResetStuckInfo(self):
@@ -222,13 +228,13 @@ class Player:
         quad, rent = GetQuadrant(menx, meny, destx, desty)
 
         # 方向是否有障碍物
-        self.ob.UpdateObstacle(GetObstacle())
         if self.ob.ManQuadHasObstacle(quad, menx, meny):
             self.ChaoxiangFangxiang(menx, destx)
             logger.info("方向上有障碍物, 攻击")
             self.UpLatestKey()
             self.SelectSkill()
             self.UseSkill()
+            self.ob.UpdateObstacle(GetObstacle())
             return
 
         objname = ""
@@ -253,7 +259,7 @@ class Player:
             for keydown in latestDecompose:
                 if keydown not in currentDecompose:
                     QuadKeyUpMap[keydown]()
-            self.DownKey(quad), RanSleep(0.05)
+            self.DownKey(quad), RanSleep(0.02)
             logger.info("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 保持部分移动方向 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
         else:
@@ -261,7 +267,7 @@ class Player:
             self.UpLatestKey()
             if jizou:
                 self.KeyJiPao(GetFangxiang(menx, destx))
-            self.DownKey(quad), RanSleep(0.05)
+            self.DownKey(quad), RanSleep(0.02)
             logger.info("seek: 本人(%.f, %.f) 目标%s(%.f, %.f)在%s, 首次靠近 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
 
@@ -346,6 +352,9 @@ class Player:
         if not IsManInMap():
             return
 
+        mapinfo = GetMapInfo()
+        self.latestpos = (mapinfo.curx, mapinfo.cury)
+
         t1 = time.time()
         meninfo = GetMenInfo()
         try:
@@ -396,6 +405,10 @@ class Player:
         else:
             # 没有变化等级
             return False
+
+    # 是否小地图位置发生变化
+    def IsMapPosChange(self, pos):
+        return self.latestpos != pos
 
 
 class State:
@@ -552,9 +565,9 @@ class GlobalState(State):
         if IsManInMap():
             if player.latestfucktime is None:
                 player.latestfucktime = time.time()
-                player.latestmap = GetCurmapidx()
+                player.latestmap = GetCurmapXy()
             elif time.time() - player.latestfucktime > 30.0:
-                if player.latestmap == GetCurmapidx():
+                if player.latestmap == GetCurmapXy():
                     logger.warning("出现问题,纠正一下!")
                     if not gdisable:
                         player.ChangeState(StuckShit())
@@ -612,7 +625,7 @@ class InChengzhen(State):
             player.ChangeState(ChangeEquip())
             return
 
-        # 负重超过80%,分解 (需要先到副本外)
+        # 负重超过一定程度,分解 (需要先到副本外)
         if not gdisable and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65:
             pos = deal.GetFenjieJiPos()
             if pos is not None and pos != (0, 0):
@@ -620,7 +633,7 @@ class InChengzhen(State):
                 return
 
         # 疲劳没有了清空下背包
-        if not gdisable and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.30 and not HavePilao():
+        if not gdisable and not HavePilao() and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.3:
             pos = deal.GetFenjieJiPos()
             if pos is not None and pos != (0, 0):
                 player.ChangeState(FenjieEquip())
@@ -992,7 +1005,7 @@ class DoorOpenGotoNext(State):
         # 进到新的地图
         if IsCurrentInBossFangjian():
             player.CheckInToNewMap()
-        if not IsNextDoorOpen():
+        if player.IsMapPosChange(GetCurmapXy()):
             if IsCurrentInBossFangjian():
                 logger.info("进到了boss房间")
             player.CheckInToNewMap()
@@ -1005,7 +1018,7 @@ class DoorStuckGoToPrev(State):
     def Execute(self, player):
         menx, meny = GetMenXY()
         door = GetNextDoorWrap()
-        if not IsNextDoorOpen():
+        if player.IsMapPosChange(GetCurmapXy()):
             if IsCurrentInBossFangjian():
                 logger.info("进到了boss房间")
             player.CheckInToNewMap()

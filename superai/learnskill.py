@@ -22,6 +22,11 @@ idxposmap = {
     6: (600, 535), 7: (635, 535), 8: (675, 535), 9: (700, 535), 10: (735, 535), 11: (765, 535)
 }
 
+wulibaoji, wilibeiji, mofabaoji, mofabeiji = (-173, 103), (-93, 103), (-130, 103), (-49, 103)
+
+WULI = 0
+MOFA = 1
+
 
 # 技能名称 + 对应的图片的包装
 class OccupationSkill:
@@ -54,6 +59,7 @@ class Occupationkills:
         occupationafter = meninfo.zhuanzhihou
 
         self.deletedskills = []
+        self.AttackType = None
 
         if occupationbefore in ["魔枪士"]:
             self.moqiangInit()
@@ -105,6 +111,7 @@ class Occupationkills:
 
     # 源能专家
     def yuannengInit(self):
+        self.AttackType = MOFA
         meninfo = GetMenInfo()
         if meninfo.level >= 15:
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "旋转源能波", "qiangjianshi_xuanzhuanyuannnengbo.png"))
@@ -126,6 +133,9 @@ class Occupationkills:
         if meninfo.level >= 35:
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "电磁领域", "yuanneng_diancilingyu.png"))
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "引力源光弹", "yuanneng_yinliyuannengdan.png"))
+        if meninfo.level >= 40:
+            self.DelSkill("源光斩")
+            self.learnstrategy.append(OccupationSkill("qiangjianshi", "光裂斩", "yuanneng_guangliezhan.png"))
 
     # 鬼剑士
     def guijianshiInit(self):
@@ -142,6 +152,7 @@ class Occupationkills:
 
     # 剑影
     def jianyingInit(self):
+        self.AttackType = WULI
         meninfo = GetMenInfo()
         if meninfo.level >= 15:
             self.learnstrategy.append(OccupationSkill("guijianshi", "鬼步", "jianying_guibu.png"))
@@ -186,6 +197,7 @@ class Occupationkills:
 
     # 女气功
     def nvqigongInit(self):
+        self.AttackType = MOFA
         meninfo = GetMenInfo()
         if meninfo.level >= 15:
             self.learnstrategy.append(OccupationSkill("gedoujia", "光之兵刃", "qigong_guangzhibingren.png"))
@@ -214,11 +226,14 @@ class Occupationkills:
 
     # 帕拉丁
     def paladingInit(self):
+        self.AttackType = WULI
+
         meninfo = GetMenInfo()
         if meninfo.level >= 15:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光冲击", "palading_shenguangchongji.png"))
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光连斩", "palading_shenguanglianzhan.png"))
-            self.learnstrategy.append(OccupationSkill("shouhuzhe", "天使降临", "palading_tianshijianglin.png", beidong=True))
+            self.learnstrategy.append(
+                OccupationSkill("shouhuzhe", "天使降临", "palading_tianshijianglin.png", beidong=True))
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "天使光翼", "palading_tianshizhiyi.png", beidong=True))
         if meninfo.level >= 20:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "圣盾突击", "palading_shengduntiji.png"))
@@ -252,6 +267,7 @@ class Occupationkills:
 
     # 四姨
     def youmozheInit(self):
+        self.AttackType = MOFA
         meninfo = GetMenInfo()
         if meninfo.level >= 15:
             self.learnstrategy.append(
@@ -273,6 +289,8 @@ class Occupationkills:
             self.DelSkill("罪业加身")
         if meninfo.level >= 35:
             self.learnstrategy.append(OccupationSkill("shengzhizhe", "贪婪之刺", "youmozhe_tanlanzhici.png"))
+        if meninfo.level >= 40:
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "杀戮战镰", "youmozhe_shaluzhanlian.png"))
 
     # 魔枪
     def moqiangInit(self):
@@ -287,6 +305,8 @@ class Occupationkills:
 
     # 暗枪
     def anqiangInit(self):
+        self.AttackType = MOFA
+
         meninfo = GetMenInfo()
         if meninfo.level >= 15:
             self.learnstrategy.append(OccupationSkill("moqiangshi", "侵蚀之矛", "anqiang_qinshizhimao.png"))
@@ -373,6 +393,33 @@ class Occupationkills:
         logger.info("开始学习技能")
         MouseMoveTo(536, 360), KongjianSleep()
         MouseWheel(30), KongjianSleep()
+
+        if self.AttackType is not None:
+            pos = skillScene.Pos()
+            if pos is not None or pos != (0, 0):
+                tolearnpos = []
+                if self.AttackType == MOFA:
+                    tolearnpos.append((pos[0] + mofabaoji[0], pos[1] + mofabaoji[1]))
+                    tolearnpos.append((pos[0] + mofabeiji[0], pos[1] + mofabeiji[1]))
+                elif self.AttackType == WULI:
+                    tolearnpos.append((pos[0] + wulibaoji[0], pos[1] + wulibaoji[1]))
+                    tolearnpos.append((pos[0] + wilibeiji[0], pos[1] + wilibeiji[1]))
+
+                for pos in tolearnpos:
+                    w, h = 50, 60
+                    halfw, halfh = w // 2, h // 2
+                    cannotLearn = Picture(GetImgDir() + "cannotlearn.png", dx=pos[0] - halfw, dy=pos[1] - halfh, dw=w,
+                                          dh=h)
+                    jingtong = Picture(GetImgDir() + "jingtong.png", dx=pos[0] - halfw, dy=pos[1] - halfh, dw=w, dh=h)
+
+                    if cannotLearn.Match() or jingtong.Match():
+                        logger.warning("暴击不需要学习")
+                    else:
+                        needLearn = True
+                        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                        MouseLeftDownFor(1.0), KongjianSleep()
+            else:
+                logger.warning("没有找到技能栏")
 
         for v in self.learnstrategy:
 

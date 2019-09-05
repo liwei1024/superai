@@ -4,10 +4,10 @@ import sys
 
 from flask import Flask
 from flask_jsonrpc import JSONRPC
-from flask_sqlalchemy import SQLAlchemy
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+from superai.sysmonitor import sysVersion, cpuInfo, memInfo, diskInfo, networkInfo
 from superai.subnodedb import DbEventSelect, DbStateSelect, DbItemSelect
 
 app = Flask(__name__)
@@ -43,13 +43,20 @@ def getItem():
 
 @jsonrpc.method('getMachineState')
 def getMachineState():
-    pass
+    result = {
+        "sys": sysVersion(),
+        "cpuInfo": cpuInfo(),
+        "memInfo": memInfo(),
+        "diskInfo": diskInfo(),
+        "networkInfo": networkInfo()
+    }
+    jsonstr = json.dumps(result, ensure_ascii=False)
+    return jsonstr
 
 
 def main():
-    # webapi 和 superai 是两个程序,所以不用担心冲突
-    app.run()
+    app.run(host='0.0.0.0', port=22222)
 
 
 if __name__ == '__main__':
-    main()
+    main()path

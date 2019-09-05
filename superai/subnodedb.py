@@ -218,8 +218,8 @@ def main():
     InitLog()
 
     InitDb()
-    # DbEventAppend("13023252617", "上海一区", "小春春", "登陆上线")
-    # DbEventAppend("13023252617", "上海一区", "小春春", "下线")
+    DbEventAppend("13023252617", "上海一区", "小春春", "登陆上线")
+    DbEventAppend("13023252617", "上海一区", "小春春", "下线")
     DbStateUpdate("13023252617", "上海一区", "小春春", curlevel=10, zhiye="格斗家", curpilao=100, money=10000)
     DbItemAppend("13023252617", "上海一区", "小春春", moneyadd=100, wuseadd=10, timeadd=100)
 

@@ -295,9 +295,12 @@ class Equips:
                     MouseLeftUp(), KongjianSleep()
                     MouseLeftClick(), KongjianSleep()
 
-        # 两次调用. 防止魔方封印
+        # 两次调用. 防止魔法封印
         EquipBetter()
-        EquipBetter()
+
+        if self.DoesBagHaveBetterEquip():
+            RanSleep(0.5)
+            EquipBetter()
 
     # 背包内是否有有更好的装备
     def DoesBagHaveBetterEquip(self):

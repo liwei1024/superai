@@ -18,13 +18,27 @@ def test():
 
 
 subs = [
-    (1, "192.168.0.1"),
-    (2, "192.168.0.2"),
+    (1, "192.168.0.76"),
+    (2, "192.168.0.76"),  # TODO 暂时用本机
+    (3, "192.168.0.76"),  # TODO 暂时用本机
 ]
 
 
 @jsonrpc.method('getsubs')
 def getSubs():
-    jsonstr = json.dumps(subs, ensure_ascii=False)
+    newsubs = {}
+
+    for idx, sub in enumerate(subs):
+        newsubs[idx] = {"id": sub[0], "ip": sub[1]}
+
+    jsonstr = json.dumps(newsubs, ensure_ascii=False)
+
     return jsonstr
 
+
+def main():
+    app.run(host='0.0.0.0', port=33333)
+
+
+if __name__ == '__main__':
+    main()

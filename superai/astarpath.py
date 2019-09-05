@@ -442,22 +442,22 @@ class AStartPaths:
                 # 实际距离
                 tentativeScore = self.gScore[current] + dist_between(idxTohw(current, self.manCellWLen),
                                                                      idxTohw(w, self.manCellWLen))
-                if w not in self.openSet:
-                    self.openSet.append(w)
-                elif tentativeScore >= self.gScore[w]:
-                    continue
 
-                global img
-                if img is not None:
-                    # 画邻居
-                    ccellx, ccelly = idxTohw(w, self.manCellWLen)
-                    cv2.circle(img, (ccellx * 10, ccelly * 10), 2, (255, 0, 0))
+                if tentativeScore < self.gScore[w]:
 
-                self.edgeTo[w] = current
-                self.marked[w] = True
-                self.gScore[w] = tentativeScore
-                self.fScore[w] = self.gScore[w] + dist_between(idxTohw(w, self.manCellWLen),
-                                                               idxTohw(self.end, self.manCellWLen))
+                    global img
+                    if img is not None:
+                        # 画邻居
+                        ccellx, ccelly = idxTohw(w, self.manCellWLen)
+                        cv2.circle(img, (ccellx * 10, ccelly * 10), 2, (255, 0, 0))
+
+                    self.edgeTo[w] = current
+                    self.marked[w] = True
+                    self.gScore[w] = tentativeScore
+                    self.fScore[w] = self.gScore[w] + dist_between(idxTohw(w, self.manCellWLen),
+                                                                   idxTohw(self.end, self.manCellWLen))
+                    if w not in self.openSet:
+                        self.openSet.append(w)
 
     # 是否有到该节点的路径
     def HasPathTo(self, v: int):

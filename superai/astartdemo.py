@@ -8,6 +8,7 @@ from superai.common import InitLog
 
 logger = logging.getLogger(__name__)
 
+
 # 2维到1维
 def hwToidx(x: int, y: int, weight: int):
     return y * weight + x
@@ -17,11 +18,13 @@ def hwToidx(x: int, y: int, weight: int):
 def idxTohw(idx, weight: int):
     return [idx % weight, idx // weight]
 
+
 # 10x10 cell idx 到 [x,y]
 def idxToXY(idx, cellw: int):
     curpoint = idxTohw(idx, cellw)
     curpoint[0], curpoint[1] = curpoint[0] * 10, curpoint[1] * 10
     return curpoint
+
 
 # 有向图
 class Graph:
@@ -138,18 +141,18 @@ class AStarPaths:
                 # 实际距离
                 tentativegScore = self.gScore[current] + manhattanDistance(idxTohw(current, g.W),
                                                                            idxTohw(w, g.W))
-                if w not in self.openSet:
-                    self.openSet.append(w)
-                elif tentativegScore >= self.gScore[w]:
-                    continue
-                self.edgeTo[w] = current
-                self.marked[w] = True
+                if tentativegScore < self.gScore[w]:
+                    self.edgeTo[w] = current
+                    self.marked[w] = True
 
-                print("edgeTo ({}) -> ({})".format(idxTohw(current, g.W), idxTohw(w, g.W)))
-                self.gScore[w] = tentativegScore
-                self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, g.W), idxTohw(self.end, g.W))
+                    print("edgeTo ({}) -> ({})".format(idxTohw(current, g.W), idxTohw(w, g.W)))
+                    self.gScore[w] = tentativegScore
+                    self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, g.W), idxTohw(self.end, g.W))
 
-                print("fScore[%d] manhattan: %d" % (w, self.fScore[w]))
+                    print("fScore[%d] manhattan: %d" % (w, self.fScore[w]))
+
+                    if w not in self.openSet:
+                        self.openSet.append(w)
 
     def HasPathTo(self, v: int):
         return self.marked[v]
