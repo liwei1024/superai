@@ -39,7 +39,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
 
-gdisable = False
+
 
 
 class StateMachine:
@@ -104,9 +104,6 @@ class Player:
 
         # 上次的所在小地图位置
         self.latestpos = None
-
-        # 上次更新障碍物时间(不要太快影响走路效率)
-        self.latestobtime = None
 
     # 重置地图卡死信息
     def ResetStuckInfo(self):
@@ -286,6 +283,10 @@ class Player:
             # 范围内有麻烦就路径规划一下
 
             if self.ob.ManQuadHasTrouble(quad, menx, meny):
+                self.UpLatestKey(), RanSleep(0.02)
+                menx, meny = GetMenXY()
+                menx, meny = int(menx), int(meny)
+
                 logger.warning("前往目的地有障碍物, 开始规划(%d, %d) -> (%d, %d)" % (menx, meny, destx, desty))
                 lst, err = GetPaths(self.d, self.ob, [menx, meny], [destx, desty])
 
@@ -502,19 +503,19 @@ class GlobalState(State):
                 player.RestoreContext()
             return
 
-        if not gdisable:
-            # 视频判断
-            if not player.IsEmptyFor(FOR_SHIPIN) and IsShiPinTopWrap():
-                player.SaveAndChangeToEmpty(FOR_SHIPIN)
-                return
-            # 对话判断
-            elif not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
-                player.SaveAndChangeToEmpty(FOR_DUIHUA)
-                return
-            # 确认按钮
-            elif not player.IsEmptyFor(FOR_CONFIRM) and IsConfirmTop():
-                player.SaveAndChangeToEmpty(FOR_CONFIRM)
-                return
+
+        # 视频判断
+        if not player.IsEmptyFor(FOR_SHIPIN) and IsShiPinTopWrap():
+            player.SaveAndChangeToEmpty(FOR_SHIPIN)
+            return
+        # 对话判断
+        elif not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
+            player.SaveAndChangeToEmpty(FOR_DUIHUA)
+            return
+        # 确认按钮
+        elif not player.IsEmptyFor(FOR_CONFIRM) and IsConfirmTop():
+            player.SaveAndChangeToEmpty(FOR_CONFIRM)
+            return
 
         # 在图内需要判断卡死的状态
         # MapStateList = [SeekAndPickUp, PickBuf, SeekAndAttackMonster, DoorOpenGotoNext, DoorStuckGoToPrev,
@@ -569,8 +570,7 @@ class GlobalState(State):
             elif time.time() - player.latestfucktime > 30.0:
                 if player.latestmap == GetCurmapXy():
                     logger.warning("出现问题,纠正一下!")
-                    if not gdisable:
-                        player.ChangeState(StuckShit())
+                    player.ChangeState(StuckShit())
                 player.ResetStuckInfo()
 
         # esc弹出 TODO, 不知道什么代码弹出来的
@@ -606,41 +606,41 @@ class InChengzhen(State):
             return
 
         # 等级发生变化, 技能加点
-        if not gdisable and player.HasLevelChanged():
+        if player.HasLevelChanged():
             player.ChangeState(SettingSkill())
             return
 
         # 等级 >= 10, 身上,背包没有合适的幸运星武器
-        if not gdisable and meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
+        if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
             player.ChangeState(HireEquip())
             return
 
         # 需要领取称号
-        if not gdisable and eq.NeedGetChenghao():
+        if eq.NeedGetChenghao():
             player.ChangeState(GetChenghao())
             return
 
         # 背包有更好的装备,更换装备
-        if not gdisable and eq.DoesBagHaveBetterEquip():
+        if eq.DoesBagHaveBetterEquip():
             player.ChangeState(ChangeEquip())
             return
 
         # 负重超过一定程度,分解 (需要先到副本外)
-        if not gdisable and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65:
+        if meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65:
             pos = deal.GetFenjieJiPos()
             if pos is not None and pos != (0, 0):
                 player.ChangeState(FenjieEquip())
                 return
 
         # 疲劳没有了清空下背包
-        if not gdisable and not HavePilao() and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.3:
+        if not HavePilao() and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.3:
             pos = deal.GetFenjieJiPos()
             if pos is not None and pos != (0, 0):
                 player.ChangeState(FenjieEquip())
                 return
 
         # 耐久小于25%,修理 (需要先到副本外)
-        if not gdisable and deal.NeedRepair():
+        if deal.NeedRepair():
             pos = deal.GetFenjieJiPos()
             if pos is not None and pos != (0, 0):
                 player.ChangeState(RepairEquip())
@@ -652,7 +652,7 @@ class InChengzhen(State):
             return
 
         # 做剧情任务
-        if not gdisable and HasPlot():
+        if HasPlot():
             player.ChangeState(TaskState())
             return
 
@@ -806,7 +806,19 @@ class FirstInMap(State):
 # 图内站立
 class StandState(State):
     def Execute(self, player):
-        if IsMenDead():
+        if IsManInChengzhen():
+            player.ChangeState(InChengzhen())
+            return
+        elif IsFuBenPass():
+            # 打死boss后判断下物品
+            RanSleep(0.2)
+            if HaveGoods(player) and IsFuzhongGou():
+                player.ChangeState(SeekAndPickUp())
+                return
+            else:
+                player.ChangeState(FubenOver())
+                return
+        elif IsMenDead():
             player.ChangeState(DeadState())
             return
         elif IsJiZhouSpecifyState():
@@ -824,21 +836,9 @@ class StandState(State):
         elif not IsCurrentInBossFangjian() and IsNextDoorOpen():
             player.ChangeState(DoorOpenGotoNext())
             return
-        elif IsFuBenPass():
-            # 打死boss后判断下物品
-            RanSleep(0.2)
-            if HaveGoods(player) and IsFuzhongGou():
-                player.ChangeState(SeekAndPickUp())
-                return
-            else:
-                player.ChangeState(FubenOver())
-                return
         elif not IsCurrentInBossFangjian() and not IsNextDoorOpen():
-            pass
             # 打死怪物后, 门可能不是马上就开, 直接靠近门
-            # player.ChangeState(DoorDidnotOpen())
-        elif IsManInChengzhen():
-            player.ChangeState(InChengzhen())
+            player.ChangeState(DoorDidnotOpen())
             return
         else:
             if IsCurrentInBossFangjian():
@@ -850,6 +850,7 @@ class StandState(State):
                     PressKey(VK_CODE["esc"]), KongjianSleep()
 
         RanSleep(0.1)
+        player.UpLatestKey()
         logger.info("state can not switch")
 
 
@@ -1001,13 +1002,21 @@ class PickBuf(State):
 
 # 门已开,去过图
 class DoorOpenGotoNext(State):
+    def __init__(self):
+        self.begintime = time.time()
+
     def Execute(self, player):
-        # 进到新的地图
-        if IsCurrentInBossFangjian():
-            player.CheckInToNewMap()
+        if time.time() - self.begintime > 10.0:
+            player.ChangeState(StandState())
+            return
+        elif HaveMonsters():
+            player.ChangeState(SeekAndAttackMonster())
+            return
+        elif HaveGoods(player) and IsFuzhongGou():
+            player.ChangeState(SeekAndPickUp())
+            return
+
         if player.IsMapPosChange(GetCurmapXy()):
-            if IsCurrentInBossFangjian():
-                logger.info("进到了boss房间")
             player.CheckInToNewMap()
         else:
             player.SeekWithPathfinding(player.doorx, player.doory, dummy="靠近门")
@@ -1015,17 +1024,50 @@ class DoorOpenGotoNext(State):
 
 # 走门时卡死,走到离门远一些的地方
 class DoorStuckGoToPrev(State):
+    def __init__(self):
+        self.begintime = time.time()
+
     def Execute(self, player):
+        if time.time() - self.begintime > 10.0:
+            player.ChangeState(StandState())
+            return
+        elif HaveMonsters():
+            player.ChangeState(SeekAndAttackMonster())
+            return
+        elif HaveGoods(player) and IsFuzhongGou():
+            player.ChangeState(SeekAndPickUp())
+            return
+
         menx, meny = GetMenXY()
         door = GetNextDoorWrap()
         if player.IsMapPosChange(GetCurmapXy()):
-            if IsCurrentInBossFangjian():
-                logger.info("进到了boss房间")
             player.CheckInToNewMap()
         elif IsClosedTo(menx, meny, door.prevcx, door.prevcy):
             player.ChangeState(DoorOpenGotoNext())
         else:
             player.SeekWithPathfinding(door.prevcx, door.prevcy, dummy="靠近门前")
+
+
+# 门还没开的瞬间
+class DoorDidnotOpen(State):
+    def __init__(self):
+        self.begintime = time.time()
+
+    def Execute(self, player):
+        if time.time() - self.begintime > 2.0:
+            player.ChangeState(StandState())
+            return
+        elif HaveMonsters():
+            player.ChangeState(SeekAndAttackMonster())
+            return
+        elif HaveGoods(player) and IsFuzhongGou():
+            player.ChangeState(SeekAndPickUp())
+            return
+
+        if player.IsMapPosChange(GetCurmapXy()):
+            player.CheckInToNewMap()
+        else:
+            player.SeekWithPathfinding(player.doorx, player.doory, dummy="靠近门")
 
 
 # 死亡
