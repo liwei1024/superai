@@ -10,3 +10,4 @@ coloredlogs
 flask
 flask_jsonrpc
 flask_sqlalchemy
+wmi

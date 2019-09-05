@@ -24,7 +24,7 @@ else:
 
 
 def getDbFile():
-    return os.path.join(dbdir, "superdb.db")
+    return os.path.join(dbdir, "subnodedb.db")
 
 
 versionIter = ["001_20190902_init.sql"]
@@ -36,7 +36,7 @@ def InitDb():
 
     if not os.path.exists(dbdir + "version"):
         with contextlib.closing(sqlite.connect(getDbFile())) as con:
-            sqlfile = os.path.join(os.path.dirname(__file__), "db", versionIter[0])
+            sqlfile = os.path.join(os.path.dirname(__file__), "db/subnodedb", versionIter[0])
             logger.info("刷%s 脚本", sqlfile)
             with open(sqlfile, encoding='utf-8') as f:
                 sqltxt = f.read()
@@ -55,7 +55,7 @@ def InitDb():
             for i in range(version, len(versionIter)):
                 dbfile = os.path.join(dbdir, "superdb.db")
                 with contextlib.closing(sqlite.connect(dbfile)) as con:
-                    sqlfile = os.path.join(os.path.dirname(__file__), "db", versionIter[i])
+                    sqlfile = os.path.join(os.path.dirname(__file__), "db/subnodedb", versionIter[i])
                     logger.info("刷%s 脚本", sqlfile)
                     with open(sqlfile, encoding='utf-8') as f:
                         sqltxt = f.read()

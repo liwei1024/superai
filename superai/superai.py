@@ -598,9 +598,9 @@ class InChengzhen(State):
             return
 
         # 等级 >= 10, 身上,背包没有合适的幸运星武器
-        # if not gdisable and meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
-        #     player.ChangeState(HireEquip())
-        #     return
+        if not gdisable and meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
+            player.ChangeState(HireEquip())
+            return
 
         # 需要领取称号
         if not gdisable and eq.NeedGetChenghao():
@@ -614,6 +614,13 @@ class InChengzhen(State):
 
         # 负重超过80%,分解 (需要先到副本外)
         if not gdisable and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65:
+            pos = deal.GetFenjieJiPos()
+            if pos is not None and pos != (0, 0):
+                player.ChangeState(FenjieEquip())
+                return
+
+        # 疲劳没有了清空下背包
+        if not gdisable and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.30 and not HavePilao():
             pos = deal.GetFenjieJiPos()
             if pos is not None and pos != (0, 0):
                 player.ChangeState(FenjieEquip())

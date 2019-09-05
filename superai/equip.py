@@ -193,9 +193,9 @@ class Equips:
         elif v2.bodypos == WUQIPOS and "灵跃" in v2.name and v2.wuqitype in self.wuqistragy:
             return False
 
-        if v1.bodypos == WUQIPOS and v1.canbeusedlevel == suitlevel and "幸运星" in v1.name and v1.wuqitype in self.wuqistragy:
+        if v1.bodypos == WUQIPOS and v1.canbeusedlevel >= suitlevel and "幸运星" in v1.name and v1.wuqitype in self.wuqistragy:
             return True
-        elif v2.bodypos == WUQIPOS and v2.canbeusedlevel == suitlevel and "幸运星" in v2.name and v2.wuqitype in self.wuqistragy:
+        elif v2.bodypos == WUQIPOS and v2.canbeusedlevel >= suitlevel and "幸运星" in v2.name and v2.wuqitype in self.wuqistragy:
             return False
 
         if v1.canbeusedlevel == 35 and "耀之荣光" in v1.name:

@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from superai.sqlite import DbEventSelect, DbStateSelect, DbItemSelect
+from superai.subnodedb import DbEventSelect, DbStateSelect, DbItemSelect
 
 app = Flask(__name__)
 
@@ -17,7 +17,7 @@ jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
 
 @app.route('/')
 def test():
-    return 'superai'
+    return 'subnodeapi'
 
 
 @jsonrpc.method('getEvent')
@@ -39,6 +39,11 @@ def getItem():
     rows = DbItemSelect()
     jsonstr = json.dumps(rows, ensure_ascii=False)
     return jsonstr
+
+
+@jsonrpc.method('getMachineState')
+def getMachineState():
+    pass
 
 
 def main():

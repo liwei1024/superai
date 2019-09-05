@@ -116,11 +116,11 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "镭射源能枪", "yuanneng_leishe.png"))
         if meninfo.level >= 25:
             self.DelSkill("穿透射击")
-            self.DelSkill("瞬击")
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "细胞弱化", "yuanneng_xibaoruohua.png", beidong=True))
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "源能波刃", "yuanneng_yuannengboren.png"))
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "能量飞鱼弹", "yuanneng_nengliangfeiyudan.png"))
         if meninfo.level >= 30:
+            self.DelSkill("瞬击")
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "源能应用", "yuanneng_yuannengyingyong.png"))
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "脉冲斩", "yuanneng_maichongzhan.png"))
         if meninfo.level >= 35:
@@ -168,6 +168,10 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("guijianshi", "魂破斩", "jianying_hunpozhan.png"))
             self.learnstrategy.append(OccupationSkill("guijianshi", "共鸣 : 鬼灵斩", "jianying_guilingzhan.png"))
             self.DelSkill("地裂 · 波动剑")
+        if meninfo.level >= 40:
+            self.learnstrategy.append(OccupationSkill("guijianshi", "幻鬼 : 回天", "jianying_huitian.png"))
+        if meninfo.level >= 45:
+            self.learnstrategy.append(OccupationSkill("guijianshi", "冥灵断魂斩", "jianying_minlingdunhunzhan.png"))
 
     # 格斗家
     def gedouInit(self):
@@ -194,6 +198,8 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("gedoujia", "念气环绕", "qigong_nianqihuanrao.png", beidong=True))
         if meninfo.level >= 35:
             self.learnstrategy.append(OccupationSkill("gedoujia", "狮子吼", "qigong_shizihou.png"))
+        if meninfo.level >= 40:
+            self.learnstrategy.append(OccupationSkill("gedoujia", "念兽 : 龙虎啸", "qigong__longhuxiao.png"))
 
     # 守护者
     def shouhuInit(self):
@@ -202,9 +208,9 @@ class Occupationkills:
         if meninfo.level >= 1:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "强踢", "shouhu_qiangti.png"))
         if meninfo.level >= 5:
-            self.learnstrategy.append(OccupationSkill("shouhuzhe", "命运之轮", "shouhu_mingyunlun.png"))
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "命运之轮", "shouhu_mingyunlun.png", beidong=True))
         if meninfo.level >= 10:
-            self.learnstrategy.append(OccupationSkill("shouhuzhe", "致命突刺", "shouhu_zhimingci.png"))
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "致命突刺", "shouhu_zhimingci.png", beidong=True))
 
     # 帕拉丁
     def paladingInit(self):
