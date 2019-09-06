@@ -3,11 +3,13 @@ import os
 import sys
 
 from flask import Flask
+from flask_cors import CORS
 from flask_jsonrpc import JSONRPC
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 app = Flask(__name__)
+CORS(app)
 
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
 
@@ -26,13 +28,10 @@ subs = [
 
 @jsonrpc.method('getsubs')
 def getSubs():
-    newsubs = {}
-
+    newsubs = []
     for idx, sub in enumerate(subs):
-        newsubs[idx] = {"id": sub[0], "ip": sub[1]}
-
+        newsubs.append({"id": sub[0], "ip": sub[1]})
     jsonstr = json.dumps(newsubs, ensure_ascii=False)
-
     return jsonstr
 
 

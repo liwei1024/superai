@@ -120,7 +120,7 @@ class Equips:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["十字架", "念珠", "图腾", "镰刀", "战斧"]
             self.xingyunwuqipos = (4, 107)
-            if occupationafter in ["诱魔者"]:
+            if occupationafter in ["诱魔者", "断罪者"]:
                 self.bodystragy = ZHONGJIA
                 if meninfo.level >= 20:
                     self.wuqistragy = ["镰刀"]
@@ -138,7 +138,7 @@ class Equips:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["短剑", "太刀", "钝器", "巨剑", "光剑"]
             self.xingyunwuqipos = (0, 109)
-            if occupationafter in ["剑影"]:
+            if occupationafter in ["剑影", "夜刀神"]:
                 self.bodystragy = PIJIA
                 if meninfo.level >= 20:
                     self.wuqistragy = ["太刀"]
@@ -148,7 +148,7 @@ class Equips:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["手套", "臂铠", "爪", "拳套", "东方棍"]
             self.xingyunwuqipos = (-56, 111)
-            if occupationafter in ["气功师"]:
+            if occupationafter in ["气功师", "百花缭乱"]:
                 self.bodystragy = BUJIA
                 if meninfo.level >= 20:
                     self.wuqistragy = ["手套"]

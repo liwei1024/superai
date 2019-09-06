@@ -135,7 +135,7 @@ lib.M_MouseWheel.restype = c_int
 
 # 随机时间sleep
 def RanSleep(t):
-    t = random.uniform(t - 0.02, t + 0.02)
+    t = random.uniform(t - 0.002, t + 0.002)
     if t < 0:
         t = 0
 

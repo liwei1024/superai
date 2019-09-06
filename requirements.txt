@@ -10,5 +10,6 @@ coloredlogs
 flask
 flask_jsonrpc
 flask_sqlalchemy
+flask_cors
 wmi
 psutil

@@ -264,10 +264,20 @@ def SetThreadExit():
 def FlushImg():
     global gConfirmTop, gShipinScene
 
+    from superai.gameapi import IsManInMap
+
     try:
         while not gFlushExit:
-            gConfirmTop = True if confirm.Match() else False
-            gShipinScene = True if shipinScene.IsBlack() else False
+            if IsManInMap() and not gConfirmTop:
+                pass
+            else:
+                gConfirmTop = True if confirm.Match() else False
+
+            if IsManInMap() and not gShipinScene:
+                pass
+            else:
+                gShipinScene = True if shipinScene.IsBlack() else False
+
             time.sleep(0.3)
     except Exception:
         logger.info("flushimg thread error ")

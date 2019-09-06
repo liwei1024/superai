@@ -670,6 +670,7 @@ def AcceptMain(player):
 
         player.taskctx.latestacceptpoint = time.time()
     else:
+        PressKey(VK_CODE["esc"]), KongjianSleep()
         logger.warning("接受任务不能多次点击,本次啥都不做")
 
 
@@ -695,6 +696,7 @@ def SubmitTask(player):
 
         player.taskctx.latestsubmitpoint = time.time()
     else:
+        PressKey(VK_CODE["esc"]), KongjianSleep()
         logger.warning("完成任务不能多次点击,本次啥都不做")
 
 

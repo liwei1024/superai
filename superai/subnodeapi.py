@@ -4,6 +4,7 @@ import sys
 
 from flask import Flask
 from flask_jsonrpc import JSONRPC
+from flask_cors import CORS
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -11,6 +12,7 @@ from superai.sysmonitor import sysVersion, cpuInfo, memInfo, diskInfo, networkIn
 from superai.subnodedb import DbEventSelect, DbStateSelect, DbItemSelect
 
 app = Flask(__name__)
+CORS(app)
 
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
 
@@ -59,4 +61,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()path
+    main()

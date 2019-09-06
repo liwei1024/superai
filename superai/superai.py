@@ -40,8 +40,6 @@ from superai.gameapi import GameApiInit, FlushPid, \
 StateMachineSleep = 0.01
 
 
-
-
 class StateMachine:
     def __init__(self, owner):
         self.latestState = None
@@ -319,6 +317,10 @@ class Player:
             self.Seek(point[0], point[1], obj, dummy)
             return
         elif len(self.pathfindinglst) >= 2:
+
+            menx, meny = GetMenXY()
+            menx, meny = int(menx), int(meny)
+
             # 路径规划过
             firstPoint = idxToXY(self.pathfindinglst[0], self.d.mapw // 10)
             secondPoint = idxToZuobiao(self.pathfindinglst[1], self.d.mapw // 10)
@@ -355,9 +357,11 @@ class Player:
 
         mapinfo = GetMapInfo()
         self.latestpos = (mapinfo.curx, mapinfo.cury)
+        self.ClearPathfindingLst()
 
         t1 = time.time()
         meninfo = GetMenInfo()
+
         try:
             self.d, self.ob = SafeGetDAndOb(meninfo.w, meninfo.h)
         except:
@@ -372,7 +376,6 @@ class Player:
                 self.doorx, self.doory = GetCorrectDoorXY(self.d.mapw, self.d.maph, door, self.ob)
             logger.info("下一个门的坐标: (%d, %d) ->修正 (%d, %d) " % (door.x, door.y, self.doorx, self.doory))
 
-        self.ClearPathfindingLst()
         t2 = time.time()
 
         logger.info("获取了地图地形,障碍物数据 共花费: %f", t2 - t1)
@@ -380,10 +383,10 @@ class Player:
     # 切换到新的图
     def CheckInToNewMap(self):
         self.UpLatestKey()
-        RanSleep(0.2)
-        logger.info("进了新的房间")
-        self.NewMapCache()
         self.ResetStuckInfo()
+        logger.info("进了新的房间")
+        RanSleep(0.3)
+        self.NewMapCache()
         self.ChangeState(StandState())
 
     # 是否等级变化
@@ -503,7 +506,6 @@ class GlobalState(State):
                 player.RestoreContext()
             return
 
-
         # 视频判断
         if not player.IsEmptyFor(FOR_SHIPIN) and IsShiPinTopWrap():
             player.SaveAndChangeToEmpty(FOR_SHIPIN)
@@ -562,8 +564,8 @@ class GlobalState(State):
         else:
             self.Reset()
 
-        # 卡死很长时间,放大招!
         if IsManInMap():
+            # 卡死很长时间,放大招!
             if player.latestfucktime is None:
                 player.latestfucktime = time.time()
                 player.latestmap = GetCurmapXy()
@@ -572,6 +574,11 @@ class GlobalState(State):
                     logger.warning("出现问题,纠正一下!")
                     player.ChangeState(StuckShit())
                 player.ResetStuckInfo()
+
+            # 不小心进到了新的门
+            # if player.IsMapPosChange(GetCurmapXy()):
+            #     player.CheckInToNewMap()
+            #     return
 
         # esc弹出 TODO, 不知道什么代码弹出来的
         # if IsManInMap():
@@ -633,11 +640,11 @@ class InChengzhen(State):
                 return
 
         # 疲劳没有了清空下背包
-        if not HavePilao() and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.3:
-            pos = deal.GetFenjieJiPos()
-            if pos is not None and pos != (0, 0):
-                player.ChangeState(FenjieEquip())
-                return
+        # if not HavePilao() and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.3:
+        #     pos = deal.GetFenjieJiPos()
+        #     if pos is not None and pos != (0, 0):
+        #         player.ChangeState(FenjieEquip())
+        #         return
 
         # 耐久小于25%,修理 (需要先到副本外)
         if deal.NeedRepair():
@@ -782,6 +789,8 @@ class FirstInMap(State):
             return
 
         player.skills.Update()
+        player.NewMapCache()
+        player.ResetStuckInfo()
 
         if player.skills.HaveBuffCanBeUse():
             if not CanbeMovTest():
@@ -797,9 +806,6 @@ class FirstInMap(State):
             logger.info("没有buffer可以使用")
 
         player.skills.Update()
-
-        player.NewMapCache()
-        player.ResetStuckInfo()
         player.ChangeState(StandState())
 
 

@@ -67,7 +67,7 @@ class Occupationkills:
                 self.anqiangInit()
         elif occupationbefore in ["圣职者"]:
             self.shengzhiInit()
-            if occupationafter in ["诱魔者"]:
+            if occupationafter in ["诱魔者", "断罪者"]:
                 self.youmozheInit()
         elif occupationbefore in ["守护者"]:
             self.shouhuInit()
@@ -75,11 +75,11 @@ class Occupationkills:
                 self.paladingInit()
         elif occupationbefore in ["格斗家"]:
             self.gedouInit()
-            if occupationafter in ["气功师"]:
+            if occupationafter in ["气功师", "百花缭乱"]:
                 self.nvqigongInit()
         elif occupationbefore in ["鬼剑士"]:
             self.guijianshiInit()
-            if occupationafter in ["剑影"]:
+            if occupationafter in ["剑影", "夜刀神"]:
                 self.jianyingInit()
         elif occupationbefore in ["枪剑士"]:
             self.qiangjianshiInit()
@@ -136,6 +136,8 @@ class Occupationkills:
         if meninfo.level >= 40:
             self.DelSkill("源光斩")
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "光裂斩", "yuanneng_guangliezhan.png"))
+        if meninfo.level >= 45:
+            self.learnstrategy.append(OccupationSkill("qiangjianshi", "光导裂地斩", "yuanneng_guangdaoliedizhan.png"))
 
     # 鬼剑士
     def guijianshiInit(self):
@@ -212,6 +214,8 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("gedoujia", "狮子吼", "qigong_shizihou.png"))
         if meninfo.level >= 40:
             self.learnstrategy.append(OccupationSkill("gedoujia", "念兽 : 龙虎啸", "qigong__longhuxiao.png"))
+        if meninfo.level >= 45:
+            self.learnstrategy.append(OccupationSkill("gedoujia", "螺旋念气场", "qigong_luoxuannianqi.png"))
 
     # 守护者
     def shouhuInit(self):
@@ -249,6 +253,10 @@ class Occupationkills:
         if meninfo.level >= 35:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光闪耀", "palading_shenguangshanyao.png"))
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光闪影击", "palading_shenguangshanyingji.png"))
+        if meninfo.level >= 40:
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "神罚之锤", "palading_shenfazhichui.png"))
+        if meninfo.level >= 45:
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光之跃", "palading_shenzhiguangyue.png"))
 
     # 圣职
     def shengzhiInit(self):
@@ -291,6 +299,8 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("shengzhizhe", "贪婪之刺", "youmozhe_tanlanzhici.png"))
         if meninfo.level >= 40:
             self.learnstrategy.append(OccupationSkill("shengzhizhe", "杀戮战镰", "youmozhe_shaluzhanlian.png"))
+        if meninfo.level >= 45:
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "愤怒之袭", "youmozhe_fennuzhixi.png"))
 
     # 魔枪
     def moqiangInit(self):

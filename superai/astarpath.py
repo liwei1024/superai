@@ -353,6 +353,7 @@ class Obstacle:
 
     # ** (直接使用)人物指定方向是否有障碍物或地形
     def ManQuadHasTrouble(self, quad, menx, meny):
+
         halfmenw, halfmenh = self.menw // 2, self.menh // 2
         composes = QuardantMap[quad]
         menl, menr, ment, mend = menx - halfmenw, menx + halfmenw, meny - halfmenh, meny + halfmenh
@@ -749,8 +750,8 @@ def main():
     GameApiInit()
     FlushPid()
 
-    DrawNextDoorPath()
-    # DrawAnyPath(827, 377, 938, 356) 寂静城第二图
+    # DrawNextDoorPath()
+    DrawAnyPath(1108, 306, 739, 313)
 
 
 if __name__ == '__main__':
