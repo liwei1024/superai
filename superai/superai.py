@@ -317,10 +317,6 @@ class Player:
             self.Seek(point[0], point[1], obj, dummy)
             return
         elif len(self.pathfindinglst) >= 2:
-
-            menx, meny = GetMenXY()
-            menx, meny = int(menx), int(meny)
-
             # 路径规划过
             firstPoint = idxToXY(self.pathfindinglst[0], self.d.mapw // 10)
             secondPoint = idxToZuobiao(self.pathfindinglst[1], self.d.mapw // 10)
@@ -1080,6 +1076,7 @@ class DoorDidnotOpen(State):
 class DeadState(State):
     def Execute(self, player):
         meninfo = GetMenInfo()
+
         if meninfo.hp > 1:
             player.ChangeState(Setup())
             return
