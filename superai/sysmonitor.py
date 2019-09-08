@@ -99,10 +99,10 @@ def networkInfo():
 
 def main():
     print("system: " + str(sysVersion()))
-    # print("cpu: " + str(cpuInfo()))
-    # print("mem: " + str(memInfo()))
-    # print("disk: " + str(diskInfo()))
-    # print("net: " + str(networkInfo()))
+    print("cpu: " + str(cpuInfo()))
+    print("mem: " + str(memInfo()))
+    print("disk: " + str(diskInfo()))
+    print("net: " + str(networkInfo()))
 
 
 if __name__ == '__main__':
