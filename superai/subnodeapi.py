@@ -20,6 +20,9 @@ CORS(app)
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
 socketio = SocketIO(app)
 
+thread = None
+threadLock = threading.Lock()
+
 
 @app.route('/')
 def test():
@@ -60,9 +63,21 @@ def getMachineState():
     return jsonstr
 
 
-@socketio.on('machinestatepush')
+@socketio.on('machinestatepush', namespace='machinestatepush')
 def machinestatepush():
-    socketio.emit(event="machinestatepush")
+    # 先不注册
+    # socketio.emit("machinestatepush", namespace='machinestatepush')
+    global thread
+    with threadLock:
+        if thread is None:
+            thread = socketio.start_background_task(target=background_thread)
+
+
+# 推送线程
+def background_thread():
+    while True:
+        socketio.emit('machinestatepush', getMachineState(), namespace='machinestatepush')
+        socketio.sleep(2)
 
 
 def main():

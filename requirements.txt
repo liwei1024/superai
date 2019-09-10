@@ -11,6 +11,6 @@ flask
 flask_jsonrpc
 flask_sqlalchemy
 flask_cors
-flask_socketio
+Flask-Sockets
 wmi
 psutil
