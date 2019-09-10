@@ -1,9 +1,59 @@
 import sys
+import time
+
 sys.coinit_flags = 0
 import pythoncom
 import wmi
-import platform
 import psutil
+
+gsysversionresult = None
+gcpuresult = None
+gmemresult = None
+gdiskresult = None
+gnetworkresult = None
+
+latest_sent = None
+latest_recv = None
+
+s_is_running = True
+
+gsleepTime = 2
+
+
+def getSysversionResult():
+    return sysVersion() if gsysversionresult is None else gsysversionresult
+
+
+def getCpuResult():
+    return cpuInfo() if gcpuresult is None else gcpuresult
+
+
+def getMemResult():
+    return memInfo() if gmemresult is None else gmemresult
+
+
+def getDiskResult():
+    return diskInfo() if gdiskresult is None else gdiskresult
+
+
+def getNetworkResult():
+    return networkInfo() if gnetworkresult is None else gnetworkresult
+
+
+def sysFlushThread():
+    while s_is_running:
+        global gsysversionresult, gcpuresult, gmemresult, gdiskresult, gnetworkresult
+        gsysversionresult = sysVersion()
+        gcpuresult = cpuInfo()
+        gmemresult = memInfo()
+        gdiskresult = diskInfo()
+        gnetworkresult = networkInfo()
+        time.sleep(gsleepTime)
+
+
+def cpuFlushStop():
+    global s_is_running
+    s_is_running = False
 
 
 # 操作系统
@@ -22,7 +72,6 @@ def sysVersion():
         "osarch": obj.OSArchitecture,
         "build number": obj.BuildNumber,
     }
-
 
     pythoncom.CoUninitialize()
     return result
@@ -94,15 +143,33 @@ def networkInfo():
                 "mac": v[0].address
             }
 
+    obj = psutil.net_io_counters(pernic=True)
+    for key, v in obj.items():
+        if "WLAN" in key:
+            global latest_sent, latest_recv
+
+            if latest_sent is None and latest_recv is None:
+                latest_sent, latest_recv = v.bytes_sent, v.bytes_recv
+                result[key]["persec_sent"] = 0
+                result[key]["persec_recv"] = 0
+            else:
+                persec_sent = (v.bytes_sent - latest_sent) / gsleepTime
+                persec_recv = (v.bytes_recv - latest_recv) / gsleepTime
+                result[key]["persec_sent"] = persec_sent
+                result[key]["persec_recv"] = persec_recv
+                latest_sent, latest_recv = v.bytes_sent, v.bytes_recv
     return result
 
 
 def main():
+    t1 = time.time()
     print("system: " + str(sysVersion()))
     print("cpu: " + str(cpuInfo()))
     print("mem: " + str(memInfo()))
     print("disk: " + str(diskInfo()))
     print("net: " + str(networkInfo()))
+    t2 = time.time()
+    print(t2 - t1)
 
 
 if __name__ == '__main__':
