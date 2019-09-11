@@ -6,7 +6,7 @@ import threading
 from flask import Flask
 from flask_cors import CORS
 from flask_jsonrpc import JSONRPC
-
+from flask_socketio import SocketIO, emit
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -16,7 +16,7 @@ app = Flask(__name__)
 CORS(app)
 
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
-socketio = SocketIO(app, cors_allowed_origins='*', engineio_logger=True,allow_upgrades =True)
+socketio = SocketIO(app, cors_allowed_origins='*')
 
 thread = None
 threadLock = threading.Lock()
@@ -29,8 +29,8 @@ def test():
 
 subs = [
     (1, "localhost"),
-    # (2, "localhost"),
-    # (3, "localhost"),
+    (2, "localhost"),
+    (3, "localhost"),
 ]
 
 
@@ -43,25 +43,25 @@ def getSubs():
     return jsonstr
 
 
+# websocket推送所有机器列表
 @socketio.on('getsubspush')
 def getsubspush():
-    # emit('getsubspush', {"data": "register getsubspush success"})
-    #
-    # global thread
-    # with threadLock:
-    #     if thread is None:
-    #         thread = socketio.start_background_task(target=background_thread)
+    def background_thread():
+        while True:
+            socketio.emit('getsubspush', getSubs())
+            socketio.sleep(2)
 
-
-# 推送线程
-def background_thread():
-    # while True:
-    #     socketio.emit('getsubspush', getSubs())
-    #     socketio.sleep(2)
+    global thread
+    with threadLock:
+        if thread is None:
+            thread = socketio.start_background_task(target=background_thread)
 
 
 def main():
-    app.run(host='0.0.0.0', port=33333, debug=True)
+    from gevent import pywsgi
+    from geventwebsocket.handler import WebSocketHandler
+    server = pywsgi.WSGIServer(('', 33333), app, handler_class=WebSocketHandler)
+    server.serve_forever()
 
 
 if __name__ == '__main__':

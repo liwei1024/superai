@@ -58,7 +58,6 @@ def cpuFlushStop():
 
 # 操作系统
 def sysVersion():
-    pythoncom.CoInitialize()
 
     c = wmi.WMI()
 
@@ -73,13 +72,11 @@ def sysVersion():
         "build number": obj.BuildNumber,
     }
 
-    pythoncom.CoUninitialize()
     return result
 
 
 # cpu
 def cpuInfo():
-    pythoncom.CoInitialize()
 
     c = wmi.WMI()
     obj = c.Win32_Processor()
@@ -92,7 +89,6 @@ def cpuInfo():
         "usage": psutil.cpu_percent(interval=None),
     }
 
-    pythoncom.CoUninitialize()
 
     return result
 
@@ -111,7 +107,6 @@ def memInfo():
 
 # 磁盘
 def diskInfo():
-    pythoncom.CoInitialize()
 
     c = wmi.WMI()
     obj = c.Win32_DiskDrive()
@@ -127,7 +122,6 @@ def diskInfo():
         "total": obj2.total
     }
 
-    pythoncom.CoUninitialize()
 
     return result
 

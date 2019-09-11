@@ -18,7 +18,7 @@ app = Flask(__name__)
 CORS(app)
 
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins='*')
 
 thread = None
 threadLock = threading.Lock()
@@ -63,27 +63,27 @@ def getMachineState():
     return jsonstr
 
 
-@socketio.on('machinestatepush', namespace='machinestatepush')
+# websocket推送单个机器信息
+@socketio.on('machinestatepush')
 def machinestatepush():
-    # 先不注册
-    # socketio.emit("machinestatepush", namespace='machinestatepush')
+    def background_thread():
+        while True:
+            socketio.emit('machinestatepush', getMachineState())
+            socketio.sleep(2)
+
     global thread
     with threadLock:
         if thread is None:
             thread = socketio.start_background_task(target=background_thread)
 
 
-# 推送线程
-def background_thread():
-    while True:
-        socketio.emit('machinestatepush', getMachineState(), namespace='machinestatepush')
-        socketio.sleep(2)
-
-
 def main():
     t = threading.Thread(target=sysFlushThread)
     t.start()
-    app.run(host='0.0.0.0', port=22222)
+    from gevent import pywsgi
+    from geventwebsocket.handler import WebSocketHandler
+    server = pywsgi.WSGIServer(('', 22222), app, handler_class=WebSocketHandler)
+    server.serve_forever()
     cpuFlushStop()
 
 
