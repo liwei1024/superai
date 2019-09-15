@@ -1203,7 +1203,7 @@ def main():
     SetThreadExit()  # 截图线程退出
     EXIT = True  # 热键线程退出
     logger.info("main thread exit")
-    sys.exit()
+    # sys.exit()
 
 
 if __name__ == "__main__":
