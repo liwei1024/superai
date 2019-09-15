@@ -3,6 +3,10 @@ import os
 import sys
 import threading
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from flask import Flask
 from flask_jsonrpc import JSONRPC
 from flask_cors import CORS
@@ -10,7 +14,9 @@ from flask_socketio import SocketIO, emit
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from superai.sysmonitor import sysVersion, cpuInfo, memInfo, diskInfo, networkInfo, sysFlushThread, cpuFlushStop, \
+from superai.common import InitLog
+
+from superai.sysmonitor import sysFlushThread, cpuFlushStop, \
     getCpuResult, getSysversionResult, getMemResult, getDiskResult, getNetworkResult
 from superai.subnodedb import DbEventSelect, DbStateSelect, DbItemSelect
 
@@ -19,9 +25,6 @@ CORS(app)
 
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
 socketio = SocketIO(app, cors_allowed_origins='*')
-
-thread = None
-threadLock = threading.Lock()
 
 
 @app.route('/')
@@ -63,26 +66,47 @@ def getMachineState():
     return jsonstr
 
 
-# websocket推送单个机器信息
+@socketio.on('geteventpush')
+def geteventpush():
+    socketio.emit('geteventpush', getEvent())
+
+
+@socketio.on('getstatepush')
+def getstatepush():
+    socketio.emit('getstatepush', getState())
+
+
+@socketio.on('getitempush')
+def getitempush():
+    socketio.emit('getitempush', getItem())
+
+
 @socketio.on('machinestatepush')
 def machinestatepush():
-    def background_thread():
-        while True:
-            socketio.emit('machinestatepush', getMachineState())
-            socketio.sleep(2)
+    socketio.emit('machinestatepush', getMachineState())
 
-    global thread
-    with threadLock:
-        if thread is None:
-            thread = socketio.start_background_task(target=background_thread)
+
+def background_thread():
+    while True:
+        socketio.emit('machinestatepush', getMachineState())
+        socketio.emit('geteventpush', getEvent())
+        socketio.emit('getstatepush', getState())
+        socketio.emit('getitempush', getItem())
+
+        logger.info("推送机器/业务数据 machinestatepush")
+
+        socketio.sleep(2)
 
 
 def main():
+    InitLog()
+
     t = threading.Thread(target=sysFlushThread)
     t.start()
     from gevent import pywsgi
     from geventwebsocket.handler import WebSocketHandler
-    server = pywsgi.WSGIServer(('', 22222), app, handler_class=WebSocketHandler)
+    server = pywsgi.WSGIServer(('0.0.0.0', 22222), app, handler_class=WebSocketHandler)
+    socketio.start_background_task(target=background_thread)
     server.serve_forever()
     cpuFlushStop()
 

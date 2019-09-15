@@ -132,10 +132,14 @@ lib.M_MoveTo3.restype = c_int
 lib.M_MouseWheel.argtypes = [c_void_p, c_int]
 lib.M_MouseWheel.restype = c_int
 
+# 输入 ascii
+lib.M_KeyInputString.argtypes = [c_void_p, c_char_p, c_int]
+lib.M_KeyInputString.restype = c_int
+
 
 # 随机时间sleep
 def RanSleep(t):
-    t = random.uniform(t - 0.02, t + 0.02)
+    t = random.uniform(t - 0.005, t + 0.005)
     if t < 0:
         t = 0
 
@@ -144,7 +148,7 @@ def RanSleep(t):
 
 # 操作控件后的sleep
 def KongjianSleep():
-    RanSleep(0.1)
+    RanSleep(0.2)
 
 
 # 打开某个栏的sleep
@@ -293,21 +297,29 @@ def PressX():
     lib.M_KeyUp2(h, VK_CODE["x"])
 
 
-def PressSkill(key, delay, afterdelay, thenpress=None, doublepress=False):
-    lib.M_KeyDown2(h, key), RanSleep(delay)
-    lib.M_KeyUp2(h, key), RanSleep(afterdelay)
+def PressSkill(key, delay, afterdelay, thenpress=None, doublepress=False, issimpleattack=False):
 
-    if thenpress is not None:
-        lib.M_KeyDown2(h, thenpress), KongjianSleep()
-        lib.M_KeyUp2(h, thenpress)
+    if issimpleattack:
+        for i in range(10):
+            lib.M_KeyDown2(h, key), RanSleep(0.05)
+            lib.M_KeyUp2(h, key), RanSleep(0.05)
+            RanSleep(0.05)
 
-    if doublepress:
-        def worker():
-            for i in range(10):
-                lib.M_KeyDown2(h, key), KongjianSleep()
-                lib.M_KeyUp2(h, key), KongjianSleep()
+    else:
+        lib.M_KeyDown2(h, key), RanSleep(delay)
+        lib.M_KeyUp2(h, key), RanSleep(afterdelay)
 
-        threading.Thread(target=worker).start()
+        if thenpress is not None:
+            lib.M_KeyDown2(h, thenpress), KongjianSleep()
+            lib.M_KeyUp2(h, thenpress)
+
+        if doublepress:
+            def worker():
+                for i in range(10):
+                    lib.M_KeyDown2(h, key), KongjianSleep()
+                    lib.M_KeyUp2(h, key), KongjianSleep()
+
+            threading.Thread(target=worker).start()
 
 
 def PressHouTiao():
@@ -389,16 +401,20 @@ def MouseWheel(v):
     lib.M_MouseWheel(h, v)
 
 
+# 输入ascii
+def KeyInputStgring(s):
+    ins = bytes(s, "utf8")
+    lib.M_KeyInputString(h, ins, len(s))
+
+
 def main():
     InitLog()
     YijianshuInit()
 
-    global h
-    global x
-
-    GameWindowToTop()
-
-    MouseMoveTo(329, 335)
+    # RanSleep(3.0)
+    # KeyInputStgring("GGC88zyj")
+    # GameWindowToTop()
+    # MouseMoveTo(329, 335)
 
 
 if __name__ == "__main__":

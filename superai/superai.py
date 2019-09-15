@@ -1,12 +1,16 @@
+import ctypes
 import logging
 import os
 import sys
 import threading
 
+import win32api
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 logger = logging.getLogger(__name__)
 
+import win32con
 import random
 import time
 
@@ -14,7 +18,7 @@ from superai.dealequip import DealEquip
 from superai.equip import Equips
 from superai.plot import TaskCtx, HasPlot, plotMap
 from superai.learnskill import Occupationkills
-from superai.common import InitLog, GameWindowToTop
+from superai.common import InitLog, GameWindowToTop, HideConsole
 from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, SafeGetDAndOb, Zuobiao
 from superai.astartdemo import idxToXY
 
@@ -360,8 +364,10 @@ class Player:
 
         try:
             self.d, self.ob = SafeGetDAndOb(meninfo.w, meninfo.h)
-        except:
-            logger.warning("获取障碍物发生错误")
+        except Exception as err:
+            self.ChangeState(Setup())
+            logger.warning("获取障碍物发生错误 %s" % err)
+            return
 
         if not IsCurrentInBossFangjian():
             door = GetNextDoorWrap()
@@ -527,15 +533,15 @@ class GlobalState(State):
         #     return False
 
         # 特定状态下才进行判断卡死
-        if IsManInMap():
+        if IsManInMap() and not isinstance(player.stateMachine.currentState, FubenOver):
             if self.latesttime is None:
                 self.latesttime = time.time()
                 self.beginx, self.beginy = GetMenXY()
 
             # 多久时间判断一次
-            checktime = 0.5
+            checktime = 1.5
             if len(player.pathfindinglst) > 0:
-                checktime = 1.5
+                checktime = 2.0
 
             if time.time() - self.latesttime > checktime:
                 latestx, latesty = self.beginx, self.beginy
@@ -560,7 +566,7 @@ class GlobalState(State):
         else:
             self.Reset()
 
-        if IsManInMap():
+        if IsManInMap() and not isinstance(player.stateMachine.currentState, FubenOver):
             # 卡死很长时间,放大招!
             if player.latestfucktime is None:
                 player.latestfucktime = time.time()
@@ -1144,7 +1150,28 @@ class NoPilao(State):
         RanSleep(1)
 
 
+EXIT = False
+
+
+def Hotkey():
+    while True:
+        statealt = win32api.GetAsyncKeyState(VK_CODE['alt'])
+        statek = win32api.GetAsyncKeyState(VK_CODE['q'])
+        global EXIT
+        if (statealt != 0 and statek != 0) or EXIT is True:
+            EXIT = True
+            logger.warning("exit!!!")
+            break
+        time.sleep(0.005)
+
+
 def main():
+    # HideConsole()
+    # ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6)
+
+    t = threading.Thread(target=Hotkey)
+    t.start()
+
     InitLog()
     GameApiInit()
     FlushPid()
@@ -1164,16 +1191,19 @@ def main():
 
     player.skills.Update()
 
+    global EXIT
     try:
-        while True:
+        while not EXIT:
             time.sleep(StateMachineSleep)
             player.Update()
     except KeyboardInterrupt:
-        ReleaseAllKey()
-        SetThreadExit()
-        t.join()
-        logger.info("main thread exit")
-        sys.exit()
+        pass
+
+    ReleaseAllKey()
+    SetThreadExit()  # 截图线程退出
+    EXIT = True  # 热键线程退出
+    logger.info("main thread exit")
+    sys.exit()
 
 
 if __name__ == "__main__":

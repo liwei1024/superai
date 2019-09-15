@@ -93,9 +93,11 @@ def OpenBagScene():
 
 # 关闭装备栏
 def CloseBagScene():
+
     while bagScene.Match():
         logger.info("关闭装备栏")
         PressKey(VK_CODE["esc"]), KongjianSleep()
+
 
 
 class Equips:
@@ -382,6 +384,7 @@ class Equips:
 
     # 关闭租聘界面
     def CloseZupin(self):
+
         while zupinScene.Match():
             logger.info("关闭幸运星租聘界面")
             PressKey(VK_CODE["esc"]), KongjianSleep()

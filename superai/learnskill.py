@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 skillScene = Picture(GetImgDir() + "skillscene.png")
 skillSceneLearn = Picture(GetImgDir() + "skillscene_learn.png")
+skillstore = Picture(GetImgDir() + "skill_store.png")
 
 # 技能对应的技能栏位置
 idxposmap = {
@@ -468,7 +469,7 @@ class Occupationkills:
             # 确认按钮
             learnpos = skillSceneLearn.Pos()
             MouseMoveTo(learnpos[0], learnpos[1]), KongjianSleep()
-            MouseLeftClick(), KongjianSleep()
+            MouseLeftClick(), RanSleep(0.3)
             MouseLeftClick(), KongjianSleep()
 
     # 打开技能栏
@@ -484,6 +485,9 @@ class Occupationkills:
         while skillScene.Match():
             logger.info("关闭技能栏")
             PressKey(VK_CODE["esc"]), KongjianSleep()
+
+            if skillstore.Match():
+                PressKey(VK_CODE["enter"]), KongjianSleep()
 
     # 在技能策略中
     def IsInLearnStrategy(self, name):
@@ -584,11 +588,13 @@ def main():
     YijianshuInit()
     GameWindowToTop()
 
-    oc = Occupationkills()
-    oc.AddSkillPoints()
-    oc.RemoveNotInStrategy()
-    oc.EquipSkillInStrategy()
-    oc.CloseSkillScene()
+    print(skillstore.Match())
+
+    # oc = Occupationkills()
+    # oc.AddSkillPoints()
+    # oc.RemoveNotInStrategy()
+    # oc.EquipSkillInStrategy()
+    # oc.CloseSkillScene()
 
 
 if __name__ == '__main__':

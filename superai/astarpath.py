@@ -111,14 +111,7 @@ def IsRectagleOverlapLine(renleftx, renrightx, rentopy, rendowny, line):
 # 安全获得d和ob对象. 因为直接读内存会产生不同步的问题
 def SafeGetDAndOb(menw, menh):
     d = GetGameObstacleData()
-
-    try:
-        ob = Obstacle(d, menw, menh)
-    except IndexError:
-        logger.warning("获得地形和ob对象发生错误, 重新获取")
-        time.sleep(0.1)
-        return SafeGetDAndOb(menw, menh)
-
+    ob = Obstacle(d, menw, menh)
     return d, ob
 
 
@@ -144,7 +137,10 @@ class Obstacle:
         def dealcell(cell):
             cellX = cell.x // 0x10
             cellY = cell.y // 0xc
-            self.dixing[cellY * self.mapCellWLen + cellX] = True
+
+            idx = cellY * self.mapCellWLen + cellX
+            if idx < len(self.dixing):
+                self.dixing[idx] = True
 
         for cell in d.dixingtree:
             dealcell(cell)

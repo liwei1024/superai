@@ -1631,6 +1631,8 @@ class Skill:
         self.canbeused = False
         # python对技能的配置
         self.skilldata = SkillData(type=SkillType.Gongji)
+        # 是否是普通攻击
+        self.issimpleattack = False
 
         for k, w in kw.items():
             setattr(self, k, w)
@@ -1685,8 +1687,9 @@ class Skill:
     def Use(self):
         logger.info(" %s delay %f afterdelay %f doublepress %d" % (
             self.name, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.doublepress))
+
         PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.thenpress,
-                   self.skilldata.doublepress)
+                   self.skilldata.doublepress, self.issimpleattack)
 
         if self.skilldata.lockhp:
             LockHp()
@@ -1767,19 +1770,19 @@ skillSettingMap = {
     "杀意波动": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
     # 近
-    "上挑": SkillData(type=SkillType.Gongji, level=3),
-    "鬼斩": SkillData(type=SkillType.Gongji, level=5),
-    "裂波斩": SkillData(type=SkillType.Gongji, level=7, afterdelay=0.3),
-    "鬼连斩": SkillData(type=SkillType.Gongji, level=8),
-    "波动爆发": SkillData(type=SkillType.Gongji, level=11),
-    "无双波": SkillData(type=SkillType.Gongji, level=13),
+    "上挑": SkillData(type=SkillType.Gongji),
+    "鬼斩": SkillData(type=SkillType.Gongji),
+    "裂波斩": SkillData(type=SkillType.Gongji, afterdelay=0.3),
+    "鬼连斩": SkillData(type=SkillType.Gongji),
+    "波动爆发": SkillData(type=SkillType.Gongji),
+    "无双波": SkillData(type=SkillType.Gongji),
 
     # 远
-    "地裂 · 波动剑": SkillData(type=SkillType.Gongji, level=10, v_w=200 / 2, h_w=40 / 2),
-    "鬼印珠": SkillData(type=SkillType.Gongji, level=12, v_w=400 / 2, h_w=40 / 2, too_close_v_w=140 / 2, delaytime=0.5),
-    "邪光斩": SkillData(type=SkillType.Gongji, level=15, v_w=400 / 2, h_w=40 / 2, delaytime=0.6),
-    "冰刃 · 波动剑": SkillData(type=SkillType.Gongji, level=16, v_w=400 / 2, h_w=40 / 2),
-    "爆炎 · 波动剑": SkillData(type=SkillType.Gongji, level=14, v_w=400 / 2, h_w=40 / 2),
+    "地裂 · 波动剑": SkillData(type=SkillType.Gongji, v_w=200 / 2, h_w=40 / 2),
+    "鬼印珠": SkillData(type=SkillType.Gongji, v_w=400 / 2, h_w=40 / 2, too_close_v_w=140 / 2, delaytime=0.5),
+    "邪光斩": SkillData(type=SkillType.Gongji, v_w=400 / 2, h_w=40 / 2, delaytime=0.6),
+    "冰刃 · 波动剑": SkillData(type=SkillType.Gongji, v_w=400 / 2, h_w=40 / 2),
+    "爆炎 · 波动剑": SkillData(type=SkillType.Gongji, v_w=400 / 2, h_w=40 / 2),
 
     # 神龙天女
     "神谕之祈愿": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
@@ -1841,7 +1844,7 @@ skillSettingMap = {
 }
 
 # 普通攻击
-simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击")
+simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击", issimpleattack=True)
 simpleAttackSkill.skilldata.delaytime = 1.0
 
 
@@ -1903,20 +1906,20 @@ def main():
     #     time.sleep(1.0)
     #     PrintMenInfo()
 
-    PrintMenInfo()
-    PrintMapInfo()
-    PrintMapObj()
-    PrintBagObj()
-    PrintBagEquipObj()
-    PrintEquipObj()
-    PrintSkillObj()
-    PrintAllSkillObj()
-    PrintTaskObj()
-    PrintAccpetedTaskObj()
-    PrintNextMen()
-    PrintWH()
-    # PrintSelectObj()
-    PrintSelectIdx()
+    # PrintMenInfo()
+    # PrintMapInfo()
+    # PrintMapObj()
+    # PrintBagObj()
+    # PrintBagEquipObj()
+    # PrintEquipObj()
+    # PrintSkillObj()
+    # PrintAllSkillObj()
+    # PrintTaskObj()
+    # PrintAccpetedTaskObj()
+    # PrintNextMen()
+    # PrintWH()
+    PrintSelectObj()
+    # PrintSelectIdx()
     # PrintXingyunxing()
 
     # PrintSceneInfo() # 数据太多

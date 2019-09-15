@@ -1,2 +1,2 @@
 cd /d %~dp0
-cmd /k
+python superai.py

@@ -1,3 +1,4 @@
+import ctypes
 import logging
 
 import coloredlogs
@@ -23,3 +24,11 @@ def GameWindowToTop():
     shell = win32com.client.Dispatch("WScript.Shell")
     shell.SendKeys('%')
     win32gui.SetForegroundWindow(hwnd)
+
+
+# 隐藏控制台
+def HideConsole():
+    whnd = ctypes.windll.kernel32.GetConsoleWindow()
+    if whnd != 0:
+        ctypes.windll.user32.ShowWindow(whnd, 0)
+        ctypes.windll.kernel32.CloseHandle(whnd)

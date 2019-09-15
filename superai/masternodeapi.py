@@ -3,12 +3,18 @@ import os
 import sys
 import threading
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from flask import Flask
 from flask_cors import CORS
 from flask_jsonrpc import JSONRPC
 from flask_socketio import SocketIO, emit
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
+
+from superai.common import InitLog
 
 app = Flask(__name__)
 # app.config["SECRET_KEY"] = "secret!"
@@ -18,9 +24,6 @@ CORS(app)
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
 socketio = SocketIO(app, cors_allowed_origins='*')
 
-thread = None
-threadLock = threading.Lock()
-
 
 @app.route('/')
 def test():
@@ -28,9 +31,7 @@ def test():
 
 
 subs = [
-    (1, "localhost"),
-    (2, "localhost"),
-    (3, "localhost"),
+    (1, "192.168.1.200"),
 ]
 
 
@@ -43,24 +44,25 @@ def getSubs():
     return jsonstr
 
 
-# websocket推送所有机器列表
 @socketio.on('getsubspush')
 def getsubspush():
-    def background_thread():
-        while True:
-            socketio.emit('getsubspush', getSubs())
-            socketio.sleep(2)
+    socketio.emit('getsubspush', getSubs())
 
-    global thread
-    with threadLock:
-        if thread is None:
-            thread = socketio.start_background_task(target=background_thread)
+
+def background_thread():
+    while True:
+        socketio.emit('getsubspush', getSubs())
+        logger.info("推送机器列表 getsubspush")
+        socketio.sleep(2)
 
 
 def main():
+    InitLog()
+
     from gevent import pywsgi
     from geventwebsocket.handler import WebSocketHandler
-    server = pywsgi.WSGIServer(('', 33333), app, handler_class=WebSocketHandler)
+    server = pywsgi.WSGIServer(('0.0.0.0', 33333), app, handler_class=WebSocketHandler)
+    socketio.start_background_task(target=background_thread)
     server.serve_forever()
 
 

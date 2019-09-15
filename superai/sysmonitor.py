@@ -1,9 +1,6 @@
-import sys
+import platform
 import time
 
-sys.coinit_flags = 0
-import pythoncom
-import wmi
 import psutil
 
 gsysversionresult = None
@@ -58,38 +55,18 @@ def cpuFlushStop():
 
 # 操作系统
 def sysVersion():
-
-    c = wmi.WMI()
-
-    obj = c.Win32_OperatingSystem()
-    if len(obj) < 1:
-        raise NotImplementedError("取操作系统信息错误")
-    obj = obj[0]
-
     result = {
-        "version": obj.Caption,
-        "osarch": obj.OSArchitecture,
-        "build number": obj.BuildNumber,
+        "version": platform.version(),
+        "osarch": platform.machine(),
     }
-
     return result
 
 
 # cpu
 def cpuInfo():
-
-    c = wmi.WMI()
-    obj = c.Win32_Processor()
-    if len(obj) < 1:
-        raise NotImplementedError("取cpu信息错误")
-    obj = obj[0]
-
     result = {
-        "cpuname": obj.Name.strip(),
         "usage": psutil.cpu_percent(interval=None),
     }
-
-
     return result
 
 
@@ -107,51 +84,52 @@ def memInfo():
 
 # 磁盘
 def diskInfo():
-
-    c = wmi.WMI()
-    obj = c.Win32_DiskDrive()
-    if len(obj) < 1:
-        raise NotImplementedError("读取磁盘信息错误")
-
-    obj = obj[0]
-    obj2 = psutil.disk_usage('/')
-
+    obj = psutil.disk_usage('/')
     result = {
-        "serialnumber": obj.SerialNumber,
-        "used": obj2.used,
-        "total": obj2.total
+
+        "used": obj.used,
+        "total": obj.total
     }
-
-
     return result
 
 
 # 网卡/ip信息
 def networkInfo():
+    matchlist = ["WLAN", "Ethernet"]
+
+    def isInMatchList(s):
+        for v in matchlist:
+            if v in s:
+                return True
+        return False
+
     obj = psutil.net_if_addrs()
     result = {}
     for key, v in obj.items():
-        if "WLAN" in key:
-            result[key] = {
+        if isInMatchList(key):
+            result["result"] = {
                 "ip": v[1].address,
                 "mac": v[0].address
             }
+            break
 
     obj = psutil.net_io_counters(pernic=True)
     for key, v in obj.items():
-        if "WLAN" in key:
+        if isInMatchList(key):
             global latest_sent, latest_recv
 
             if latest_sent is None and latest_recv is None:
                 latest_sent, latest_recv = v.bytes_sent, v.bytes_recv
-                result[key]["persec_sent"] = 0
-                result[key]["persec_recv"] = 0
+                result["result"]["persec_sent"] = 0
+                result["result"]["persec_recv"] = 0
+                break
             else:
                 persec_sent = (v.bytes_sent - latest_sent) / gsleepTime
                 persec_recv = (v.bytes_recv - latest_recv) / gsleepTime
-                result[key]["persec_sent"] = persec_sent
-                result[key]["persec_recv"] = persec_recv
+                result["result"]["persec_sent"] = persec_sent
+                result["result"]["persec_recv"] = persec_recv
                 latest_sent, latest_recv = v.bytes_sent, v.bytes_recv
+                break
     return result
 
 
