@@ -64,27 +64,27 @@ class Occupationkills:
 
         if occupationbefore in ["魔枪士"]:
             self.moqiangInit()
-            if occupationafter in ["暗枪士", "狂怒恶鬼"]:
+            if occupationafter in ["暗枪士", "狂怒恶鬼", "幽影夜神"]:
                 self.anqiangInit()
         elif occupationbefore in ["圣职者"]:
             self.shengzhiInit()
-            if occupationafter in ["诱魔者", "断罪者"]:
+            if occupationafter in ["诱魔者", "断罪者", "救世者"]:
                 self.youmozheInit()
         elif occupationbefore in ["守护者"]:
             self.shouhuInit()
-            if occupationafter in ["帕拉丁"]:
+            if occupationafter in ["帕拉丁", "曙光", "破晓女神"]:
                 self.paladingInit()
         elif occupationbefore in ["格斗家"]:
             self.gedouInit()
-            if occupationafter in ["气功师", "百花缭乱"]:
+            if occupationafter in ["气功师", "百花缭乱", "念帝"]:
                 self.nvqigongInit()
         elif occupationbefore in ["鬼剑士"]:
             self.guijianshiInit()
-            if occupationafter in ["剑影", "夜刀神"]:
+            if occupationafter in ["剑影", "夜刀神", "夜见罗刹"]:
                 self.jianyingInit()
         elif occupationbefore in ["枪剑士"]:
             self.qiangjianshiInit()
-            if occupationafter in ["源能专家"]:
+            if occupationafter in ["源能专家", "源力掌控者", "未来开拓者"]:
                 self.yuannengInit()
         else:
             raise NotImplementedError("还未支持的职业: %s" % occupationafter)

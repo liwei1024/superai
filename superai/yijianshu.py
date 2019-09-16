@@ -11,19 +11,13 @@ logger = logging.getLogger(__name__)
 import time
 import win32gui
 import random
-
+from superai.pathsetting import GetYiLib
 from ctypes import *
 from superai.common import InitLog, GameWindowToTop
 
 from superai.vkcode import *
 
-if os.path.exists("c:/win/superai/dll/"):
-    lib = CDLL("c:/win/superai/dll/msdk.dll", RTLD_GLOBAL)
-elif os.path.exists("D:/win/superai/dll/"):
-    lib = CDLL("D:/win/superai/dll/msdk.dll", RTLD_GLOBAL)
-else:
-    lib = CDLL("D:/win/reference/project/superai/dll/msdk.dll", RTLD_GLOBAL)
-
+lib = GetYiLib()
 # 键盘
 
 # 打开
@@ -298,7 +292,6 @@ def PressX():
 
 
 def PressSkill(key, delay, afterdelay, thenpress=None, doublepress=False, issimpleattack=False):
-
     if issimpleattack:
         for i in range(10):
             lib.M_KeyDown2(h, key), RanSleep(0.05)

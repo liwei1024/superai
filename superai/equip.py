@@ -112,7 +112,7 @@ class Equips:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["长枪", "战戟", "光枪", "暗矛"]
             self.xingyunwuqipos = (-31, 114)
-            if occupationafter in ["暗枪士", "狂怒恶鬼"]:
+            if occupationafter in ["暗枪士", "狂怒恶鬼", "幽影夜神"]:
                 self.bodystragy = PIJIA
                 if meninfo.level >= 20:
                     self.wuqistragy = ["暗矛"]
@@ -122,7 +122,7 @@ class Equips:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["十字架", "念珠", "图腾", "镰刀", "战斧"]
             self.xingyunwuqipos = (4, 107)
-            if occupationafter in ["诱魔者", "断罪者"]:
+            if occupationafter in ["诱魔者", "断罪者", "救世者"]:
                 self.bodystragy = ZHONGJIA
                 if meninfo.level >= 20:
                     self.wuqistragy = ["镰刀"]
@@ -131,7 +131,7 @@ class Equips:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["短剑", "太刀", "钝器", "巨剑", "光剑"]
             self.xingyunwuqipos = (0, 109)
-            if occupationafter in ["帕拉丁"]:
+            if occupationafter in ["帕拉丁", "曙光", "破晓女神"]:
                 self.bodystragy = BANJIA
                 if meninfo.level >= 20:
                     self.wuqistragy = ["钝器"]
@@ -140,7 +140,7 @@ class Equips:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["短剑", "太刀", "钝器", "巨剑", "光剑"]
             self.xingyunwuqipos = (0, 109)
-            if occupationafter in ["剑影", "夜刀神"]:
+            if occupationafter in ["剑影", "夜刀神", "夜见罗刹"]:
                 self.bodystragy = PIJIA
                 if meninfo.level >= 20:
                     self.wuqistragy = ["太刀"]
@@ -150,7 +150,7 @@ class Equips:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["手套", "臂铠", "爪", "拳套", "东方棍"]
             self.xingyunwuqipos = (-56, 111)
-            if occupationafter in ["气功师", "百花缭乱"]:
+            if occupationafter in ["气功师", "百花缭乱", "念帝"]:
                 self.bodystragy = BUJIA
                 if meninfo.level >= 20:
                     self.wuqistragy = ["手套"]
@@ -159,7 +159,7 @@ class Equips:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["长刀", "小太刀", "重剑", "源力剑"]
             self.xingyunwuqipos = (-56, 111)
-            if occupationafter in ["源能专家"]:
+            if occupationafter in ["源能专家", "源力掌控者", "未来开拓者"]:
                 self.bodystragy = BUJIA
                 if meninfo.level >= 20:
                     self.wuqistragy = ["源力剑"]

@@ -376,17 +376,25 @@ class TaskCtx:
         # self.latestsubmitpoint = None
 
 
+# 打开select
+def OpenSelect():
+    if not gamebegin.Match():
+        logger.info("寻找游戏开始按钮")
+        pos = selectmen.Pos()
+        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        MouseLeftClick(), RanSleep(1.5)
+
+    return gamebegin.Match()
+
+
 # 到赛利亚
 def BackAndEnter():
     if not Openesc():
         logger.warning("打开esc失败")
         return False
 
-    if not gamebegin.Match():
-        logger.info("寻找游戏开始按钮")
-        pos = selectmen.Pos()
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), RanSleep(1.5)  # TODO 写死了
+    if not OpenSelect():
+        logger.warning("返回选择角色失败")
 
     PressKey(VK_CODE["spacebar"]), KongjianSleep()
 

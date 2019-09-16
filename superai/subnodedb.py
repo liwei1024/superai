@@ -3,10 +3,15 @@ import json
 import os
 import sys
 import time
-from datetime import datetime
+import datetime
+
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+from superai.accountsetup import GetAccount, GetRegion
+from superai.gameapi import IsDestSupport, GetMenInfo, BagWuseNum
+
+from superai.pathsetting import getDbFile, GetDbDir
 from superai.common import InitLog
 
 import logging
@@ -15,26 +20,14 @@ logger = logging.getLogger(__name__)
 
 import sqlite3 as sqlite
 
-if os.path.exists("c:/win/superdb/"):
-    dbdir = "c:/win/superdb/"
-elif os.path.exists("d:/win/superdb/"):
-    dbdir = "d:/win/superdb/"
-else:
-    dbdir = "d:/win/studio/dxf/superdb/"
-
-
-def getDbFile():
-    return os.path.join(dbdir, "subnodedb.db")
-
-
 versionIter = ["001_20190902_init.sql"]
 
 
 def InitDb():
-    if not os.path.exists(dbdir):
-        os.mkdir(dbdir)
+    if not os.path.exists(GetDbDir()):
+        os.mkdir(GetDbDir())
 
-    if not os.path.exists(dbdir + "version"):
+    if not os.path.exists(GetDbDir() + "version"):
         with contextlib.closing(sqlite.connect(getDbFile())) as con:
             sqlfile = os.path.join(os.path.dirname(__file__), "db/subnodedb", versionIter[0])
             logger.info("刷%s 脚本", sqlfile)
@@ -43,17 +36,17 @@ def InitDb():
                 cur = con.cursor()
                 cur.executescript(sqltxt)
 
-        with open(os.path.join(dbdir, "version"), "w+") as f:
+        with open(os.path.join(GetDbDir(), "version"), "w+") as f:
             f.write("0")
 
-    with open(dbdir + "version") as f:
+    with open(GetDbDir() + "version") as f:
         version = int(f.read())
 
         if version < len(versionIter) - 1:
             logger.warning("版本更新, %d -> %d", version, len(versionIter) - 1)
 
             for i in range(version, len(versionIter)):
-                dbfile = os.path.join(dbdir, "superdb.db")
+                dbfile = os.path.join(GetDbDir(), "superdb.db")
                 with contextlib.closing(sqlite.connect(dbfile)) as con:
                     sqlfile = os.path.join(os.path.dirname(__file__), "db/subnodedb", versionIter[i])
                     logger.info("刷%s 脚本", sqlfile)
@@ -151,13 +144,69 @@ def DbStateSelect():
     return result
 
 
+# 今日早上六点时间戳
+def TodaySixTimestamp():
+    t = datetime.datetime.today()
+    sixt = datetime.datetime(t.year, t.month, t.day, hour=6)
+    return sixt.timestamp()
+
+
+# 是否今日的疲劳刷完了
+def IsTodayHavePilao():
+    objs = DbStateSelect()
+
+    for obj in objs:
+        if obj["zhiye"] is None:
+            # 没有初始化过
+            return True
+        else:
+            if IsDestSupport(obj["zhiye"]):
+                # 上次更新时间点在今日六点之前
+                if obj["timepoint"] < TodaySixTimestamp():
+                    return True
+
+                # 还有疲劳呢!!
+                if obj["curpilao"] > 0:
+                    return True
+
+    return False
+
+
+# 获取应该选择角色下标
+def GetToSelectIdx():
+    objs = DbStateSelect()
+    for i, obj in enumerate(objs):
+        if obj["zhiye"] is None:
+            return i
+        else:
+            if not IsDestSupport(obj["zhiye"]):
+                continue
+
+        # 上次更新时间点在今日六点之前
+        if obj["timepoint"] < TodaySixTimestamp():
+            return i
+
+        # 还有疲劳呢!!
+        if obj["curpilao"] > 0:
+            return i
+
+    raise Exception("没有可以选择的角色?")
+
+
+# 更新人物信息
+def UpdateMenState():
+    meninfo = GetMenInfo()
+    DbStateUpdate(account=GetAccount(), region=GetRegion(), role=meninfo.name, curlevel=meninfo.level,
+                  zhiye=meninfo.zhuanzhihou, curpilao=meninfo.curpilao, money=meninfo.money,
+                  wuse=BagWuseNum())
+
 # 流水没有就插入
 def DbItemInsert(account, region, role):
     with contextlib.closing(sqlite.connect(getDbFile())) as con:
         c = con.cursor()
         c.execute("begin")
         try:
-            yyyymmdd = datetime.today().strftime('%Y%m%d')
+            yyyymmdd = datetime.datetime.today().strftime('%Y%m%d')
 
             c.execute("select count(*) from item where account=? and region=? and role=? and yyyymmdd=?",
                       (account, region, role, yyyymmdd))
@@ -182,7 +231,7 @@ def DbItemAppend(account, region, role, moneyadd=None, wuseadd=None, timeadd=Non
         c = con.cursor()
         c.execute("begin")
         try:
-            yyyymmdd = datetime.today().strftime('%Y%m%d')
+            yyyymmdd = datetime.datetime.today().strftime('%Y%m%d')
             conditionstr = " where account = ? and region = ? and role = ? and yyyymmdd = ?"
             conditiontup = (account, region, role, yyyymmdd)
 
@@ -216,16 +265,15 @@ def DbItemSelect():
 
 def main():
     InitLog()
-
     InitDb()
-    DbEventAppend("13023252617", "上海一区", "小春春", "登陆上线")
-    DbEventAppend("13023252617", "上海一区", "小春春", "下线")
-    DbStateUpdate("13023252617", "上海一区", "小春春", curlevel=10, zhiye="格斗家", curpilao=100, money=10000)
-    DbItemAppend("13023252617", "上海一区", "小春春", moneyadd=100, wuseadd=10, timeadd=100)
+    # DbEventAppend("13023252617", "上海一区", "小春春", "登陆上线")
+    # DbEventAppend("13023252617", "上海一区", "小春春", "下线")
+    # DbStateUpdate("13023252617", "上海一区", "小春春", curlevel=10, )
+    # DbItemAppend("13023252617", "上海一区", "小春春", moneyadd=100, wuseadd=10, timeadd=100)
 
-    # rows = DbEventSelect("13023252617", "上海一区", "小春春")
-    # jsonstr = json.dumps(rows, ensure_ascii=False)
-    # print(jsonstr)
+    rows = DbStateSelect()
+    jsonstr = json.dumps(rows, ensure_ascii=False)
+    print(jsonstr)
 
 
 if __name__ == '__main__':

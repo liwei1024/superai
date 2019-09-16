@@ -12,21 +12,17 @@ import copy
 from enum import Enum
 import math
 
+from superai.pathsetting import GetHelpdllLib
 from superai.common import InitLog
 from superai.yijianshu import PressSkill, PressKey, DownZUO, DownYOU, DownSHANG, DownXIA, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, RanSleep, \
-    MouseMoveTo, KongjianSleep
+    MouseMoveTo, KongjianSleep, MouseLeftClick
 from superai.vkcode import VK_CODE
 from superai.defer import defer
 
 from ctypes import *
 
-if os.path.exists("c:/win/x64/Release/"):
-    lib = CDLL("c:/win/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
-elif os.path.exists("D:/win/x64/Release/"):
-    lib = CDLL("D:/win/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
-else:
-    lib = CDLL("D:/win/reference/project/xxiii/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
+lib = GetHelpdllLib()
 
 
 class MenInfo(Structure):
@@ -1524,12 +1520,21 @@ def IsShitmoGu():
     return False
 
 
-#  背包是否有装备
+# 背包是否有装备
 def BagHasFenjieEquip():
     equips = GetBagEquipObj()
     equips = filter(lambda equip: equip.color in [0, 1, 2], equips)
     equips = list(equips)
     return len(equips) > 0
+
+
+# 背包无色数量
+def BagWuseNum():
+    objs = GetBagObj()
+    for obj in objs:
+        if obj.name == "无色小晶块":
+            return obj.num
+    return 0
 
 
 # 技能等级不是0或1, 学会了
@@ -1543,6 +1548,37 @@ def IsSkillLearned(skillname):
                 return True
 
     return False
+
+
+# 是否选中了第一个目标
+def IsFirstSelect():
+    return GetCurSelectIdx().menidx == 0
+
+
+# 是否选中了最后一个目标
+def IsLastSelect():
+    objs = GetSelectObj()
+    return GetCurSelectIdx().menidx == (len(objs) - 1)
+
+
+# 目标职业是否支持
+def IsDestSupport(zhiye):
+    if zhiye in ["魔枪士", "圣职者", "守护者", "格斗家", "鬼剑士", "枪剑士"]:
+        return True
+    if zhiye in ["暗枪士", "狂怒恶鬼", "幽影夜神",
+                 "诱魔者", "断罪者", "救世者",
+                 "帕拉丁", "曙光", "破晓女神",
+                 "气功师", "百花缭乱", "念帝",
+                 "剑影", "夜刀神", "夜见罗刹",
+                 "源能专家", "源力掌控者", "未来开拓者"]:
+        return True
+    return False
+
+
+# 当前是否支持职业
+def IsCurrentSupport():
+    meninfo = GetMenInfo()
+    return IsDestSupport(meninfo.zhuanzhihou)
 
 
 # 技能对应的按键
@@ -1867,6 +1903,7 @@ def SafeClear(player, t=10):
         logger.warning("屏蔽频繁clear")
 
 
+# 打开esc
 def Openesc():
     if not IsEscTop():
         logger.info("打开esc")
@@ -1911,6 +1948,7 @@ def main():
     # PrintMapObj()
     # PrintBagObj()
     # PrintBagEquipObj()
+    # print("无色: " + str(BagWuseNum()))
     # PrintEquipObj()
     # PrintSkillObj()
     # PrintAllSkillObj()
@@ -1918,7 +1956,7 @@ def main():
     # PrintAccpetedTaskObj()
     # PrintNextMen()
     # PrintWH()
-    PrintSelectObj()
+    # PrintSelectObj()
     # PrintSelectIdx()
     # PrintXingyunxing()
 

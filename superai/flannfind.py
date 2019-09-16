@@ -8,6 +8,8 @@ import logging
 import cv2
 import numpy as np
 
+from superai.pathsetting import GetImgDir
+
 from superai.common import InitLog
 from superai.yijianshu import MouseMoveTo, YijianshuInit, RanSleep
 from superai.screenshots import WindowCaptureToMem
@@ -210,25 +212,6 @@ def FindPicturePos(img1, img2):
     for pt in zip(*loc[::-1]):
         return int(pt[0] + w / 2.0), int(pt[1] + h / 2.0)
     return 0, 0
-
-
-basedir = None
-
-
-def GetImgDir():
-    global basedir
-
-    if basedir is not None:
-        return basedir
-
-    if os.path.exists("c:/win/superimg/"):
-        basedir = "c:/win/superimg/"
-    elif os.path.exists("D:/win/superimg/"):
-        basedir = "D:/win/superimg/"
-    else:
-        basedir = "D:/win/studio/dxf/picture/superimg/"
-
-    return basedir
 
 
 confirm = Picture(GetImgDir() + "confirm.png")

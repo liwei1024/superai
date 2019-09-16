@@ -10,20 +10,25 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 logger = logging.getLogger(__name__)
 
-import win32con
 import random
 import time
 
+from superai.subnodedb import DbStateUpdate, DbStateSelect, IsTodayHavePilao, GetToSelectIdx, UpdateMenState
+
+from superai.pathsetting import GetImgDir
+
+from superai.accountsetup import IsAccountSetted, PrintSwitchTips, BlockGetSetting, GetAccount, GetRegion
+
 from superai.dealequip import DealEquip
 from superai.equip import Equips
-from superai.plot import TaskCtx, HasPlot, plotMap
+from superai.plot import TaskCtx, HasPlot, plotMap, OpenSelect
 from superai.learnskill import Occupationkills
 from superai.common import InitLog, GameWindowToTop, HideConsole
 from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, SafeGetDAndOb, Zuobiao
 from superai.astartdemo import idxToXY
 
 from superai.flannfind import SetThreadExit, \
-    IsConfirmTop, GetConfirmPos, FlushImg, IsShipinTop
+    IsConfirmTop, GetConfirmPos, FlushImg, IsShipinTop, Picture
 
 from superai.vkcode import VK_CODE
 
@@ -38,7 +43,10 @@ from superai.gameapi import GameApiInit, FlushPid, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
     GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead, IsLockedHp, UnLockHp, IsFuzhongGou, \
-    Zuobiaoyidong, Autoshuntu, GetCurmapXy, HavePilao, GetMapInfo, IsShitmoGu, BagHasFenjieEquip
+    Zuobiaoyidong, Autoshuntu, GetCurmapXy, HavePilao, GetMapInfo, IsShitmoGu, BagHasFenjieEquip, GetSelectObj, \
+    GetCurSelectIdx, IsFirstSelect, IsLastSelect, BagWuseNum, IsCurrentSupport, Openesc
+
+gamebegin = Picture(GetImgDir() + "gamebegin2.png")
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -365,7 +373,6 @@ class Player:
         try:
             self.d, self.ob = SafeGetDAndOb(meninfo.w, meninfo.h)
         except Exception as err:
-            self.ChangeState(Setup())
             logger.warning("获取障碍物发生错误 %s" % err)
             return
 
@@ -591,6 +598,26 @@ class GlobalState(State):
 # 初始化
 class Setup(State):
     def Execute(self, player):
+        # 设置当前账号和大区
+        if not IsAccountSetted():
+            PrintSwitchTips()
+            BlockGetSetting()
+
+        # 选择角色
+        if gamebegin.Match():
+            player.ChangeState(SelectJuese())
+            return
+
+        # 重新选择角色
+        if IsManInChengzhen() and not IsCurrentSupport():
+            if not Openesc():
+                logger.warning("打开esc失败")
+                return
+            if not OpenSelect():
+                logger.warning("返回选择角色失败")
+                return
+            return
+
         if IsManInMap():
             player.ChangeState(FirstInMap())
             return
@@ -599,6 +626,7 @@ class Setup(State):
             player.ChangeState(InChengzhen())
             return
 
+        logger.warning("setup状态...")
         RanSleep(0.1)
 
 
@@ -728,6 +756,8 @@ class FenjieEquip(State):
         logger.info("分解装备完毕")
         player.ChangeState(InChengzhen())
 
+        UpdateMenState()
+
 
 # 修理装备
 class RepairEquip(State):
@@ -738,6 +768,8 @@ class RepairEquip(State):
         deal.CloseSell()
         logger.info("修理装备")
         player.ChangeState(InChengzhen())
+
+        UpdateMenState()
 
 
 # 副本结束, 尝试退出
@@ -755,6 +787,10 @@ class FubenOver(State):
             PressKey(VK_CODE["esc"]), RanSleep(0.3)
             PressKey(VK_CODE["spacebar"]), KongjianSleep()
             return
+
+        UpdateMenState()
+
+        RanSleep(0.1)
 
 
 # 测试计数器 (无关大局)
@@ -1084,11 +1120,11 @@ class DeadState(State):
         meninfo = GetMenInfo()
 
         if meninfo.hp > 1:
-            player.ChangeState(Setup())
+            player.ChangeState(StandState())
             return
 
         if IsManInChengzhen():
-            player.ChangeState(Setup())
+            player.ChangeState(InChengzhen())
             return
 
         PressX(), RanSleep(0.3)
@@ -1146,13 +1182,75 @@ class TaskState(State):
 # 没有疲劳,切换角色
 class NoPilao(State):
     def Execute(self, player):
-        logger.warning("疲劳没有了")
-        RanSleep(1)
+        logger.warning("疲劳没有了"), RanSleep(0.3)
+
+        # 重新选择角色
+        if IsManInChengzhen():
+            if not Openesc():
+                logger.warning("打开esc失败")
+                return
+            if not OpenSelect():
+                logger.warning("返回选择角色失败")
+                return
+
+            player.ChangeState(Setup())
+
+
+# 选择角色
+class SelectJuese(State):
+    def Execute(self, player):
+        outlst = GetSelectObj()
+
+        for obj in outlst:
+            DbStateUpdate(account=GetAccount(), region=GetRegion(), role=obj.name, curlevel=obj.level)
+
+        if not IsTodayHavePilao():  # TODO 超过角色上限了
+            logger.warning("这个号不能再刷了"), RanSleep(0.3)  # TODO 换游戏账号呀
+            return
+
+        # 选中第一个角色
+        MouseMoveTo(128, 184), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+
+        toselectidx = GetToSelectIdx()
+
+        logger.info("要选中角色: %s 等级: %d" % (outlst[toselectidx].name, outlst[toselectidx].level))
+
+        curpress = PressRight
+
+        for i in range(32):
+            if toselectidx == GetCurSelectIdx().menidx:
+                break
+
+            if IsFirstSelect():
+                curpress = PressRight
+            elif IsLastSelect():
+                curpress = PressLeft
+
+            curpress(), RanSleep(0.3)
+
+        if toselectidx != GetCurSelectIdx().menidx:
+            logger.warning("没有选中要选择的角色")
+            return
+
+        PressKey(VK_CODE['spacebar']), RanSleep(0.3)
+
+        for i in range(10):
+            if IsManInChengzhen():
+                UpdateMenState()
+
+                player.ChangeState(Setup())
+                return
+            else:
+                logger.info("等待进入城镇"), RanSleep(1.0)
+
+        logger.warning("在选择角色页面"), RanSleep(0.1)
 
 
 EXIT = False
 
 
+# 热键监视线程
 def Hotkey():
     while True:
         statealt = win32api.GetAsyncKeyState(VK_CODE['alt'])

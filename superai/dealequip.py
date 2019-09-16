@@ -166,6 +166,8 @@ class DealEquip:
         MouseLeftClick(), KongjianSleep()
         MouseLeftClick(), KongjianSleep()
 
+
+
     # 是否需要被修理
     def NeedRepair(self):
         equips = GetEquipObj()
