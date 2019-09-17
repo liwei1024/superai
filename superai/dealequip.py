@@ -27,6 +27,8 @@ fenjieNuoyipeila = Picture(GetImgDir() + "fenjie_nuoyipeila.png")
 fenjieXueshan = Picture(GetImgDir() + "fenjie_xuieshan.png")
 fenjieNuosimaer = Picture(GetImgDir() + "fenjie_nuosimaer.png")
 fenjieyanuofasenlin = Picture(GetImgDir() + "fenjie_yanuofasenlin.png")
+fenjieeyunzhicheng = Picture(GetImgDir() + "fenjie_eyunzhicheng.png")
+
 sellButton = Picture(GetImgDir() + "sellbt.png")
 bagScene = Picture(GetImgDir() + "bagscene.png")
 repairButton = Picture(GetImgDir() + "repair.png")
@@ -66,6 +68,8 @@ class DealEquip:
             pos = fenjieNuoyipeila.Pos()
         elif lo == "亚诺法森林":
             pos = fenjieyanuofasenlin.Pos()
+        elif lo == "厄运之城":
+            pos = fenjieeyunzhicheng.Pos()
         return pos
 
     # 分解
@@ -165,8 +169,6 @@ class DealEquip:
         MouseMoveTo(repairbtn[0], repairbtn[1]), KongjianSleep()
         MouseLeftClick(), KongjianSleep()
         MouseLeftClick(), KongjianSleep()
-
-
 
     # 是否需要被修理
     def NeedRepair(self):

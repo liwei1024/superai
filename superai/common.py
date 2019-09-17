@@ -21,9 +21,23 @@ def GameWindowToTop():
     # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
 
-    shell = win32com.client.Dispatch("WScript.Shell")
-    shell.SendKeys('%')
-    win32gui.SetForegroundWindow(hwnd)
+    if hwnd != 0:
+        shell = win32com.client.Dispatch("WScript.Shell")
+        shell.SendKeys('%')
+        win32gui.SetForegroundWindow(hwnd)
+
+
+# 置顶登录界面
+def ClientWindowToTop():
+    hwnd = win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序")
+    # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
+    #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+
+    if hwnd != 0:
+        shell = win32com.client.Dispatch("WScript.Shell")
+        shell.SendKeys('%')
+        win32gui.SetForegroundWindow(hwnd)
+
 
 
 # 隐藏控制台

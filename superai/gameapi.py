@@ -356,7 +356,7 @@ class ObstacleObj(Structure):
 
     def CanBeAttack(self):
         if self.code in [109006910, 109006911, 226, 228, 19134, 19135, 18020, 109000583, 109000576, 57522, 109006963,
-                         109006964, 230]:
+                         109006964, 230, 52811,52829, 52830]:
             return False
 
         if self.code in [109007006]:
@@ -685,7 +685,7 @@ def GameApiInit():
     if lib.Init():
         logger.info("Init helpdll-xxiii.dll ok")
     else:
-        logger.info("Init helpdll-xxiii.dll err")
+        logger.info("Init helpdll-xxiii.dll err, 驱动没有加载成功")
         exit(0)
 
 
@@ -1940,13 +1940,13 @@ def main():
     FlushPid()
 
     # while True:
-    #     time.sleep(1.0)
+    #     time.sleep(1.0)s
     #     PrintMenInfo()
 
-    # PrintMenInfo()
-    # PrintMapInfo()
-    # PrintMapObj()
-    # PrintBagObj()
+    PrintMenInfo()
+    PrintMapInfo()
+    PrintMapObj()
+    PrintBagObj()
     # PrintBagEquipObj()
     # print("无色: " + str(BagWuseNum()))
     # PrintEquipObj()

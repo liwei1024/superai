@@ -128,7 +128,7 @@ def RealTimeCompare(pn1):
 # gDetector, gMatcher = init_feature('sift')
 
 class Picture:
-    def __init__(self, picturefile, dx=0, dy=0, dw=0, dh=0):
+    def __init__(self, picturefile, dx=0, dy=0, dw=0, dh=0, classname=None, windowname=None):
         self.picturefile = picturefile
         self.dx = dx
         self.dy = dy
@@ -137,18 +137,31 @@ class Picture:
 
         self.img1 = cv2.imread(self.picturefile, cv2.IMREAD_COLOR)
 
+        self.classname = "地下城与勇士"
+        self.windowname = "地下城与勇士"
+
+        if classname is not None:
+            self.classname = classname
+        if windowname is not None:
+            self.windowname = windowname
+
     def Match(self):
-        self.img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士", self.dx, self.dy, self.dw, self.dh)
+        self.img2 = WindowCaptureToMem(self.classname, self.windowname, self.dx, self.dy, self.dw, self.dh)
+        if self.img2 is None:
+            return False
         return FindPicture(self.img1, self.img2)
 
     def Pos(self):
-        self.img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士", self.dx, self.dy, self.dw, self.dh)
+        self.img2 = WindowCaptureToMem(self.classname, self.windowname, self.dx, self.dy, self.dw, self.dh)
+        if self.img2 is None:
+            return False
         return FindPicturePos(self.img1, self.img2)
 
     # 视频判断用
     def IsBlack(self):
-        self.img2 = WindowCaptureToMem("地下城与勇士", "地下城与勇士", self.dx, self.dy, self.dw, self.dh)
-
+        self.img2 = WindowCaptureToMem(self.classname, self.windowname, self.dx, self.dy, self.dw, self.dh)
+        if self.img2 is None:
+            return False
         for row in self.img2:
             for color in row:
                 if color[0] != 0 or color[1] != 0 or color[2] != 0:

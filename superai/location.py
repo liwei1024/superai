@@ -17,6 +17,7 @@ locationNuoyipeila = Picture(GetImgDir() + "ditu_nuoyipeila.png")
 locationXueshan = Picture(GetImgDir() + "ditu_xueshan.png")
 locationNuosimaer = Picture(GetImgDir() + "ditu_nuosimaer.png")
 locationYanuofasenlin = Picture(GetImgDir() + "ditu_yanuofasenlin.png")
+locationEyunzhichen = Picture(GetImgDir() + "ditu_eyun.png")
 
 wenziaierwenfangxian = Picture(GetImgDir() + "wenzi_aierwenfangxian.png", 610, 22, 182, 25)
 wenzihedunmaer = Picture(GetImgDir() + "wenzi_hedunmaer.png", 610, 22, 182, 25)
@@ -98,6 +99,8 @@ class Location:
             return "诺伊佩拉"
         elif IsInJingxiangalade() and locationYanuofasenlin.Match():
             return "亚诺法森林"
+        elif IsInJingxiangalade() and locationEyunzhichen.Match():
+            return "厄运之城"
         return ""
 
     def GetLocation(self):

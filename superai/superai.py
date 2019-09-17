@@ -1,10 +1,13 @@
 import ctypes
 import logging
 import os
+import subprocess
 import sys
 import threading
 
 import win32api
+import win32gui
+
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -13,17 +16,24 @@ logger = logging.getLogger(__name__)
 import random
 import time
 
-from superai.subnodedb import DbStateUpdate, DbStateSelect, IsTodayHavePilao, GetToSelectIdx, UpdateMenState
+from superai.location import IsinSailiya
 
-from superai.pathsetting import GetImgDir
 
-from superai.accountsetup import IsAccountSetted, PrintSwitchTips, BlockGetSetting, GetAccount, GetRegion
+from superai.login import GetDaqu, GetMainregionPos, GetRegionPos
+
+from superai.subnodedb import DbStateUpdate, DbStateSelect, IsTodayHavePilao, GetToSelectIdx, UpdateMenState, \
+    DbEventAppend, AccountRoles
+
+from superai.pathsetting import GetImgDir, GameFileDir
+
+from superai.accountsetup import IsAccountSetted, PrintSwitchTips, BlockGetSetting, GetAccount, GetRegion, \
+    GetSettingAccounts, SetCurrentAccount
 
 from superai.dealequip import DealEquip
 from superai.equip import Equips
 from superai.plot import TaskCtx, HasPlot, plotMap, OpenSelect
 from superai.learnskill import Occupationkills
-from superai.common import InitLog, GameWindowToTop, HideConsole
+from superai.common import InitLog, GameWindowToTop, HideConsole, ClientWindowToTop
 from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, SafeGetDAndOb, Zuobiao
 from superai.astartdemo import idxToXY
 
@@ -34,7 +44,7 @@ from superai.vkcode import VK_CODE
 
 from superai.yijianshu import YijianshuInit, PressRight, \
     PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, PressKey, MouseMoveTo, MouseLeftClick, \
-    PressUp, PressDown, KongjianSleep
+    PressUp, PressDown, KongjianSleep, DeleteAll, KeyInputStgring, MouseMoveToLogin
 
 from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, GetMenXY, GetQuadrant, GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
@@ -47,6 +57,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     GetCurSelectIdx, IsFirstSelect, IsLastSelect, BagWuseNum, IsCurrentSupport, Openesc
 
 gamebegin = Picture(GetImgDir() + "gamebegin2.png")
+selectregion = Picture(GetImgDir() + "select_region.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -114,6 +125,17 @@ class Player:
 
         # 上次的所在小地图位置
         self.latestpos = None
+
+        # 上次的地图名称(日志用)
+        self.latestmapname = None
+
+        # 累计金币/无色/时间
+        self.latestmoney = None
+        self.latestwuse = None
+        self.latestusedtime = None
+
+        # 流水表写入时间戳
+        self.followingtimepoint = None
 
     # 重置地图卡死信息
     def ResetStuckInfo(self):
@@ -594,10 +616,37 @@ class GlobalState(State):
         #     if IsEscTop():
         #         PressKey(VK_CODE["esc"]), KongjianSleep()
 
+        # 流水表,不影响图内效率
+        # if not IsManInMap():
+        #     pass
+
+
+import psutil
+
+
+def checkIfProcessRunning(processName):
+    '''
+    Check if there is any running process that contains the given name processName.
+    '''
+    # Iterate over the all the running process
+    for proc in psutil.process_iter():
+        try:
+            # Check if process name contains the given name string.
+            if processName.lower() in proc.name().lower():
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return False
+
 
 # 初始化
 class Setup(State):
     def Execute(self, player):
+        # 当前游戏没运行
+        if not checkIfProcessRunning("DNF.exe"):
+            player.ChangeState(OpenGame())
+            return
+
         # 设置当前账号和大区
         if not IsAccountSetted():
             PrintSwitchTips()
@@ -616,6 +665,7 @@ class Setup(State):
             if not OpenSelect():
                 logger.warning("返回选择角色失败")
                 return
+            player.ChangeState(SelectJuese())
             return
 
         if IsManInMap():
@@ -778,6 +828,10 @@ class FubenOver(State):
         PressKey(VK_CODE["esc"]), KongjianSleep()
         PressKey(VK_CODE["F12"]), KongjianSleep()
         if IsManInChengzhen():
+            meninfo = GetMenInfo()
+            DbEventAppend(account=GetAccount(), region=GetRegion(), role=meninfo.name,
+                          content="副本:%s 刷完, 剩余: %d疲劳" % (player.latestmapname, meninfo.maxpilao - meninfo.curpilao))
+
             while IsEscTop():
                 PressKey(VK_CODE["esc"]), KongjianSleep()
             player.ChangeState(InChengzhen())
@@ -845,6 +899,9 @@ class FirstInMap(State):
 
         player.skills.Update()
         player.ChangeState(StandState())
+
+        mapinfo = GetMapInfo()
+        player.latestmapname = mapinfo.name
 
 
 # 图内站立
@@ -1157,7 +1214,7 @@ class StuckShit(State):
 class TaskState(State):
     def Execute(self, player):
         if not HasPlot():
-            player.ChangeState(Setup())
+            player.ChangeState(InChengzhen())
             return
 
         if IsManInMap():
@@ -1193,7 +1250,7 @@ class NoPilao(State):
                 logger.warning("返回选择角色失败")
                 return
 
-            player.ChangeState(Setup())
+            player.ChangeState(SelectJuese())
 
 
 # 选择角色
@@ -1204,15 +1261,17 @@ class SelectJuese(State):
         for obj in outlst:
             DbStateUpdate(account=GetAccount(), region=GetRegion(), role=obj.name, curlevel=obj.level)
 
-        if not IsTodayHavePilao():  # TODO 超过角色上限了
+        if not IsTodayHavePilao(account=GetAccount(), region=GetRegion()):  # TODO 超过角色上限了
             logger.warning("这个号不能再刷了"), RanSleep(0.3)  # TODO 换游戏账号呀
+            os.system("taskkill /im DNF.exe"), RanSleep(5.0)
+            player.ChangeState(OpenGame())
             return
 
         # 选中第一个角色
         MouseMoveTo(128, 184), KongjianSleep()
         MouseLeftClick(), KongjianSleep()
 
-        toselectidx = GetToSelectIdx()
+        toselectidx = GetToSelectIdx(account=GetAccount(), region=GetRegion())
 
         logger.info("要选中角色: %s 等级: %d" % (outlst[toselectidx].name, outlst[toselectidx].level))
 
@@ -1235,16 +1294,125 @@ class SelectJuese(State):
 
         PressKey(VK_CODE['spacebar']), RanSleep(0.3)
 
-        for i in range(10):
-            if IsManInChengzhen():
-                UpdateMenState()
-
+        for i in range(20):
+            if IsManInChengzhen() and IsinSailiya():
+                RanSleep(1), UpdateMenState()
                 player.ChangeState(Setup())
                 return
             else:
-                logger.info("等待进入城镇"), RanSleep(1.0)
+                logger.info("等待进入城镇 %d " % i), RanSleep(1.0)
 
         logger.warning("在选择角色页面"), RanSleep(0.1)
+
+
+# 选择合适的账号进行游戏
+class OpenGame(State):
+    def Execute(self, player):
+        hwnd = win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序")
+        if hwnd == 0:
+            gamedir = GameFileDir()
+            subprocess.Popen(gamedir)
+
+        for i in range(100):
+            ClientWindowToTop()
+
+            if selectregion.Match():
+                break
+            time.sleep(1)
+
+        if not selectregion.Match():
+            return
+
+        pos = selectregion.Pos()
+        MouseMoveToLogin(pos[0], pos[1]), KongjianSleep()
+        MouseLeftClick(), RanSleep(1.0)
+
+        # 选择合适的账号
+        accounts = GetSettingAccounts()
+
+        selectAccount = None
+
+        # 账号没有在数据库中出现过
+        for account in accounts:
+            if AccountRoles(account.account, account.region) < 1:
+                selectAccount = account
+                logger.info("寻找到账号: %s %s 没有录入过数据库登录!" % (account.account, account.region))
+                break
+            else:
+                selectAccount = account
+                if IsTodayHavePilao(account.account, account.region):
+                    logger.info("寻找到账号: %s %s 还可以再刷! " % (account.account, account.region))
+                break
+
+        if selectAccount is None:
+            logger.warning("没有可以再刷的帐号了")
+            return
+
+        daqu = GetDaqu(selectAccount.region)
+
+        if daqu == "":
+            raise Exception("不支持的大区: %s" % selectAccount.region)
+
+        if daqu == "电信":
+            MouseMoveToLogin(235, 149), KongjianSleep()
+        if daqu == "联通":
+            MouseMoveToLogin(236, 233), KongjianSleep()
+
+        MouseLeftClick(), RanSleep(0.3)
+
+        logger.info("选择大区")
+        pos = GetMainregionPos(selectAccount.region)
+        MouseMoveToLogin(pos[0], pos[1]), KongjianSleep()
+        MouseLeftClick(), RanSleep(0.3)
+
+        logger.info("选择服务器")
+        pos = GetRegionPos(selectAccount.region)
+        MouseMoveToLogin(pos[0], pos[1]), KongjianSleep()
+        MouseLeftClick(), RanSleep(0.3)
+
+        logger.info("登录游戏")
+        MouseMoveToLogin(1036, 557), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(0.3)
+
+        logger.info("等待进度条加载")
+        pic = Picture(GetImgDir() + "login_youxia.png", dx=1135, dy=617, dw=62, dh=20, classname="TWINCONTROL",
+                      windowname="地下城与勇士登录程序")
+
+        for i in range(30):
+            if pic.Match():
+                break
+            logger.info("没有加载完成 %d" % i), RanSleep(1)
+
+        if not pic.Match():
+            logger.warning("没有加载完成"), RanSleep(0.3)
+            return
+
+        # 输入账号
+        MouseMoveToLogin(1136, 324), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+        DeleteAll()
+        KeyInputStgring(selectAccount.account), RanSleep(0.3)
+
+        # 输入密码
+        MouseMoveToLogin(1136, 370), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+        DeleteAll()
+        KeyInputStgring(selectAccount.password), RanSleep(0.3)
+
+        MouseMoveToLogin(1040, 500), RanSleep(0.3)
+        MouseLeftClick(), KongjianSleep()
+
+        SetCurrentAccount(selectAccount.account, selectregion)
+
+        for i in range(180):
+            if gamebegin.Match():
+                break
+            logger.info("等待进入游戏 %d" % i), time.sleep(1)
+
+        if gamebegin.Match():
+            GameApiInit()
+            player.ChangeState(SelectJuese())
+            return
 
 
 EXIT = False

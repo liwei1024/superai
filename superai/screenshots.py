@@ -99,6 +99,10 @@ def Unlock():
 @defer
 def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defer=None):
     hwnd = win32gui.FindWindow(windowClassName, windowName)
+
+    if hwnd == 0:
+        return None
+
     left, top, right, bot = win32gui.GetWindowRect(hwnd)
     w, h = right - left, bot - top
     if dw != 0:

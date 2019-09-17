@@ -2,6 +2,8 @@ import os
 import sys
 import time
 
+from superai.common import GameWindowToTop
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.pathsetting import GetCfgPath, GetCfgFile
@@ -27,13 +29,15 @@ def IsAccountSetted():
     return currentaccount is not None and currentregion is not None
 
 
+# 打印选择
 def PrintSwitchTips():
     accounts = GetSettingAccounts()
     for i, account in enumerate(accounts):
-        print("%d => %s", i, account)
+        print("%d => %s" % (i, account))
     print("输入你想选择的序号")
 
 
+# 阻塞等待用户选择当前是哪个账号
 def BlockGetSetting():
     accounts = GetSettingAccounts()
 
@@ -51,7 +55,16 @@ def BlockGetSetting():
         print("你当前选择的序号: %d 账号: %s 大区: %s" % (i, currentaccount, currentregion))
         break
 
+    GameWindowToTop()
 
+# 设置当前选择的账号(通过自动登录)
+def SetCurrentAccount(account, region):
+    global currentaccount, currentregion
+    currentaccount = account
+    currentregion = region
+
+
+# 读取文件中所有配置的账号
 def GetSettingAccounts():
     accounts = []
     with open(GetCfgFile(), "r", encoding="utf-8") as f:

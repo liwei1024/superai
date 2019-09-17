@@ -5,7 +5,6 @@ import sys
 import time
 import datetime
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.accountsetup import GetAccount, GetRegion
@@ -140,9 +139,24 @@ def DbStateUpdate(account, region, role, curlevel=None, zhiye=None, curpilao=Non
 def DbStateSelect():
     result = query_db(
         "select account, region, role, curlevel, zhiye, curpilao, money, wuse, kicktime, kicklong, timepoint from state")
-
     return result
 
+
+# 账号&大区  下的角色有多少
+def AccountRoles(account, region):
+    count = 0
+    with contextlib.closing(sqlite.connect(getDbFile())) as con:
+        c = con.cursor()
+        c.execute("begin")
+        try:
+            c.execute("select count(*) from state where account=? and region=?", (account, region))
+            rows = c.fetchall()
+            count = rows[0][0]
+            c.execute("commit")
+        except con.Error as e:
+            logger.warning("sql error! %s" % e)
+            c.execute("rollback")
+    return count
 
 # 今日早上六点时间戳
 def TodaySixTimestamp():
@@ -152,8 +166,10 @@ def TodaySixTimestamp():
 
 
 # 是否今日的疲劳刷完了
-def IsTodayHavePilao():
-    objs = DbStateSelect()
+def IsTodayHavePilao(account, region):
+    objs = query_db(
+        "select account, region, role, curlevel, zhiye, curpilao, money, wuse, kicktime, kicklong, timepoint from state where account=? and region=?",
+        (account, region))
 
     for obj in objs:
         if obj["zhiye"] is None:
@@ -173,8 +189,11 @@ def IsTodayHavePilao():
 
 
 # 获取应该选择角色下标
-def GetToSelectIdx():
-    objs = DbStateSelect()
+def GetToSelectIdx(account, region):
+    objs = query_db(
+        "select account, region, role, curlevel, zhiye, curpilao, money, wuse, kicktime, kicklong, timepoint from state where account=? and region=?",
+        (account, region))
+
     for i, obj in enumerate(objs):
         if obj["zhiye"] is None:
             return i
@@ -197,8 +216,9 @@ def GetToSelectIdx():
 def UpdateMenState():
     meninfo = GetMenInfo()
     DbStateUpdate(account=GetAccount(), region=GetRegion(), role=meninfo.name, curlevel=meninfo.level,
-                  zhiye=meninfo.zhuanzhihou, curpilao=meninfo.curpilao, money=meninfo.money,
+                  zhiye=meninfo.zhuanzhihou, curpilao=meninfo.maxpilao - meninfo.curpilao, money=meninfo.money,
                   wuse=BagWuseNum())
+
 
 # 流水没有就插入
 def DbItemInsert(account, region, role):

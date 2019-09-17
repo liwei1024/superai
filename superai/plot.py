@@ -144,6 +144,7 @@ NpcInfos = {
             "摩根": MoveInfo(destcoord=("ditu_mogen.png", 332, 247), mousecoord=(316, 291)),
             "帕丽丝2": MoveInfo(destcoord=("ditu_palisi2.png", 803, 195), mousecoord=(495, 159)),
             "厄运之城": MoveInfo(destcoord=("ditu_eyun.png", 362, 228), mousecoord=(376, 176)),
+            "炼金术师摩根": MoveInfo(destcoord=("ditu_mogen2.png", 352, 244), mousecoord=(316, 296)),
         }
     }
 }

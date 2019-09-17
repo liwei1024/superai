@@ -59,3 +59,12 @@ def GetDbDir():
 # 数据库文件
 def getDbFile():
     return os.path.join(GetDbDir(), "subnodedb.db")
+
+
+# 游戏路径
+def GameFileDir():
+    if os.path.exists("c:/win/dnf"):
+        gamedir = "c:/win/dnf/地下城与勇士/start/DNFchina.exe"
+    else:
+        gamedir = "d:/win/game/dnf/地下城与勇士/start/DNFchina.exe"
+    return gamedir

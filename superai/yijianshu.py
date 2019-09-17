@@ -28,6 +28,10 @@ lib.M_Open.restype = c_void_p
 lib.M_Open_VidPid.argtypes = [c_int, c_int]
 lib.M_Open_VidPid.restype = c_void_p
 
+# 获取设备序列号
+lib.M_GetDevSn.argtypes = [c_void_p, POINTER(c_uint), c_char_p]
+lib.M_GetDevSn.restype = c_int
+
 # 关闭
 lib.M_Close.argtypes = [c_void_p]
 lib.M_Close.restype = c_int
@@ -155,18 +159,30 @@ h = None
 x = None
 
 
+# 是否意usb键盘鼠标开启了
+def IsInit():
+    result = False
+    try:
+        lenresponse = c_uint(256)
+        response = create_string_buffer(256)
+        r = lib.M_GetDevSn(h, pointer(lenresponse), response)
+        result = (r == 0)
+    except OSError:
+        pass
+    return result
+
+
 # 初始化函数
 def YijianshuInit():
-    global h
-    global x
+    global h, x
 
     h = lib.M_Open_VidPid(0x612c, 0x1030)
     x = c_void_p(h)
 
-    if h != 0:
+    if IsInit():
         logger.info("Init 易键鼠 ok")
     else:
-        logger.info("Init 易键鼠 err")
+        logger.info("Init 易键鼠 err, 易键鼠没有加载成功")
         exit(0)
 
     ReleaseAllKey()
@@ -344,6 +360,17 @@ def MouseMoveTo(x, y):
     lib.M_MoveR(h, int(relativex), int(relativey))
 
 
+# 相对移动鼠标,游戏登录界面
+def MouseMoveToLogin(x, y):
+    hwnd = win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序")
+    _, _, (curx, cury) = win32gui.GetCursorInfo()
+    centrex, centrey = win32gui.ClientToScreen(hwnd, (int(x), int(y)))
+    relativex = centrex - curx
+    relativey = centrey - cury
+
+    lib.M_MoveR(h, int(relativex), int(relativey))
+
+
 # 相对移动
 def MouseMoveR(x, y):
     lib.M_MoveR(h, int(x), int(y))
@@ -400,10 +427,17 @@ def KeyInputStgring(s):
     lib.M_KeyInputString(h, ins, len(s))
 
 
+# 删除所有文字
+def DeleteAll():
+    lib.M_KeyDown2(h, VK_CODE['del']), RanSleep(1)
+    lib.M_KeyUp2(h, VK_CODE['del']), RanSleep(0.05)
+
+
 def main():
     InitLog()
     YijianshuInit()
 
+    MouseMoveTo(316, 296)
     # RanSleep(3.0)
     # KeyInputStgring("GGC88zyj")
     # GameWindowToTop()
