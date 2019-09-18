@@ -20,7 +20,7 @@ from superai.location import IsinSailiya
 from superai.login import GetDaqu, GetMainregionPos, GetRegionPos
 
 from superai.subnodedb import DbStateUpdate, DbStateSelect, IsTodayHavePilao, GetToSelectIdx, UpdateMenState, \
-    DbEventAppend, AccountRoles
+    DbEventAppend, AccountRoles, InitDb, AccountXingyunxingRule
 
 from superai.pathsetting import GetImgDir, GameFileDir
 
@@ -655,6 +655,10 @@ class Setup(State):
             PrintSwitchTips()
             BlockGetSetting()
 
+        # 焦点移动到DNF
+        MouseMoveTo(1, 1), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+
         # 重新选择角色
         if IsManInChengzhen() and not IsCurrentSupport():
             if not Openesc():
@@ -696,7 +700,7 @@ class InChengzhen(State):
             return
 
         # 等级 >= 10, 身上,背包没有合适的幸运星武器
-        if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing():
+        if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and AccountXingyunxingRule(GetAccount(), GetRegion()) > 0:
             player.ChangeState(HireEquip())
             return
 
@@ -1231,6 +1235,8 @@ class TaskState(State):
                         player.ChangeState(ChangeEquip())
                         return
 
+                break
+
         RanSleep(0.1)
 
 
@@ -1257,6 +1263,10 @@ class SelectJuese(State):
         if not IsAccountSetted():
             PrintSwitchTips()
             BlockGetSetting()
+
+        # 焦点移动到DNF
+        MouseMoveTo(1, 1), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
 
         outlst = GetSelectObj()
 
@@ -1450,6 +1460,7 @@ def main():
     if not YijianshuInit():
         exit(0)
 
+    InitDb()
     t = threading.Thread(target=Hotkey)
     t.start()
 

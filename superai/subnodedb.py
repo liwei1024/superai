@@ -161,6 +161,23 @@ def AccountRoles(account, region):
     return count
 
 
+# 账号&大区 的角色有超过25级别的(肯定可以租聘幸运星了把)
+def AccountXingyunxingRule(account, region):
+    count = 0
+    with contextlib.closing(sqlite.connect(getDbFile())) as con:
+        c = con.cursor()
+        c.execute("begin")
+        try:
+            c.execute("select count(*) from state where account=? and region=? and curlevel >= 25", (account, region))
+            rows = c.fetchall()
+            count = rows[0][0]
+            c.execute("commit")
+        except con.Error as e:
+            logger.warning("sql error! %s" % e)
+            c.execute("rollback")
+    return count > 0
+
+
 # 今日早上六点时间戳
 def TodaySixTimestamp():
     t = datetime.datetime.today()

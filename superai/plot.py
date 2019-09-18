@@ -714,7 +714,7 @@ def SubmitTask(player):
 
         pos = taskok.Pos()
         MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        MouseLeftClick(), KongjianSleep(), RanSleep(1.0)
 
         player.taskctx.latestsubmitpoint = time.time()
     else:
