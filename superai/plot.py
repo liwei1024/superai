@@ -1,5 +1,6 @@
 import os
 import queue
+import random
 import sys
 import time
 
@@ -146,6 +147,11 @@ NpcInfos = {
             "厄运之城": MoveInfo(destcoord=("ditu_eyun.png", 362, 228), mousecoord=(376, 176)),
             "炼金术师摩根": MoveInfo(destcoord=("ditu_mogen2.png", 352, 244), mousecoord=(316, 296)),
             "阿尔伯特": MoveInfo(destcoord=("ditu_aerbote2.png", 541, 195), mousecoord=(477, 159)),
+            "赛丽亚2": MoveInfo(destcoord=("ditu_sailiya2.png", 348, 198), mousecoord=(463, 156)),
+            "奥菲利亚2": MoveInfo(destcoord=("ditu_aofeiliya2.png", 754, 217), mousecoord=(497, 468)),
+            "伊沙杜拉": MoveInfo(destcoord=("ditu_yishadula2.png", 1191, 219), mousecoord=(523, 469)),
+            "逆流瀑布": MoveInfo(destcoord=("ditu_niliupubu.png", 718, 261), mousecoord=(636, 490)),
+            "阿甘左3":  MoveInfo(destcoord=("ditu_aganzuo3.png", 1432, 217), mousecoord=(537, 468)),
         }
     }
 }
@@ -389,7 +395,7 @@ def OpenSelect():
     return gamebegin.Match()
 
 
-# 到赛利亚
+# 到赛丽亚
 def BackAndEnter():
     if not Openesc():
         logger.warning("打开esc失败")
@@ -561,6 +567,12 @@ def MoveTo(destname, player):
     destinfo = GetDestinfo(destname)
 
     if player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 10.0:
+        # 移动下 防止卡死!!!
+        if random.uniform(0, 1) < 0.05:
+            PressKey(VK_CODE['left_arrow'])
+        else:
+            PressKey(VK_CODE['right_arrow'])
+
         # 没有移动过或者超时
         logger.info("目标: %s 城镇位置: (%d,%d)  没有到达, 开始移动. 鼠标指向到 (%d, %d)" % (
             destname, destinfo.destcoord[0],
@@ -757,6 +769,11 @@ def AttacktaskFoo(fubenname):
             if GoToSelect(quad):
                 # 进入地图
                 EnterMap(idx, player)
+
+                if fubenname in "绝望的棋局":
+                    if HasSpecifyAccept(3469):
+                        global attackqiju
+                        attackqiju = True
             else:
                 logger.warning("没有进入选择地图")
         else:
@@ -793,7 +810,6 @@ def AttacktaskFoo(fubenname):
                     return
 
                 foos[0](player)
-
             else:
                 MoveTo(mapname, player)
 
@@ -858,7 +874,14 @@ def MeetNpcFoo(destname):
                     if HasSpecifyAccept(3286):
                         global meetbaerleina
                         meetbaerleina = True
-
+                elif destname == "阿尔伯特":
+                    if HasSpecifyAccept(3466):
+                        global meetaerbote
+                        meetaerbote = True
+                elif destname == "阿甘左3":
+                    if HasSpecifyAccept(3492):
+                        global meetaganzuo
+                        meetaganzuo = True
             else:
 
                 # 赛丽亚房间就退出来
@@ -1013,6 +1036,61 @@ def 寻找幸存者():
 
     return foo
 
+
+meetaerbote = False
+
+
+# 同名任务
+def 被绑架的居民():
+    def foo(player):
+        if not meetaerbote:
+            MeetNpcFoo("阿尔伯特")(player)
+        else:
+            AttacktaskFoo("赫顿玛尔旧街区深处")(player)
+
+    return foo
+
+
+attackqiju = False
+
+
+# 同名任务
+def 棋局的秘密():
+    def foo(player):
+        if not attackqiju:
+            AttacktaskFoo("绝望的棋局")(player)
+        else:
+            MeetNpcFoo("帕丽丝2")(player)
+
+    return foo
+
+
+meetaganzuo = False
+
+
+# 同名任务
+def GBL教的秘密():
+    def foo(player):
+        if not meetaganzuo:
+            MeetNpcFoo("阿甘左3")(player)
+        else:
+            AttacktaskFoo("GBL女神殿")(player)
+
+    return foo
+
+
+# 同名任务
+def 罗特斯所在之地():
+    def foo(player):
+        meninfo = GetMenInfo()
+        if meninfo.level < 50:
+            AttacktaskFoo("第二脊椎")(player)
+        else:
+            AttacktaskFoo("树精繁殖地")(player)
+
+    return foo
+
+
 # 30 阿甘左香水. 要放物品
 def 寻找阿甘左(player):
     SafeClear(player)
@@ -1151,7 +1229,18 @@ FubenInfos = {
             "蚁后的巢穴": 1,
             "腐烂之地": 2,
             "赫顿玛尔旧街区": 3,
+            "赫顿玛尔旧街区深处": 4,
             "绝望的棋局": 4,
+        }
+    },
+    "逆流瀑布": {
+        "quad": Quardant.YOU,
+        "fubens": {
+            "鲨鱼栖息地": 0,
+            "人鱼的国度": 1,
+            "GBL女神殿": 2,
+            "树精繁殖地": 3,
+            "罗特斯的宫殿": 4,
         }
     }
 }
@@ -1229,7 +1318,7 @@ plotMap = {
     "艾丽丝的帮助": MeetNpcFoo(""),
     "前往天帷巨兽的肚子里": AttacktaskFoo("天帷禁地"),
     "无法幸免的马塞尔": AttacktaskFoo("天帷禁地"),
-    "罗特斯所在之地": AttacktaskFoo("第二脊椎"),
+    "罗特斯所在之地": 罗特斯所在之地(),
     "寻找阿甘左": 寻找阿甘左,
     # "长脚罗特斯": AttacktaskFoo("第二脊椎"),
     "消灭长脚罗特斯": AttacktaskFoo("第二脊椎"),
@@ -1401,30 +1490,30 @@ plotMap = {
     # "寻找幸存者": 寻找幸存者(),
     "变异的幸存者": MeetNpcFoo("阿尔伯特"),
     "愤怒的帕丽丝": AttacktaskFoo("赫顿玛尔旧街区"),
-    "被绑架的居民": MeetNpcFoo("阿尔伯特"),
+    "被绑架的居民": 被绑架的居民(),
     # "被绑架的居民": AttacktaskFoo("赫顿玛尔旧街区深处"),
     "调查绝望的棋局": AttacktaskFoo("绝望的棋局"),
     "跳舞的人偶": AttacktaskFoo("绝望的棋局"),
-    "棋局的秘密": AttacktaskFoo("绝望的棋局"),
+    "棋局的秘密": 棋局的秘密(),
     # "棋局的秘密": MeetNpcFoo("帕丽丝2"),
     "麦瑟的召唤": AttacktaskFoo("绝望的棋局"),
-    "下一个目的地": MeetNpcFoo("赛丽亚"),
+    "下一个目的地": MeetNpcFoo("赛丽亚2"),
     "准备离开": MeetNpcFoo("帕丽丝2"),
 
-    "另一个次元的天帷巨兽": MeetNpcFoo("奥菲利亚·贝伊兰斯"),
+    "另一个次元的天帷巨兽": MeetNpcFoo("奥菲利亚2"),
     "教主奥菲利亚": MeetNpcFoo("伊沙杜拉"),
     "伊沙杜拉的请求": AttacktaskFoo("鲨鱼栖息地"),
     "海洋的追随者": AttacktaskFoo("鲨鱼栖息地"),
     "消灭食人鲨": AttacktaskFoo("鲨鱼栖息地"),
-    "来到天帷巨兽的人们": MeetNpcFoo("奥菲利亚·贝伊兰斯"),
-    "剑魂们找来的理由": MeetNpcFoo("巨剑阿甘左"),
+    "来到天帷巨兽的人们": MeetNpcFoo("奥菲利亚2"),
+    "剑魂们找来的理由": MeetNpcFoo("阿甘左3"),
     "寻找人鱼之王": AttacktaskFoo("人鱼的国度"),
     "见到人鱼之王": AttacktaskFoo("人鱼的国度"),
     "向伊莎杜拉转达": MeetNpcFoo("伊沙杜拉"),
     "捣乱的鸭嘴海盗团": AttacktaskFoo("人鱼的国度"),
     "人鱼之王图雷": AttacktaskFoo("人鱼的国度"),
-    "人鱼之王留下的话": MeetNpcFoo("奥菲利亚·贝伊兰斯"),
-    "GBL教的秘密": MeetNpcFoo("巨剑阿甘左"),
+    "人鱼之王留下的话": MeetNpcFoo("奥菲利亚2"),
+    "GBL教的秘密": GBL教的秘密(),
     # "GBL教的秘密": AttacktaskFoo("GBL女神殿"),
     "GBL女神殿的怪人": AttacktaskFoo("GBL女神殿"),
     "GBL女神殿的秘密": AttacktaskFoo("GBL女神殿"),
@@ -1434,10 +1523,10 @@ plotMap = {
     "手持火焰的树精": AttacktaskFoo("树精繁殖地"),
     "罗特斯的信徒": AttacktaskFoo("树精繁殖地"),
     # "罗特斯所在之地": AttacktaskFoo("树精繁殖地"),
-    "询问奥菲利亚": MeetNpcFoo("奥菲利亚·贝伊兰斯"),
+    "询问奥菲利亚": MeetNpcFoo("奥菲利亚2"),
     "碍事的信徒": AttacktaskFoo("罗特斯的宫殿"),
     "不安的雷尼": AttacktaskFoo("罗特斯的宫殿"),
-    "面对罗特斯": MeetNpcFoo("巨剑阿甘左"),
+    "面对罗特斯": MeetNpcFoo("阿甘左3"),
     "再遇长脚罗特斯": AttacktaskFoo("罗特斯的宫殿"),
     "返回赫顿玛尔": MeetNpcFoo("麦瑟·莫纳亨"),
     # 63-74 天界

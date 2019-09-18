@@ -356,9 +356,10 @@ class ObstacleObj(Structure):
 
     def CanBeAttack(self):
         if self.code in [109006910, 109006911, 226, 228, 19134, 19135, 18020, 109000583, 109000576, 57522, 109006963,
-                         109006964, 230, 52811,52829, 52830, 52821, 52815, 52814,  52820,
-                         11302, 11301,11300, 11326,11327,11328,11329,11330, 11257, 11329,
-                         15241,15243, 48404 ]:
+                         109006964, 230, 52811, 52829, 52830, 52821, 52815, 52814, 52820,
+                         11302, 11301, 11300, 11326, 11327, 11328, 11329, 11330, 11257, 11329,
+                         15241, 15243, 48404, 52838, 52836, 52837, 52835, 52840, 52827, 52828, 52853,
+                         52834, 52833, 52840, 52842, 52841, 52825, 52826]:
             return False
 
         if self.code in [109007006]:
@@ -1228,6 +1229,9 @@ def NearestMonsterWrap():
         elif "暴君的祭坛" in mapinfo.name:
             # 暴君的祭坛boss可能不及时出现. 给到最近的对象
             obj = NearestMonster()
+        elif "绝望的棋局" in mapinfo.name:
+            # 绝望的棋局需要打败小兵
+            obj = NearestMonster()
         else:
 
             # 其余都是找boss, boss没有最近的对象
@@ -1955,12 +1959,12 @@ def main():
     # PrintEquipObj()
     # PrintSkillObj()
     # PrintAllSkillObj()
-    # PrintTaskObj()
-    # PrintAccpetedTaskObj()
+    PrintTaskObj()
+    PrintAccpetedTaskObj()
     # PrintNextMen()
     # PrintWH()
     # PrintSelectObj()
-    # PrintSelectIdx()
+    PrintSelectIdx()
     # PrintXingyunxing()
 
     # PrintSceneInfo() # 数据太多

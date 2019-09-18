@@ -76,6 +76,7 @@ levelNumMap = {
     30: 10,
     40: 15,
     50: 20,
+    60: 25,
 }
 
 ZhunangbeiPos = (-89, 193)

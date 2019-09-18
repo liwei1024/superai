@@ -28,6 +28,7 @@ fenjieXueshan = Picture(GetImgDir() + "fenjie_xuieshan.png")
 fenjieNuosimaer = Picture(GetImgDir() + "fenjie_nuosimaer.png")
 fenjieyanuofasenlin = Picture(GetImgDir() + "fenjie_yanuofasenlin.png")
 fenjieeyunzhicheng = Picture(GetImgDir() + "fenjie_eyunzhicheng.png")
+fenjieniliupubu = Picture(GetImgDir() + "fenjie_niliupubu.png")
 
 sellButton = Picture(GetImgDir() + "sellbt.png")
 bagScene = Picture(GetImgDir() + "bagscene.png")
@@ -70,6 +71,8 @@ class DealEquip:
             pos = fenjieyanuofasenlin.Pos()
         elif lo == "厄运之城":
             pos = fenjieeyunzhicheng.Pos()
+        elif lo == "逆流瀑布":
+            pos = fenjieniliupubu.Pos()
         return pos
 
     # 分解

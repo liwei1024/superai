@@ -360,7 +360,7 @@ def MouseMoveTo(x, y):
     # else:
     #     relativey = random.uniform(relativey - 2, relativey + 2)
 
-    lib.M_MoveR(h, int(relativex), int(relativey))
+    lib.M_MoveR(h, int(relativex), int(relativey)), RanSleep(0.3)
 
 
 # 相对移动鼠标,游戏登录界面
@@ -371,12 +371,12 @@ def MouseMoveToLogin(x, y):
     relativex = centrex - curx
     relativey = centrey - cury
 
-    lib.M_MoveR(h, int(relativex), int(relativey))
+    lib.M_MoveR(h, int(relativex), int(relativey)), RanSleep(0.3)
 
 
 # 相对移动
 def MouseMoveR(x, y):
-    lib.M_MoveR(h, int(x), int(y))
+    lib.M_MoveR(h, int(x), int(y)), RanSleep(0.3)
 
 
 # 右键单击
@@ -440,10 +440,8 @@ def main():
     InitLog()
     YijianshuInit()
 
-    time.sleep(2)
-    DeleteAll()
-
-    # MouseMoveTo(477, 159)
+    # DeleteAll()
+    # MouseMoveTo(537, 468)
     # RanSleep(3.0)
     # KeyInputStgring("GGC88zyj")
     # GameWindowToTop()

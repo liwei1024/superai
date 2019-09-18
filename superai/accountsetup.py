@@ -55,7 +55,7 @@ def BlockGetSetting():
         print("你当前选择的序号: %d 账号: %s 大区: %s" % (i, currentaccount, currentregion))
         break
 
-    GameWindowToTop()
+    # GameWindowToTop()
 
 # 设置当前选择的账号(通过自动登录)
 def SetCurrentAccount(account, region):

@@ -430,7 +430,7 @@ class Player:
         if self.latestlevel == 0:
             # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
-            return True
+            return False
         elif self.latestlevel != meninfo.level:
             # 变化了等级
             self.latestlevel = meninfo.level
@@ -1275,6 +1275,7 @@ class SelectJuese(State):
 
         toselectidx = GetToSelectIdx(account=GetAccount(), region=GetRegion())
 
+        logger.info("要选择角色的下标: %d" % toselectidx)
         logger.info("要选中角色: %s 等级: %d" % (outlst[toselectidx].name, outlst[toselectidx].level))
 
         curpress = PressRight
@@ -1408,15 +1409,15 @@ class OpenGame(State):
         MouseMoveToLogin(1040, 500), RanSleep(0.3)
         MouseLeftClick(), KongjianSleep()
 
-        SetCurrentAccount(selectAccount.account, selectregion)
+        SetCurrentAccount(selectAccount.account, selectAccount.region)
 
-        for i in range(180):
+        for i in range(300):
             if gamebegin.Match():
                 break
             logger.info("等待进入游戏 %d" % i), time.sleep(1)
 
         if gamebegin.Match():
-            GameApiInit()
+            FlushPid()
             player.ChangeState(SelectJuese())
             return
 

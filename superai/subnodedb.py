@@ -179,23 +179,31 @@ def IsTodayHavePilao(account, region):
     for obj in objs:
         if obj["zhiye"] is None:
             # 没有初始化过
+            logger.info("职业没有初始化过,进去看看")
             return True
         else:
             if IsDestSupport(obj["zhiye"]):
                 # 上次更新时间点在今日六点之前
-                if obj["timepoint"] < TodaySixTimestamp():
+                if obj["timepoint"] < TodaySixTimestamp() < time.time():
+                    logger.info("上次时间戳在今天6点之前")
                     return True
 
-                if obj["curpilao"] == 0:
+                if obj["curpilao"] is not None and obj["curpilao"] == 0:
                     pilaoShuawan += 1
 
                 # 最多刷3个!!!
-                if pilaoShuawan >= 3:
+                if pilaoShuawan >= 4:
+                    logger.warning("最多刷4个角色!")
                     return False
 
                 # 还有疲劳呢!!
                 if obj["curpilao"] > 0:
+                    logger.warning("还有疲劳")
                     return True
+
+    if len(objs) == 0:
+        logger.info("没有角色,上去看看!")
+        return True
 
     return False
 
@@ -214,7 +222,7 @@ def GetToSelectIdx(account, region):
                 continue
 
         # 上次更新时间点在今日六点之前
-        if obj["timepoint"] < TodaySixTimestamp() and time.time() > TodaySixTimestamp():
+        if obj["timepoint"] < TodaySixTimestamp() < time.time():
             return i
 
         # 还有疲劳呢!!
