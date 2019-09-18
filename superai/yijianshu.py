@@ -179,13 +179,16 @@ def YijianshuInit():
     h = lib.M_Open_VidPid(0x612c, 0x1030)
     x = c_void_p(h)
 
+    r = False
     if IsInit():
         logger.info("Init 易键鼠 ok")
+        r = True
     else:
         logger.info("Init 易键鼠 err, 易键鼠没有加载成功")
-        exit(0)
+        r = False
 
     ReleaseAllKey()
+    return r
 
 
 def ReleaseAllKey():
@@ -429,15 +432,18 @@ def KeyInputStgring(s):
 
 # 删除所有文字
 def DeleteAll():
-    lib.M_KeyDown2(h, VK_CODE['del']), RanSleep(1)
-    lib.M_KeyUp2(h, VK_CODE['del']), RanSleep(0.05)
+    lib.M_KeyDown2(h, VK_CODE['backspace']), RanSleep(2)
+    lib.M_KeyUp2(h, VK_CODE['backspace']), RanSleep(0.05)
 
 
 def main():
     InitLog()
     YijianshuInit()
 
-    MouseMoveTo(316, 296)
+    time.sleep(2)
+    DeleteAll()
+
+    # MouseMoveTo(477, 159)
     # RanSleep(3.0)
     # KeyInputStgring("GGC88zyj")
     # GameWindowToTop()

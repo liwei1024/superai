@@ -8,7 +8,6 @@ import threading
 import win32api
 import win32gui
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 logger = logging.getLogger(__name__)
@@ -17,7 +16,6 @@ import random
 import time
 
 from superai.location import IsinSailiya
-
 
 from superai.login import GetDaqu, GetMainregionPos, GetRegionPos
 
@@ -647,15 +645,15 @@ class Setup(State):
             player.ChangeState(OpenGame())
             return
 
-        # 设置当前账号和大区
-        if not IsAccountSetted():
-            PrintSwitchTips()
-            BlockGetSetting()
-
         # 选择角色
         if gamebegin.Match():
             player.ChangeState(SelectJuese())
             return
+
+        # 设置当前账号和大区
+        if not IsAccountSetted():
+            PrintSwitchTips()
+            BlockGetSetting()
 
         # 重新选择角色
         if IsManInChengzhen() and not IsCurrentSupport():
@@ -1256,6 +1254,10 @@ class NoPilao(State):
 # 选择角色
 class SelectJuese(State):
     def Execute(self, player):
+        if not IsAccountSetted():
+            PrintSwitchTips()
+            BlockGetSetting()
+
         outlst = GetSelectObj()
 
         for obj in outlst:
@@ -1318,11 +1320,13 @@ class OpenGame(State):
 
             if selectregion.Match():
                 break
-            time.sleep(1)
+
+            logger.info("启动游戏 %d" % i), time.sleep(1)
 
         if not selectregion.Match():
             return
 
+        RanSleep(1.0)
         pos = selectregion.Pos()
         MouseMoveToLogin(pos[0], pos[1]), KongjianSleep()
         MouseLeftClick(), RanSleep(1.0)
@@ -1339,14 +1343,16 @@ class OpenGame(State):
                 logger.info("寻找到账号: %s %s 没有录入过数据库登录!" % (account.account, account.region))
                 break
             else:
-                selectAccount = account
                 if IsTodayHavePilao(account.account, account.region):
+                    selectAccount = account
                     logger.info("寻找到账号: %s %s 还可以再刷! " % (account.account, account.region))
-                break
+                    break
 
         if selectAccount is None:
             logger.warning("没有可以再刷的帐号了")
             return
+
+        SetCurrentAccount(selectAccount.account, selectAccount.region)
 
         daqu = GetDaqu(selectAccount.region)
 
@@ -1354,25 +1360,25 @@ class OpenGame(State):
             raise Exception("不支持的大区: %s" % selectAccount.region)
 
         if daqu == "电信":
-            MouseMoveToLogin(235, 149), KongjianSleep()
+            MouseMoveToLogin(235, 149), RanSleep(1.0)
         if daqu == "联通":
-            MouseMoveToLogin(236, 233), KongjianSleep()
+            MouseMoveToLogin(236, 233), RanSleep(1.0)
 
-        MouseLeftClick(), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(1.0)
 
         logger.info("选择大区")
         pos = GetMainregionPos(selectAccount.region)
         MouseMoveToLogin(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(1.0)
 
         logger.info("选择服务器")
         pos = GetRegionPos(selectAccount.region)
         MouseMoveToLogin(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(1.0)
 
         logger.info("登录游戏")
         MouseMoveToLogin(1036, 557), RanSleep(0.3)
-        MouseLeftClick(), RanSleep(0.3)
+        MouseLeftClick(), RanSleep(1.0)
 
         logger.info("等待进度条加载")
         pic = Picture(GetImgDir() + "login_youxia.png", dx=1135, dy=617, dw=62, dh=20, classname="TWINCONTROL",
@@ -1388,14 +1394,14 @@ class OpenGame(State):
             return
 
         # 输入账号
-        MouseMoveToLogin(1136, 324), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        MouseMoveToLogin(1125, 324), KongjianSleep()
+        MouseLeftClick(), RanSleep(1.0)
         DeleteAll()
         KeyInputStgring(selectAccount.account), RanSleep(0.3)
 
         # 输入密码
         MouseMoveToLogin(1136, 370), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        MouseLeftClick(), RanSleep(1.0)
         DeleteAll()
         KeyInputStgring(selectAccount.password), RanSleep(0.3)
 
@@ -1435,13 +1441,17 @@ def main():
     # HideConsole()
     # ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6)
 
+    InitLog()
+    if not GameApiInit():
+        exit(0)
+    FlushPid()
+
+    if not YijianshuInit():
+        exit(0)
+
     t = threading.Thread(target=Hotkey)
     t.start()
 
-    InitLog()
-    GameApiInit()
-    FlushPid()
-    YijianshuInit()
     GameWindowToTop()
 
     time.sleep(1.2)

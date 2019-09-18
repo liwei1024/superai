@@ -103,7 +103,7 @@ def DbStateInsert(account, region, role):
 
 # 更新状态
 def DbStateUpdate(account, region, role, curlevel=None, zhiye=None, curpilao=None, money=None, wuse=None, kicktime=None,
-                  kicklong=None):
+                  kicklong=None, timeup=False):
     with contextlib.closing(sqlite.connect(getDbFile())) as con:
         DbStateInsert(account, region, role)
 
@@ -127,8 +127,10 @@ def DbStateUpdate(account, region, role, curlevel=None, zhiye=None, curpilao=Non
                 c.execute("update state set kicktime = ? %s" % conditionstr, (kicktime,) + conditiontup)
             if kicklong is not None:
                 c.execute("update state set kicklong = ? %s" % conditionstr, (kicklong,) + conditiontup)
-            t = time.time()
-            c.execute("update state set timepoint = ? %s" % conditionstr, (int(t),) + conditiontup)
+
+            if timeup:
+                t = time.time()
+                c.execute("update state set timepoint = ? %s" % conditionstr, (int(t),) + conditiontup)
             c.execute("commit")
         except con.Error as e:
             logger.warning("sql error! %s" % e)
@@ -158,6 +160,7 @@ def AccountRoles(account, region):
             c.execute("rollback")
     return count
 
+
 # 今日早上六点时间戳
 def TodaySixTimestamp():
     t = datetime.datetime.today()
@@ -171,6 +174,8 @@ def IsTodayHavePilao(account, region):
         "select account, region, role, curlevel, zhiye, curpilao, money, wuse, kicktime, kicklong, timepoint from state where account=? and region=?",
         (account, region))
 
+    pilaoShuawan = 0
+
     for obj in objs:
         if obj["zhiye"] is None:
             # 没有初始化过
@@ -180,6 +185,13 @@ def IsTodayHavePilao(account, region):
                 # 上次更新时间点在今日六点之前
                 if obj["timepoint"] < TodaySixTimestamp():
                     return True
+
+                if obj["curpilao"] == 0:
+                    pilaoShuawan += 1
+
+                # 最多刷3个!!!
+                if pilaoShuawan >= 3:
+                    return False
 
                 # 还有疲劳呢!!
                 if obj["curpilao"] > 0:
@@ -202,7 +214,7 @@ def GetToSelectIdx(account, region):
                 continue
 
         # 上次更新时间点在今日六点之前
-        if obj["timepoint"] < TodaySixTimestamp():
+        if obj["timepoint"] < TodaySixTimestamp() and time.time() > TodaySixTimestamp():
             return i
 
         # 还有疲劳呢!!
@@ -217,7 +229,7 @@ def UpdateMenState():
     meninfo = GetMenInfo()
     DbStateUpdate(account=GetAccount(), region=GetRegion(), role=meninfo.name, curlevel=meninfo.level,
                   zhiye=meninfo.zhuanzhihou, curpilao=meninfo.maxpilao - meninfo.curpilao, money=meninfo.money,
-                  wuse=BagWuseNum())
+                  wuse=BagWuseNum(), timeup=True)
 
 
 # 流水没有就插入

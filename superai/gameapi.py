@@ -356,7 +356,9 @@ class ObstacleObj(Structure):
 
     def CanBeAttack(self):
         if self.code in [109006910, 109006911, 226, 228, 19134, 19135, 18020, 109000583, 109000576, 57522, 109006963,
-                         109006964, 230, 52811,52829, 52830]:
+                         109006964, 230, 52811,52829, 52830, 52821, 52815, 52814,  52820,
+                         11302, 11301,11300, 11326,11327,11328,11329,11330, 11257, 11329,
+                         15241,15243, 48404 ]:
             return False
 
         if self.code in [109007006]:
@@ -684,9 +686,10 @@ def GetFangxiang(x1, x2):
 def GameApiInit():
     if lib.Init():
         logger.info("Init helpdll-xxiii.dll ok")
+        return True
     else:
         logger.info("Init helpdll-xxiii.dll err, 驱动没有加载成功")
-        exit(0)
+        return False
 
 
 def FlushPid():

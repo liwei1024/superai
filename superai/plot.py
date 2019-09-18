@@ -145,6 +145,7 @@ NpcInfos = {
             "帕丽丝2": MoveInfo(destcoord=("ditu_palisi2.png", 803, 195), mousecoord=(495, 159)),
             "厄运之城": MoveInfo(destcoord=("ditu_eyun.png", 362, 228), mousecoord=(376, 176)),
             "炼金术师摩根": MoveInfo(destcoord=("ditu_mogen2.png", 352, 244), mousecoord=(316, 296)),
+            "阿尔伯特": MoveInfo(destcoord=("ditu_aerbote2.png", 541, 195), mousecoord=(477, 159)),
         }
     }
 }
@@ -1001,6 +1002,17 @@ def 营救赛丽亚():
     return foo
 
 
+# 同名任务
+def 寻找幸存者():
+    def foo(player):
+        meninfo = GetMenInfo()
+        if meninfo.level < 55:
+            AttacktaskFoo("血蝴蝶之舞")(player),
+        else:
+            AttacktaskFoo("赫顿玛尔旧街区")(player),
+
+    return foo
+
 # 30 阿甘左香水. 要放物品
 def 寻找阿甘左(player):
     SafeClear(player)
@@ -1339,7 +1351,7 @@ plotMap = {
     "惊讶的诺顿": MeetNpcFoo("诺顿"),
     "把治疗剂交给诺诺拉": AttacktaskFoo("绿都格罗兹尼"),
     "另一个变异生物": AttacktaskFoo("血蝴蝶之舞"),
-    "寻找幸存者": AttacktaskFoo("血蝴蝶之舞"),
+    "寻找幸存者": 寻找幸存者(),
     "再遇暴戾搜捕团": AttacktaskFoo("血蝴蝶之舞"),
     "蝴蝶怪": AttacktaskFoo("血蝴蝶之舞"),
     "使徒与暴戾搜捕团": AttacktaskFoo("疑惑之村"),
@@ -1386,10 +1398,10 @@ plotMap = {
     "污染土壤的黑暗巨蝎": AttacktaskFoo("腐烂之地"),
     "鲁埃尔的好意": AttacktaskFoo("赫顿玛尔旧街区"),
     "与鲁埃尔的较量": AttacktaskFoo("赫顿玛尔旧街区"),
-    # "寻找幸存者": AttacktaskFoo("赫顿玛尔旧街区"),
-    "变异的幸存者": MeetNpcFoo("阿尔伯特·伯恩斯坦"),
+    # "寻找幸存者": 寻找幸存者(),
+    "变异的幸存者": MeetNpcFoo("阿尔伯特"),
     "愤怒的帕丽丝": AttacktaskFoo("赫顿玛尔旧街区"),
-    "被绑架的居民": MeetNpcFoo("阿尔伯特·伯恩斯坦"),
+    "被绑架的居民": MeetNpcFoo("阿尔伯特"),
     # "被绑架的居民": AttacktaskFoo("赫顿玛尔旧街区深处"),
     "调查绝望的棋局": AttacktaskFoo("绝望的棋局"),
     "跳舞的人偶": AttacktaskFoo("绝望的棋局"),
