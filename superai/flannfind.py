@@ -290,7 +290,8 @@ def FlushImg():
 
 def main():
     InitLog()
-    YijianshuInit()
+    if not YijianshuInit():
+        exit(0)
 
     # moqiangshi_ciji = Picture(basedir + "/kongge.png")
     # pos = moqiangshi_ciji.Pos()

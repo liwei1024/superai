@@ -23,6 +23,14 @@ def GetYiLib():
         lib = CDLL("d:/win/reference/project/superai/dll/msdk.dll", RTLD_GLOBAL)
     return lib
 
+# 幽灵dll
+def GetYoulingLib():
+    if os.path.exists("c:/win/superai/dll/"):
+        lib = CDLL("c:/win/superai/dll/kmllib64.dll", RTLD_GLOBAL)
+    else:
+        lib = CDLL("d:/win/reference/project/superai/dll/kmllib64.dll", RTLD_GLOBAL)
+    return lib
+
 
 # 图片资源
 def GetImgDir():

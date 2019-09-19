@@ -5,6 +5,7 @@ import subprocess
 import sys
 import threading
 
+import names
 import win32api
 import win32gui
 
@@ -20,7 +21,7 @@ from superai.location import IsinSailiya
 from superai.login import GetDaqu, GetMainregionPos, GetRegionPos
 
 from superai.subnodedb import DbStateUpdate, DbStateSelect, IsTodayHavePilao, GetToSelectIdx, UpdateMenState, \
-    DbEventAppend, AccountRoles, InitDb, AccountXingyunxingRule
+    DbEventAppend, AccountRoles, InitDb, AccountXingyunxingRule, DayCreateJueseNum, CreateJueses, CreateJueseAppend
 
 from superai.pathsetting import GetImgDir, GameFileDir
 
@@ -42,7 +43,7 @@ from superai.vkcode import VK_CODE
 
 from superai.yijianshu import YijianshuInit, PressRight, \
     PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, PressKey, MouseMoveTo, MouseLeftClick, \
-    PressUp, PressDown, KongjianSleep, DeleteAll, KeyInputStgring, MouseMoveToLogin
+    PressUp, PressDown, KongjianSleep, DeleteAll, KeyInputString, MouseMoveToLogin
 
 from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, GetMenXY, GetQuadrant, GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
@@ -52,10 +53,13 @@ from superai.gameapi import GameApiInit, FlushPid, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
     GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead, IsLockedHp, UnLockHp, IsFuzhongGou, \
     Zuobiaoyidong, Autoshuntu, GetCurmapXy, HavePilao, GetMapInfo, IsShitmoGu, BagHasFenjieEquip, GetSelectObj, \
-    GetCurSelectIdx, IsFirstSelect, IsLastSelect, BagWuseNum, IsCurrentSupport, Openesc
+    GetCurSelectIdx, IsFirstSelect, IsLastSelect, BagWuseNum, IsCurrentSupport, Openesc, IsCurrentInTrain
 
 gamebegin = Picture(GetImgDir() + "gamebegin2.png")
 selectregion = Picture(GetImgDir() + "select_region.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
+
+waitagain = Picture(GetImgDir() + "wait.png")
+maoxiantuanshezhi = Picture(GetImgDir() + "mao'xuan'tuanshezhi.png")
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -430,7 +434,7 @@ class Player:
         if self.latestlevel == 0:
             # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
-            return False
+            return True
         elif self.latestlevel != meninfo.level:
             # 变化了等级
             self.latestlevel = meninfo.level
@@ -487,6 +491,9 @@ class GlobalState(State):
         self.latesttime = None
 
     def Execute(self, player):
+        if isinstance(player.stateMachine.currentState, OpenGame):
+            return
+
         # 锁血处理
         if IsLockedHp():
             if player.latestlockhp is None:
@@ -1273,8 +1280,19 @@ class SelectJuese(State):
         for obj in outlst:
             DbStateUpdate(account=GetAccount(), region=GetRegion(), role=obj.name, curlevel=obj.level)
 
-        if not IsTodayHavePilao(account=GetAccount(), region=GetRegion()):  # TODO 超过角色上限了
-            logger.warning("这个号不能再刷了"), RanSleep(0.3)  # TODO 换游戏账号呀
+        if len(outlst) == 0 or not IsTodayHavePilao(account=GetAccount(), region=GetRegion()):
+            curnums = AccountRoles(account=GetAccount(), region=GetRegion()) < 12
+            daycreatenums = DayCreateJueseNum(account=GetAccount(), region=GetRegion())
+            if curnums < 12 and daycreatenums < 2:
+                logger.info("当前角色数量: %d , 小于12个, 创建角色" % curnums)
+                player.ChangeState(CreateRole())
+                return
+
+            logger.warning("这个号不能再刷了"), RanSleep(0.3)
+
+            for i in range(10):
+                logger.warning("游戏即将结束!!! : %d" % (10 - i)), time.sleep(1)
+
             os.system("taskkill /im DNF.exe"), RanSleep(5.0)
             player.ChangeState(OpenGame())
             return
@@ -1305,9 +1323,16 @@ class SelectJuese(State):
             logger.warning("没有选中要选择的角色")
             return
 
+        RanSleep(1.0)
+
         PressKey(VK_CODE['spacebar']), RanSleep(0.3)
 
         for i in range(20):
+            # 一级角色训练场景
+            if IsCurrentInTrain():
+                RanSleep(1), UpdateMenState()
+                player.ChangeState(Train())
+                return
             if IsManInChengzhen() and IsinSailiya():
                 RanSleep(1), UpdateMenState()
                 player.ChangeState(Setup())
@@ -1318,7 +1343,73 @@ class SelectJuese(State):
         logger.warning("在选择角色页面"), RanSleep(0.1)
 
 
-# 选择合适的账号进行游戏
+jueselst = ["魔枪士", "女圣职者", "守护者", "女格斗家", "男鬼剑士", "枪剑士"]
+
+jueseseall = {
+    "枪剑士": (127, 487),
+    "女圣职者": (205, 487),
+    "魔枪士": (283, 487),
+    "男鬼剑士": (361, 487),
+    "女鬼剑士": (437, 487),
+    "男神枪手": (520, 487),
+    "女神枪手": (588, 487),
+    "男魔法师": (670, 487),
+    "女魔法师": (127, 557),
+    "女守护者": (205, 557),
+    "男格斗家": (283, 557),
+    "女格斗家": (361, 557),
+    "男圣职者": (437, 557),
+    "暗夜使者": (520, 557),
+    "黑暗武士": (588, 557),
+    "缔造者": (670, 557),
+}
+
+
+# 创建角色
+class CreateRole(State):
+    def Execute(self, player):
+        createJueselst = CreateJueses(account=GetAccount(), region=GetRegion())
+        juesesetting = jueselst * 2
+        for juese in createJueselst:
+            juese = juese["juese"]
+            juesesetting.remove(juese)
+
+        logger.info("还剩下这些角色可以被创建: " + str(juesesetting))
+        idx = random.randint(0, len(juesesetting) - 1)
+        logger.info("创建: %s" % juesesetting[idx])
+        MouseMoveTo(173, 548), KongjianSleep()
+        MouseLeftClick(), RanSleep(2.0)
+
+        pos = jueseseall[juesesetting[idx]]
+        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        MouseLeftClick(), RanSleep(0.3)
+
+        MouseMoveTo(686, 430), KongjianSleep()
+        MouseLeftClick(), RanSleep(0.3)
+
+        # 输入名字
+        toinput = names.get_full_name().replace(' ', '=')
+        KeyInputString(toinput), RanSleep(0.3)
+
+        # 重复
+        MouseMoveTo(469, 287), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+
+        # 确认
+        MouseMoveTo(364, 353), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+
+        # 返回
+        MouseMoveTo(767, 21), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+
+        player.ChangeState(SelectJuese())
+        CreateJueseAppend(account=GetAccount(), region=GetRegion(), juese=juesesetting[idx])
+
+
+# 打开游戏
 class OpenGame(State):
     def Execute(self, player):
         hwnd = win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序")
@@ -1391,6 +1482,12 @@ class OpenGame(State):
         MouseMoveToLogin(1036, 557), RanSleep(0.3)
         MouseLeftClick(), RanSleep(1.0)
 
+        if waitagain.Match():
+            logger.warning("延迟过大,继续等待"), RanSleep(0.3)
+            pos = waitagain.Pos()
+            MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+            MouseLeftClick(), RanSleep(1.0)
+
         logger.info("等待进度条加载")
         pic = Picture(GetImgDir() + "login_youxia.png", dx=1135, dy=617, dw=62, dh=20, classname="TWINCONTROL",
                       windowname="地下城与勇士登录程序")
@@ -1408,13 +1505,13 @@ class OpenGame(State):
         MouseMoveToLogin(1125, 324), KongjianSleep()
         MouseLeftClick(), RanSleep(1.0)
         DeleteAll()
-        KeyInputStgring(selectAccount.account), RanSleep(0.3)
+        KeyInputString(selectAccount.account), RanSleep(0.3)
 
         # 输入密码
         MouseMoveToLogin(1136, 370), KongjianSleep()
         MouseLeftClick(), RanSleep(1.0)
         DeleteAll()
-        KeyInputStgring(selectAccount.password), RanSleep(0.3)
+        KeyInputString(selectAccount.password), RanSleep(0.3)
 
         MouseMoveToLogin(1040, 500), RanSleep(0.3)
         MouseLeftClick(), KongjianSleep()
@@ -1422,13 +1519,59 @@ class OpenGame(State):
         SetCurrentAccount(selectAccount.account, selectAccount.region)
 
         for i in range(300):
-            if gamebegin.Match():
+            if maoxiantuanshezhi.Match():
+                MouseMoveTo(398, 289), KongjianSleep()
+                MouseLeftClick(), KongjianSleep()
+                toinput = names.get_full_name().replace(' ', '=')
+                KeyInputString(toinput), RanSleep(0.3)
+
+                MouseMoveTo(347, 425), KongjianSleep()
+                MouseLeftClick(), KongjianSleep()
+                MouseLeftClick(), KongjianSleep()
+
+                # 返回
+                MouseMoveTo(767, 21), KongjianSleep()
+                MouseLeftClick(), KongjianSleep()
+                break
+
+            elif gamebegin.Match():
                 break
             logger.info("等待进入游戏 %d" % i), time.sleep(1)
 
         if gamebegin.Match():
             FlushPid()
             player.ChangeState(SelectJuese())
+            return
+
+
+class Train(State):
+    def Execute(self, player):
+        logger.info("正在训练场景! 直接退出!")
+
+        # 漫画退出
+        PressKey(VK_CODE["esc"]), KongjianSleep()
+        MouseMoveTo(371, 326), KongjianSleep()
+        MouseLeftClick(), RanSleep(1.0)
+
+        # 动画退出
+        PressKey(VK_CODE["esc"]), KongjianSleep()
+        MouseMoveTo(360, 322), KongjianSleep()
+        MouseLeftClick(), RanSleep(1.0)
+
+        # 返回城镇
+        PressKey(VK_CODE["esc"]), KongjianSleep()
+        MouseMoveTo(490, 448), KongjianSleep()
+        MouseLeftClick(), RanSleep(1.0)
+
+        # 确认
+        MouseMoveTo(370, 329), KongjianSleep()
+        MouseLeftClick(), RanSleep(1.0)
+
+        if IsManInChengzhen():
+            player.ChangeState(InChengzhen())
+            return
+        else:
+            logger.warning("没有正常退出训练场景!!!!")
             return
 
 

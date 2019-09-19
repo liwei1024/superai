@@ -41,3 +41,13 @@ create table if not exists item
 );
 create index if not exists item_idx1 on item (yyyymmdd);
 
+
+-- 创建角色表 - 记录创建角色历史
+create table if not exists createrole
+(
+    id           INTEGER primary key autoincrement, -- id号
+    account      character(20),                     -- 账号
+    region       character(20),                     -- 大区
+    juese        character(20),                     -- 创建角色
+    yyyymmdd     character(20)                      -- yyyymmdd
+);

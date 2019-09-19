@@ -14,3 +14,4 @@ flask_cors
 flask_socketio
 wmi
 psutil
+names

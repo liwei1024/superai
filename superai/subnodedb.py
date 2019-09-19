@@ -7,6 +7,8 @@ import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+
+
 from superai.accountsetup import GetAccount, GetRegion
 from superai.gameapi import IsDestSupport, GetMenInfo, BagWuseNum
 
@@ -209,8 +211,8 @@ def IsTodayHavePilao(account, region):
                     pilaoShuawan += 1
 
                 # 最多刷3个!!!
-                if pilaoShuawan >= 4:
-                    logger.warning("最多刷4个角色!")
+                if pilaoShuawan >= 3:
+                    logger.warning("最多刷3个角色!")
                     return False
 
                 # 还有疲劳呢!!
@@ -320,17 +322,64 @@ def DbItemSelect():
     return result
 
 
+# 创建角色插入
+def CreateJueseAppend(account, region, juese):
+    yyyymmdd = datetime.datetime.today().strftime('%Y-%m-%d')
+    with contextlib.closing(sqlite.connect(getDbFile())) as con:
+        c = con.cursor()
+        c.execute("begin")
+        try:
+            c.execute(
+                "insert into createrole (account, region, juese, yyyymmdd) values (?, ?, ?, ?)",
+                (account, region, juese, yyyymmdd))
+
+            c.execute("commit")
+        except con.Error as e:
+            logger.warning("sql error! %s" % e)
+            c.execute("rollback")
+
+
+# 查询某天创建了多少角色
+def DayCreateJueseNum(account, region):
+    yyyymmdd = datetime.datetime.today().strftime('%Y-%m-%d')
+    count = 0
+    with contextlib.closing(sqlite.connect(getDbFile())) as con:
+        c = con.cursor()
+        c.execute("begin")
+        try:
+            c.execute("select count(*) from createrole where account=? and region=? and yyyymmdd=?",
+                      (account, region, yyyymmdd))
+            rows = c.fetchall()
+            count = rows[0][0]
+            c.execute("commit")
+        except con.Error as e:
+            logger.warning("sql error! %s" % e)
+            c.execute("rollback")
+    return count
+
+
+# 查询创建角色列表(根据此判断下一个创建什么角色)
+def CreateJueses(account, region):
+    result = query_db(
+        "select juese from createrole where account=? and region=?", (account, region))
+    return result
+
+
 def main():
     InitLog()
     InitDb()
+
     # DbEventAppend("13023252617", "上海一区", "小春春", "登陆上线")
     # DbEventAppend("13023252617", "上海一区", "小春春", "下线")
     # DbStateUpdate("13023252617", "上海一区", "小春春", curlevel=10, )
     # DbItemAppend("13023252617", "上海一区", "小春春", moneyadd=100, wuseadd=10, timeadd=100)
 
-    rows = DbStateSelect()
-    jsonstr = json.dumps(rows, ensure_ascii=False)
-    print(jsonstr)
+    # rows = DbStateSelect()
+    # jsonstr = json.dumps(rows, ensure_ascii=False)
+    # print(jsonstr)
+
+    print(IsTodayHavePilao(account='3115907573', region='北京3区'))
+
 
 
 if __name__ == '__main__':

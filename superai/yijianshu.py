@@ -134,6 +134,14 @@ lib.M_MouseWheel.restype = c_int
 lib.M_KeyInputString.argtypes = [c_void_p, c_char_p, c_int]
 lib.M_KeyInputString.restype = c_int
 
+# 输入GBK
+lib.M_KeyInputStringGBK.argtypes = [c_void_p, c_char_p, c_int]
+lib.M_KeyInputStringGBK.restype = c_int
+
+# 输入unicode
+lib.M_KeyInputStringUnicode.argtypes = [c_void_p, c_char_p, c_int]
+lib.M_KeyInputStringUnicode.restype = c_int
+
 
 # 随机时间sleep
 def RanSleep(t):
@@ -342,41 +350,61 @@ def PressHouTiao():
     lib.M_KeyUp2(h, VK_CODE["down_arrow"])
 
 
+# 是否移动到目的位置
+def IsMovedTo(x, y):
+    _, _, (curx, cury) = win32gui.GetCursorInfo()
+    return (curx, cury) == (x, y)
+
+
 # 相对移动鼠标
 def MouseMoveTo(x, y):
     hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
-    _, _, (curx, cury) = win32gui.GetCursorInfo()
     centrex, centrey = win32gui.ClientToScreen(hwnd, (int(x), int(y)))
-    relativex = centrex - curx
-    relativey = centrey - cury
 
-    # if x < 2:
-    #     relativex = random.uniform(relativex, relativex + 2)
-    # else:
-    #     relativex = random.uniform(relativex - 2, relativex + 2)
-    #
-    # if y < 2:
-    #     relativey = random.uniform(relativey, relativey + 2)
-    # else:
-    #     relativey = random.uniform(relativey - 2, relativey + 2)
-
-    lib.M_MoveR(h, int(relativex), int(relativey)), RanSleep(0.3)
+    flag = False
+    # 修正
+    while not IsMovedTo(centrex, centrey):
+        _, _, (curx, cury) = win32gui.GetCursorInfo()
+        relativex, relativey = centrex - curx, centrey - cury
+        if flag:
+            logger.warning("当前鼠标坐标: (%d, %d) != (%d, %d)" % (curx, cury, centrex, centrey))
+        else:
+            flag = True
+        lib.M_MoveR(h, int(relativex), int(relativey)), RanSleep(0.3)
 
 
 # 相对移动鼠标,游戏登录界面
 def MouseMoveToLogin(x, y):
     hwnd = win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序")
-    _, _, (curx, cury) = win32gui.GetCursorInfo()
     centrex, centrey = win32gui.ClientToScreen(hwnd, (int(x), int(y)))
-    relativex = centrex - curx
-    relativey = centrey - cury
 
-    lib.M_MoveR(h, int(relativex), int(relativey)), RanSleep(0.3)
+    flag = False
+    # 修正
+    while not IsMovedTo(centrex, centrey):
+        _, _, (curx, cury) = win32gui.GetCursorInfo()
+        relativex, relativey = centrex - curx, centrey - cury
+        if flag:
+            logger.warning("当前鼠标坐标: (%d, %d) != (%d, %d)" % (curx, cury, centrex, centrey))
+        else:
+            flag = True
+        lib.M_MoveR(h, int(relativex), int(relativey)), RanSleep(0.3)
 
 
 # 相对移动
 def MouseMoveR(x, y):
-    lib.M_MoveR(h, int(x), int(y)), RanSleep(0.3)
+    _, _, (curx, cury) = win32gui.GetCursorInfo()
+    centrex, centrey = curx + x, cury + y
+
+    flag = False
+    # 修正
+    while not IsMovedTo(centrex, centrey):
+        _, _, (curx, cury) = win32gui.GetCursorInfo()
+        relativex, relativey = centrex - curx, centrey - cury
+        if flag:
+            logger.warning("当前鼠标坐标: (%d, %d) != (%d, %d)" % (curx, cury, centrex, centrey))
+        else:
+            flag = True
+        lib.M_MoveR(h, int(relativex), int(relativey)), RanSleep(0.3)
 
 
 # 右键单击
@@ -425,9 +453,15 @@ def MouseWheel(v):
 
 
 # 输入ascii
-def KeyInputStgring(s):
+def KeyInputString(s):
     ins = bytes(s, "utf8")
     lib.M_KeyInputString(h, ins, len(s))
+
+
+# 输入gbk
+def KeyInputGBK(s):
+    ins = bytes(s, "gb2312")
+    lib.M_KeyInputStringGBK(h, ins, len(s))
 
 
 # 删除所有文字
@@ -438,12 +472,15 @@ def DeleteAll():
 
 def main():
     InitLog()
-    YijianshuInit()
+    if not YijianshuInit():
+        exit(0)
+
+    RanSleep(2)
 
     # DeleteAll()
     # MouseMoveTo(537, 468)
     # RanSleep(3.0)
-    # KeyInputStgring("GGC88zyj")
+    # KeyInputString("GGC88zyj")
     # GameWindowToTop()
     # MouseMoveTo(329, 335)
 

@@ -359,7 +359,7 @@ class ObstacleObj(Structure):
                          109006964, 230, 52811, 52829, 52830, 52821, 52815, 52814, 52820,
                          11302, 11301, 11300, 11326, 11327, 11328, 11329, 11330, 11257, 11329,
                          15241, 15243, 48404, 52838, 52836, 52837, 52835, 52840, 52827, 52828, 52853,
-                         52834, 52833, 52840, 52842, 52841, 52825, 52826]:
+                         52834, 52833, 52840, 52842, 52841, 52825, 52826, 227]:
             return False
 
         if self.code in [109007006]:
@@ -1587,6 +1587,14 @@ def IsCurrentSupport():
     meninfo = GetMenInfo()
     return IsDestSupport(meninfo.zhuanzhihou)
 
+# 当前是否在训练场景内
+def IsCurrentInTrain():
+    meninfo = GetMenInfo()
+    if meninfo.level == 1:
+        mapinfo = GetMapInfo()
+        if "洛兰之森" not in mapinfo.name:
+            return True
+    return False
 
 # 技能对应的按键
 idxkeymap = {
@@ -1943,7 +1951,8 @@ def SpeedTest():
 
 def main():
     InitLog()
-    GameApiInit()
+    if not GameApiInit():
+        exit(0)
     FlushPid()
 
     # while True:
@@ -1975,6 +1984,8 @@ def main():
     # XiWu()
     # Zuobiaoyidong(300, 200, 0)
     # Autoshuntu()
+
+    print(IsCurrentInTrain())
 
 
 if __name__ == "__main__":
