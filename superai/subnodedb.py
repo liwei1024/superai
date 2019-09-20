@@ -235,6 +235,7 @@ def GetToSelectIdx(account, region):
 
     for i, obj in enumerate(objs):
         if obj["zhiye"] is None:
+            logger.info("职业没有初始化过,进去看看[GetToSelectIdx]")
             return i
         else:
             if not IsDestSupport(obj["zhiye"]):
@@ -242,10 +243,12 @@ def GetToSelectIdx(account, region):
 
         # 上次更新时间点在今日六点之前
         if obj["timepoint"] < TodaySixTimestamp() < time.time():
+            logger.info("上次时间戳在今天6点之前[GetToSelectIdx]")
             return i
 
         # 还有疲劳呢!!
         if obj["curpilao"] > 0:
+            logger.warning("还有疲劳[GetToSelectIdx]")
             return i
 
     raise Exception("没有可以选择的角色?")
