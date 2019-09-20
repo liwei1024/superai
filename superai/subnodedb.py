@@ -7,8 +7,6 @@ import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-
-
 from superai.accountsetup import GetAccount, GetRegion
 from superai.gameapi import IsDestSupport, GetMenInfo, BagWuseNum, GetRemaindPilao
 
@@ -382,7 +380,6 @@ def main():
     # print(jsonstr)
 
     print(IsTodayHavePilao(account='3115907573', region='北京3区'))
-
 
 
 if __name__ == '__main__':

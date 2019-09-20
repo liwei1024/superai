@@ -1554,7 +1554,7 @@ class Train(State):
             logger.info("等待... %d" % (5 - i)), time.sleep(1)
 
         meninfo = GetMenInfo()
-        if meninfo.zhuanzhiqian in ["鬼剑士", "魔枪士", "圣职者", "守护者", "枪剑士"]:  # TODO 守护者, 枪剑士
+        if meninfo.zhuanzhiqian in ["鬼剑士", "魔枪士", "圣职者", "枪剑士"]:  # 枪剑士
             # 漫画退出
             PressKey(VK_CODE["esc"]), KongjianSleep()
             MouseMoveTo(371, 326), KongjianSleep()
@@ -1573,7 +1573,7 @@ class Train(State):
             # 确认
             MouseMoveTo(370, 329), KongjianSleep()
             MouseLeftClick(), RanSleep(1.0)
-        elif meninfo.zhuanzhiqian in "格斗家":
+        elif meninfo.zhuanzhiqian in ["格斗家", "守护者"]:
             # 漫画退出
             PressKey(VK_CODE["esc"]), KongjianSleep()
             MouseMoveTo(371, 326), KongjianSleep()
