@@ -53,13 +53,15 @@ from superai.gameapi import GameApiInit, FlushPid, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
     GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead, IsLockedHp, UnLockHp, IsFuzhongGou, \
     Zuobiaoyidong, Autoshuntu, GetCurmapXy, HavePilao, GetMapInfo, IsShitmoGu, BagHasFenjieEquip, GetSelectObj, \
-    GetCurSelectIdx, IsFirstSelect, IsLastSelect, BagWuseNum, IsCurrentSupport, Openesc, IsCurrentInTrain
+    GetCurSelectIdx, IsFirstSelect, IsLastSelect, BagWuseNum, IsCurrentSupport, Openesc, IsCurrentInTrain, \
+    GetRemaindPilao
 
 gamebegin = Picture(GetImgDir() + "gamebegin2.png")
 selectregion = Picture(GetImgDir() + "select_region.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
 
 waitagain = Picture(GetImgDir() + "wait.png")
 maoxiantuanshezhi = Picture(GetImgDir() + "mao'xuan'tuanshezhi.png")
+closebtn = Picture(GetImgDir() + "closebtn.png")
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -121,9 +123,9 @@ class Player:
         # 上次发动锁血技能的时候
         self.latestlockhp = None
 
-        # 上次所检查地图卡死时间 / 上次所在的地图
+        # 上次所检查地图卡死时间 / 上次的疲劳
         self.latestfucktime = None
-        self.latestmap = None
+        self.latestpilao = None
 
         # 上次的所在小地图位置
         self.latestpos = None
@@ -142,7 +144,7 @@ class Player:
     # 重置地图卡死信息
     def ResetStuckInfo(self):
         self.latestfucktime = None
-        self.latestmap = None
+        self.latestpilao = None
 
     # 更改当前状态机
     def ChangeState(self, state):
@@ -555,17 +557,6 @@ class GlobalState(State):
             player.SaveAndChangeToEmpty(FOR_CONFIRM)
             return
 
-        # 在图内需要判断卡死的状态
-        # MapStateList = [SeekAndPickUp, PickBuf, SeekAndAttackMonster, DoorOpenGotoNext, DoorStuckGoToPrev,
-        #                 FuckDuonierState, StandState]
-
-        # 防止卡死目前只判断几种情况
-        # def MapStateCheck(curstate):
-        #     for state in MapStateList:
-        #         if isinstance(curstate, state):
-        #             return True
-        #     return False
-
         # 特定状态下才进行判断卡死
         if IsManInMap() and not isinstance(player.stateMachine.currentState, FubenOver):
             if self.latesttime is None:
@@ -601,25 +592,14 @@ class GlobalState(State):
             self.Reset()
 
         if IsManInMap() and not isinstance(player.stateMachine.currentState, FubenOver):
-            # 卡死很长时间,放大招!
             if player.latestfucktime is None:
                 player.latestfucktime = time.time()
-                player.latestmap = GetCurmapXy()
+                player.latestpilao = GetRemaindPilao()
             elif time.time() - player.latestfucktime > 30.0:
-                if player.latestmap == GetCurmapXy():
-                    logger.warning("出现问题,纠正一下!")
+                if player.latestpilao == GetRemaindPilao():
+                    logger.warning("30s了疲劳还没有变,纠正一下")
                     player.ChangeState(StuckShit())
                 player.ResetStuckInfo()
-
-            # 不小心进到了新的门
-            # if player.IsMapPosChange(GetCurmapXy()):
-            #     player.CheckInToNewMap()
-            #     return
-
-        # esc弹出 TODO, 不知道什么代码弹出来的
-        # if IsManInMap():
-        #     if IsEscTop():
-        #         PressKey(VK_CODE["esc"]), KongjianSleep()
 
         # 流水表,不影响图内效率
         # if not IsManInMap():
@@ -707,7 +687,9 @@ class InChengzhen(State):
             return
 
         # 等级 >= 10, 身上,背包没有合适的幸运星武器
-        if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and AccountXingyunxingRule(GetAccount(), GetRegion()) > 0:
+        if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and \
+                AccountXingyunxingRule(GetAccount(), GetRegion()) > 0 and \
+                meninfo.fuzhongcur / meninfo.fuzhongmax < 0.70:
             player.ChangeState(HireEquip())
             return
 
@@ -839,7 +821,7 @@ class FubenOver(State):
         if IsManInChengzhen():
             meninfo = GetMenInfo()
             DbEventAppend(account=GetAccount(), region=GetRegion(), role=meninfo.name,
-                          content="副本:%s 刷完, 剩余: %d疲劳" % (player.latestmapname, meninfo.maxpilao - meninfo.curpilao))
+                          content="副本:%s 刷完, 剩余: %d疲劳" % (player.latestmapname, GetRemaindPilao()))
 
             while IsEscTop():
                 PressKey(VK_CODE["esc"]), KongjianSleep()
@@ -1332,11 +1314,21 @@ class SelectJuese(State):
             if IsCurrentInTrain():
                 RanSleep(1), UpdateMenState()
                 player.ChangeState(Train())
+                MouseMoveTo(1, 1), KongjianSleep()
+                MouseLeftClick(), KongjianSleep()
                 return
-            if IsManInChengzhen() and IsinSailiya():
+            elif IsManInChengzhen() and IsinSailiya():
                 RanSleep(1), UpdateMenState()
                 player.ChangeState(Setup())
+                MouseMoveTo(1, 1), KongjianSleep()
+                MouseLeftClick(), KongjianSleep()
                 return
+            elif closebtn.Match():
+                logger.info("关闭弹窗!")
+                pos = closebtn.Pos()
+                MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                MouseLeftClick(), KongjianSleep()
+
             else:
                 logger.info("等待进入城镇 %d " % i), RanSleep(1.0)
 
@@ -1355,7 +1347,7 @@ jueseseall = {
     "女神枪手": (588, 487),
     "男魔法师": (670, 487),
     "女魔法师": (127, 557),
-    "女守护者": (205, 557),
+    "守护者": (205, 557),
     "男格斗家": (283, 557),
     "女格斗家": (361, 557),
     "男圣职者": (437, 557),
@@ -1510,7 +1502,7 @@ class OpenGame(State):
         # 输入密码
         MouseMoveToLogin(1136, 370), KongjianSleep()
         MouseLeftClick(), RanSleep(1.0)
-        DeleteAll()
+        # DeleteAll()
         KeyInputString(selectAccount.password), RanSleep(0.3)
 
         MouseMoveToLogin(1040, 500), RanSleep(0.3)
@@ -1519,14 +1511,24 @@ class OpenGame(State):
         SetCurrentAccount(selectAccount.account, selectAccount.region)
 
         for i in range(300):
+
+            # 冒险团 没有设置过!!
             if maoxiantuanshezhi.Match():
                 MouseMoveTo(398, 289), KongjianSleep()
                 MouseLeftClick(), KongjianSleep()
                 toinput = names.get_full_name().replace(' ', '=')
                 KeyInputString(toinput), RanSleep(0.3)
 
+                # 设置
                 MouseMoveTo(347, 425), KongjianSleep()
                 MouseLeftClick(), KongjianSleep()
+
+                # 确认
+                MouseMoveTo(371, 364), KongjianSleep()
+                MouseLeftClick(), KongjianSleep()
+
+                # 确认
+                MouseMoveTo(301, 322), KongjianSleep()
                 MouseLeftClick(), KongjianSleep()
 
                 # 返回
@@ -1548,24 +1550,48 @@ class Train(State):
     def Execute(self, player):
         logger.info("正在训练场景! 直接退出!")
 
-        # 漫画退出
-        PressKey(VK_CODE["esc"]), KongjianSleep()
-        MouseMoveTo(371, 326), KongjianSleep()
-        MouseLeftClick(), RanSleep(1.0)
+        for i in range(5):
+            logger.info("等待... %d" % (5 - i)), time.sleep(1)
 
-        # 动画退出
-        PressKey(VK_CODE["esc"]), KongjianSleep()
-        MouseMoveTo(360, 322), KongjianSleep()
-        MouseLeftClick(), RanSleep(1.0)
+        meninfo = GetMenInfo()
+        if meninfo.zhuanzhiqian in ["鬼剑士", "魔枪士", "圣职者", "守护者", "枪剑士"]:  # TODO 守护者, 枪剑士
+            # 漫画退出
+            PressKey(VK_CODE["esc"]), KongjianSleep()
+            MouseMoveTo(371, 326), KongjianSleep()
+            MouseLeftClick(), RanSleep(3.0)
 
-        # 返回城镇
-        PressKey(VK_CODE["esc"]), KongjianSleep()
-        MouseMoveTo(490, 448), KongjianSleep()
-        MouseLeftClick(), RanSleep(1.0)
+            # 动画退出
+            PressKey(VK_CODE["esc"]), KongjianSleep()
+            MouseMoveTo(360, 322), KongjianSleep()
+            MouseLeftClick(), RanSleep(3.0)
 
-        # 确认
-        MouseMoveTo(370, 329), KongjianSleep()
-        MouseLeftClick(), RanSleep(1.0)
+            # 返回城镇
+            PressKey(VK_CODE["esc"]), KongjianSleep()
+            MouseMoveTo(490, 448), KongjianSleep()
+            MouseLeftClick(), RanSleep(3.0)
+
+            # 确认
+            MouseMoveTo(370, 329), KongjianSleep()
+            MouseLeftClick(), RanSleep(1.0)
+        elif meninfo.zhuanzhiqian in "格斗家":
+            # 漫画退出
+            PressKey(VK_CODE["esc"]), KongjianSleep()
+            MouseMoveTo(371, 326), KongjianSleep()
+            MouseLeftClick(), RanSleep(3.0)
+
+            # 返回城镇
+            PressKey(VK_CODE["esc"]), KongjianSleep()
+            MouseMoveTo(490, 448), KongjianSleep()
+            MouseLeftClick(), RanSleep(3.0)
+
+            # 确认
+            MouseMoveTo(370, 329), KongjianSleep()
+            MouseLeftClick(), RanSleep(1.0)
+
+            # 动画退出
+            PressKey(VK_CODE["esc"]), KongjianSleep()
+            MouseMoveTo(360, 322), KongjianSleep()
+            MouseLeftClick(), RanSleep(3.0)
 
         if IsManInChengzhen():
             player.ChangeState(InChengzhen())

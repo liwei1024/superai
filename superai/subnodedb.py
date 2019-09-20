@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 
 from superai.accountsetup import GetAccount, GetRegion
-from superai.gameapi import IsDestSupport, GetMenInfo, BagWuseNum
+from superai.gameapi import IsDestSupport, GetMenInfo, BagWuseNum, GetRemaindPilao
 
 from superai.pathsetting import getDbFile, GetDbDir
 from superai.common import InitLog
@@ -255,7 +255,7 @@ def GetToSelectIdx(account, region):
 def UpdateMenState():
     meninfo = GetMenInfo()
     DbStateUpdate(account=GetAccount(), region=GetRegion(), role=meninfo.name, curlevel=meninfo.level,
-                  zhiye=meninfo.zhuanzhihou, curpilao=meninfo.maxpilao - meninfo.curpilao, money=meninfo.money,
+                  zhiye=meninfo.zhuanzhihou, curpilao=GetRemaindPilao(), money=meninfo.money,
                   wuse=BagWuseNum(), timeup=True)
 
 

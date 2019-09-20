@@ -1509,10 +1509,15 @@ def CurSelectId():
     return selectidx.mapidx
 
 
+# 获取剩余疲劳
+def GetRemaindPilao():
+    meninfo = GetMenInfo()
+    return meninfo.maxpilao - meninfo.curpilao
+
+
 # 疲劳是否有
 def HavePilao():
-    meninfo = GetMenInfo()
-    return meninfo.maxpilao - meninfo.curpilao > 0
+    return GetRemaindPilao() > 0
 
 
 # 蘑菇庄园这个奇葩地图
@@ -1587,6 +1592,7 @@ def IsCurrentSupport():
     meninfo = GetMenInfo()
     return IsDestSupport(meninfo.zhuanzhihou)
 
+
 # 当前是否在训练场景内
 def IsCurrentInTrain():
     meninfo = GetMenInfo()
@@ -1595,6 +1601,7 @@ def IsCurrentInTrain():
         if "洛兰之森" not in mapinfo.name:
             return True
     return False
+
 
 # 技能对应的按键
 idxkeymap = {

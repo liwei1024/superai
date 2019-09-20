@@ -39,6 +39,8 @@ def PrintSwitchTips():
 
 # 阻塞等待用户选择当前是哪个账号
 def BlockGetSetting():
+
+
     accounts = GetSettingAccounts()
 
     while True:
