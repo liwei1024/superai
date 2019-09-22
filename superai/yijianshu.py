@@ -477,6 +477,8 @@ def main():
 
     RanSleep(2)
 
+    MouseMoveR(100,100)
+
     # DeleteAll()
     # MouseMoveTo(537, 468)
     # RanSleep(3.0)

@@ -2,10 +2,11 @@ import os
 import sys
 import time
 
-from superai.common import GameWindowToTop
+
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+from superai.common import GameWindowToTop
 from superai.pathsetting import GetCfgPath, GetCfgFile
 
 settingdir = GetCfgPath()
@@ -39,8 +40,6 @@ def PrintSwitchTips():
 
 # 阻塞等待用户选择当前是哪个账号
 def BlockGetSetting():
-
-
     accounts = GetSettingAccounts()
 
     while True:
@@ -73,8 +72,13 @@ def GetSettingAccounts():
         for line in f:
             line = line.strip('\r').strip('\n')
             vecs = line.split('----')
-            account = Account(vecs[0], vecs[1], vecs[2], vecs[3])
-            accounts.append(account)
+
+            regions =  vecs[3].split(',')
+            for region in regions:
+                if region != "":
+                    account = Account(vecs[0], vecs[1], vecs[2], region)
+                    accounts.append(account)
+
     return accounts
 
 

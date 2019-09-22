@@ -271,8 +271,7 @@ class Occupationkills:
         if meninfo.level >= 10:
             self.learnstrategy.append(OccupationSkill("shengzhizhe", "罪业加身", "shengzhi_zuiyejiashen.png"))
         if meninfo.level >= 15:
-            # self.learnstrategy.append(OccupationSkill("shengzhizhe", "冲刺斩", "shengzhi_chongcizhan.png"))
-            pass
+            self.learnstrategy.append(OccupationSkill("shengzhizhe", "冲刺斩", "shengzhi_chongcizhan.png"))
 
     # 四姨
     def youmozheInit(self):

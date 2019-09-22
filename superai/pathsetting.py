@@ -23,6 +23,7 @@ def GetYiLib():
         lib = CDLL("d:/win/reference/project/superai/dll/msdk.dll", RTLD_GLOBAL)
     return lib
 
+
 # 幽灵dll
 def GetYoulingLib():
     if os.path.exists("c:/win/superai/dll/"):
@@ -67,6 +68,15 @@ def GetDbDir():
 # 数据库文件
 def getDbFile():
     return os.path.join(GetDbDir(), "subnodedb.db")
+
+
+# 验证码缓存路径
+def GetvercodeDir():
+    if os.path.exists("c:/win/supervercode/"):
+        d = "c:/win/supervercode/"
+    else:
+        d = "d:/win/studio/dxf/supervercode/"
+    return d
 
 
 # 游戏路径

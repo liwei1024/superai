@@ -846,6 +846,8 @@ def MeetNpcFoo(destname):
                             QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)  # TODO 写死了
                             QuadKeyUpMap[Quardant.SHANG](), KongjianSleep()
 
+                        RanSleep(0.3)
+
                 PressKey(VK_CODE["spacebar"]), KongjianSleep()
         else:
 
