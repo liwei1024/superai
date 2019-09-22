@@ -2,8 +2,6 @@ import os
 import sys
 import time
 
-
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.common import GameWindowToTop
@@ -58,6 +56,7 @@ def BlockGetSetting():
 
     # GameWindowToTop()
 
+
 # 设置当前选择的账号(通过自动登录)
 def SetCurrentAccount(account, region):
     global currentaccount, currentregion
@@ -73,9 +72,15 @@ def GetSettingAccounts():
             line = line.strip('\r').strip('\n')
             vecs = line.split('----')
 
-            regions =  vecs[3].split(',')
+            regions = vecs[3].split(',')
             for region in regions:
                 if region != "":
+
+                    first = region.find('[')
+                    last = region.find(']')
+                    if first is not None and last is not None:
+                        region = region[0:first]
+
                     account = Account(vecs[0], vecs[1], vecs[2], region)
                     accounts.append(account)
 

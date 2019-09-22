@@ -181,7 +181,7 @@ def IsInit():
 
 
 # 初始化函数
-def YijianshuInit():
+def YijianshuInit(pid=None, vid=None):
     global h, x
 
     h = lib.M_Open_VidPid(0x612c, 0x1030)
@@ -191,11 +191,19 @@ def YijianshuInit():
     if IsInit():
         logger.info("Init 易键鼠 ok")
         r = True
+        ReleaseAllKey()
     else:
-        logger.info("Init 易键鼠 err, 易键鼠没有加载成功")
-        r = False
+        h = lib.M_Open_VidPid(0000, 0000)
+        x = c_void_p(h)
 
-    ReleaseAllKey()
+        if IsInit():
+            logger.info("Init 易键鼠 ok")
+            r = True
+            ReleaseAllKey()
+        else:
+            logger.info("Init 易键鼠 err, 易键鼠没有加载成功")
+            r = False
+
     return r
 
 
@@ -475,9 +483,10 @@ def main():
     if not YijianshuInit():
         exit(0)
 
-    RanSleep(2)
+    # GameWindowToTop()
+    # RanSleep(2)
 
-    MouseMoveR(100,100)
+    MouseMoveR(100, 100)
 
     # DeleteAll()
     # MouseMoveTo(537, 468)
@@ -485,8 +494,6 @@ def main():
     # KeyInputString("GGC88zyj")
     # GameWindowToTop()
     # MouseMoveTo(329, 335)
-
-
 
 
 if __name__ == "__main__":
