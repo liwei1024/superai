@@ -46,6 +46,7 @@ def IsinAierwenfnagxian():
     if wenziaierwenfangxian.Match() or wenzisidunxueyu.Match():
         logger.info("在艾尔文防线")
         return True
+
     else:
         # logger.warning("不在艾尔文防线")
         return False

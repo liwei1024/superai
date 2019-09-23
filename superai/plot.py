@@ -151,7 +151,7 @@ NpcInfos = {
             "奥菲利亚2": MoveInfo(destcoord=("ditu_aofeiliya2.png", 754, 217), mousecoord=(497, 468)),
             "伊沙杜拉": MoveInfo(destcoord=("ditu_yishadula2.png", 1191, 219), mousecoord=(523, 469)),
             "逆流瀑布": MoveInfo(destcoord=("ditu_niliupubu.png", 718, 261), mousecoord=(636, 490)),
-            "阿甘左3":  MoveInfo(destcoord=("ditu_aganzuo3.png", 1432, 217), mousecoord=(537, 468)),
+            "阿甘左3": MoveInfo(destcoord=("ditu_aganzuo3.png", 1432, 217), mousecoord=(537, 468)),
         }
     }
 }
@@ -901,6 +901,11 @@ def MeetNpcFoo(destname):
 
                     loc = Location()
                     location = loc.GetLocation()
+
+                    # 朝着新的冒险任务, 去艾尔文南 会有东西挡住
+                    if destname == "去艾尔文南":
+                        location = "艾尔文防线"
+
                     if location == "":
                         Clear()
                         logger.warning("截图无法判断当前在哪里")

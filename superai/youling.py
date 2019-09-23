@@ -15,16 +15,20 @@ logger = logging.getLogger(__name__)
 
 lib = GetYoulingLib()
 
-lib.CheckDevice.argtypes = []
-lib.CheckDevice.restype = c_bool
+lib.OpenDevice.argtypes = []
+lib.OpenDevice.restype = c_bool
 
 
 def main():
     InitLog()
 
-    res = lib.CheckDevice()
+    print(1)
+    res = lib.OpenDevice()
+    print(2)
 
     print(res)
+
+
 
 
 if __name__ == '__main__':

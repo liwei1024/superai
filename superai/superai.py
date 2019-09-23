@@ -75,6 +75,8 @@ quxiaobtn = Picture(GetImgDir() + "quxiaobtn.png")
 keyishiyong = Picture(GetImgDir() + "keyishiyong.png")
 queren3 = Picture(GetImgDir() + "queren3.png")
 
+shitqueding = Picture(GetImgDir() + "shitqueding.png")  # TODO
+
 loginqueding = Picture(GetImgDir() + "loginqueding.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
 
 # 多少毫秒执行一次状态机
@@ -154,6 +156,10 @@ class Player:
 
         # 流水表写入时间戳
         self.followingtimepoint = None
+
+        # 上次检查卡死时间
+        self.latestcheckkasi = None
+        self.latestcheckpic = None
 
     # 重置地图卡死信息
     def ResetStuckInfo(self):
@@ -615,6 +621,45 @@ class GlobalState(State):
                     player.ChangeState(StuckShit())
                 player.ResetStuckInfo()
 
+        states = [SelectJuese, CreateRole, OpenGame, Train]
+
+        def IsCurstateFlag(curstate):
+            for s in states:
+                if isinstance(curstate, s):
+                    return True
+            return False
+
+        # 在游戏状态中
+        if not IsCurstateFlag(player.stateMachine.currentState) and \
+                (player.latestcheckkasi is None or (time.time() - player.latestcheckkasi) > 60):
+            # 60s检查下是否卡死或者闪退了
+            if player.latestcheckpic is not None:
+
+                curpic = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
+
+                if (curpic == player.latestcheckpic).all():
+                    logger.warning("超过60s游戏画面未动,关闭dnf")
+                    os.system("taskkill /im DNF.exe"), RanSleep(5.0)
+                    player.ChangeState(OpenGame())
+
+                    player.latestcheckpic = None
+                    player.latestcheckkasi = None
+                    return
+
+                player.latestcheckkasi = time.time()
+                player.latestcheckpic = curpic
+
+            else:
+                player.latestcheckkasi = time.time()
+                player.latestcheckpic = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
+
+            #  游戏进程不存在
+            if not checkIfProcessRunning("DNF.exe"):
+                player.ChangeState(OpenGame())
+                player.latestcheckpic = None
+                player.latestcheckkasi = None
+                return
+
         # 流水表,不影响图内效率
         # if not IsManInMap():
         #     pass
@@ -660,7 +705,6 @@ class Setup(State):
         RanSleep(1.0), GameWindowToTop()
         MouseMoveTo(1, 1), KongjianSleep()
         MouseLeftClick(), KongjianSleep()
-
 
         # 重新选择角色
         if IsManInChengzhen() and not IsCurrentSupport():
@@ -1643,8 +1687,14 @@ class OpenGame(State):
 
         # 等待8分钟
         for i in range(480):
+
+            # 直接进入创建角色了
+            if fanhuibtn.Match():
+                pos = fanhuibtn.Pos()
+                MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                MouseLeftClick(), KongjianSleep()
             # 验证码
-            if loginqueding.Match():
+            elif loginqueding.Match():
                 vercodepic = WindowCaptureToFile("TWINCONTROL", "地下城与勇士登录程序", GetvercodeDir(), 531, 341, 121, 43)
 
                 if vercodepic == "":
@@ -1723,6 +1773,7 @@ class Train(State):
                     MouseLeftClick(), KongjianSleep()
                     PressKey(VK_CODE['spacebar']), KongjianSleep()
 
+            GameWindowToTop()
             time.sleep(1), logger.info("训练场景 %d", i)
 
 
@@ -1742,6 +1793,22 @@ def Hotkey():
         time.sleep(0.005)
 
 
+# 置顶游戏线程
+def GameTop():
+    while not EXIT:
+        if checkIfProcessRunning("DNF.exe"):
+            if checkIfProcessRunning("CrossProxy.exe"):
+                logger.warning("发现 CrossProxy.exe, 关闭!!!")
+                os.system("taskkill /im CrossProxy.exe"), RanSleep(1)
+
+            if checkIfProcessRunning("TPHelper.exe"):
+                logger.warning("发现 TPHelper.exe, 关闭!!!")
+                os.system("taskkill /im TPHelper.exe"), RanSleep(1)
+
+            GameWindowToTop()
+        time.sleep(10)
+
+
 def main():
     # HideConsole()
     # ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6)
@@ -1755,12 +1822,16 @@ def main():
         exit(0)
 
     InitDb()
+
+    # 热键线程
     t = threading.Thread(target=Hotkey)
     t.start()
 
-    GameWindowToTop()
+    # 置顶游戏线程
+    t = threading.Thread(target=GameTop)
+    t.start()
 
-    time.sleep(1.2)
+    GameWindowToTop(), time.sleep(1)
 
     # 截图线程
     t = threading.Thread(target=FlushImg)

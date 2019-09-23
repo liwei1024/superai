@@ -78,7 +78,7 @@ def GetSettingAccounts():
 
                     first = region.find('[')
                     last = region.find(']')
-                    if first is not None and last is not None:
+                    if first != -1 and last != -1:
                         region = region[0:first]
 
                     account = Account(vecs[0], vecs[1], vecs[2], region)
