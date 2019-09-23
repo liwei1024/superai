@@ -1799,11 +1799,11 @@ def GameTop():
         if checkIfProcessRunning("DNF.exe"):
             if checkIfProcessRunning("CrossProxy.exe"):
                 logger.warning("发现 CrossProxy.exe, 关闭!!!")
-                os.system("taskkill /im CrossProxy.exe"), RanSleep(1)
+                os.system("taskkill /F /im CrossProxy.exe"), RanSleep(1)
 
             if checkIfProcessRunning("TPHelper.exe"):
                 logger.warning("发现 TPHelper.exe, 关闭!!!")
-                os.system("taskkill /im TPHelper.exe"), RanSleep(1)
+                os.system("taskkill /F /im TPHelper.exe"), RanSleep(1)
 
             GameWindowToTop()
         time.sleep(10)
