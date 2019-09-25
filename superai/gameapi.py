@@ -12,7 +12,7 @@ import copy
 from enum import Enum
 import math
 
-from superai.pathsetting import GetHelpdllLib
+from superai.pathsetting import GetHelpdllLib, GetDriverStartFile
 from superai.common import InitLog
 from superai.yijianshu import PressSkill, PressKey, DownZUO, DownYOU, DownSHANG, DownXIA, DownZUOSHANG, DownZUOXIA, \
     DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, RanSleep, \
@@ -689,8 +689,16 @@ def GameApiInit():
         logger.info("Init helpdll-xxiii.dll ok")
         return True
     else:
-        logger.info("Init helpdll-xxiii.dll err, 驱动没有加载成功")
-        return False
+        logger.info("Init helpdll-xxiii.dll err, 驱动没有加载成功. 尝试加载")
+
+        os.system("start /wait cmd /c %s" % (GetDriverStartFile()))
+
+        if lib.Init():
+            logger.info("Init helpdll-xxiii.dll ok")
+            return True
+        else:
+            logger.info("Init helpdll-xxiii.dll err, 驱动没有加载成功.")
+            return False
 
 
 def FlushPid():

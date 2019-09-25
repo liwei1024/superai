@@ -221,3 +221,6 @@ modules.xml
 
 # End of https://www.gitignore.io/api/jetbrains+all
 /supercfg/accounts
+/superdb/subnodedb.db
+/superdb/version
+/supervercode

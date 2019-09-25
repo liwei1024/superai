@@ -8,17 +8,25 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 # 底层依赖
 def GetHelpdllLib():
-    if os.path.exists("c:/win/x64/Release/"):
-        lib = CDLL("c:/win/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
+    if os.path.exists("c:/win/superai/x64/Release/"):
+        lib = CDLL("c:/win/superai/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
     else:
         lib = CDLL("d:/win/reference/project/xxiii/x64/Release/helpdll-xxiii.dll", RTLD_GLOBAL)
     return lib
 
 
+# 启动启动脚本
+def GetDriverStartFile():
+    if os.path.exists("c:/win/superai/x64/Release/"):
+        return "c:/win/superai/x64/Release/load.cmd"
+    else:
+        return "d:/win/reference/project/xxiii/x64/Release/load.cmd"
+
+
 # 易键鼠dll
 def GetYiLib():
-    if os.path.exists("c:/win/superai/dll/"):
-        lib = CDLL("c:/win/superai/dll/msdk.dll", RTLD_GLOBAL)
+    if os.path.exists("c:/win/superai/superai/dll/"):
+        lib = CDLL("c:/win/superai/superai/dll/msdk.dll", RTLD_GLOBAL)
     else:
         lib = CDLL("d:/win/reference/project/superai/dll/msdk.dll", RTLD_GLOBAL)
     return lib
@@ -26,8 +34,8 @@ def GetYiLib():
 
 # 幽灵dll
 def GetYoulingLib():
-    if os.path.exists("c:/win/superai/dll/"):
-        lib = CDLL("c:/win/superai/dll/kmllib64.dll", RTLD_GLOBAL)
+    if os.path.exists("c:/win/superai/superai/dll/"):
+        lib = CDLL("c:/win/superai/superai/dll/kmllib64.dll", RTLD_GLOBAL)
     else:
         lib = CDLL("d:/win/reference/project/superai/dll/kmllib64.dll", RTLD_GLOBAL)
     return lib
@@ -35,19 +43,19 @@ def GetYoulingLib():
 
 # 图片资源
 def GetImgDir():
-    if os.path.exists("c:/win/superimg/"):
-        basedir = "c:/win/superimg/"
+    if os.path.exists("c:/win/superai/superimg/"):
+        basedir = "c:/win/superai/superimg/"
     else:
-        basedir = "d:/win/studio/dxf/picture/superimg/"
+        basedir = "d:/win/reference/project/superai/superimg/"
     return basedir
 
 
 # 配置路径
 def GetCfgPath():
-    if os.path.exists("c:/win/supercfg/"):
-        settingdir = "c:/win/supercfg/"
+    if os.path.exists("c:/win/superai/supercfg/"):
+        settingdir = "c:/win/superai/supercfg/"
     else:
-        settingdir = "d:/win/studio/dxf/supercfg/"
+        settingdir = "d:/win/reference/project/superai/supercfg/"
     return settingdir
 
 
@@ -58,10 +66,10 @@ def GetCfgFile():
 
 # 数据库路径
 def GetDbDir():
-    if os.path.exists("c:/win/superdb/"):
-        dbdir = "c:/win/superdb/"
+    if os.path.exists("c:/win/superai/superdb/"):
+        dbdir = "c:/win/superai/superdb/"
     else:
-        dbdir = "d:/win/studio/dxf/superdb/"
+        dbdir = "d:/win/reference/project/superai/superdb/"
     return dbdir
 
 
@@ -72,10 +80,10 @@ def getDbFile():
 
 # 验证码缓存路径
 def GetvercodeDir():
-    if os.path.exists("c:/win/supervercode/"):
-        d = "c:/win/supervercode/"
+    if os.path.exists("c:/win/superai/supervercode/"):
+        d = "c:/win/superai/supervercode/"
     else:
-        d = "d:/win/studio/dxf/supervercode/"
+        d = "d:/win/reference/project/superai/supervercode/"
     return d
 
 
