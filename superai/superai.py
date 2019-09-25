@@ -1,3 +1,5 @@
+import pythoncom
+
 import ctypes
 import json
 import logging
@@ -78,6 +80,18 @@ queren3 = Picture(GetImgDir() + "queren3.png")
 shitqueding = Picture(GetImgDir() + "shitqueding.png")  # TODO
 
 loginqueding = Picture(GetImgDir() + "loginqueding.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
+
+lingqubtn1 = Picture(GetImgDir() + "lingqubtn.png", dx=158, dy=108, dw=36, dh=22)
+lingqubtn2 = Picture(GetImgDir() + "lingqubtn.png", dx=211, dy=109, dw=36, dh=22)
+lingqubtn3 = Picture(GetImgDir() + "lingqubtn.png", dx=263, dy=108, dw=36, dh=22)
+lingqubtn4 = Picture(GetImgDir() + "lingqubtn.png", dx=315, dy=107, dw=36, dh=22)
+
+yingbi = Picture(GetImgDir() + "yingbi.png", dx=156, dy=16, dw=22, dh=17)
+xinfeng = Picture(GetImgDir() + "xinfeng.png", dx=179, dy=244, dw=14, dh=10)
+
+pindaoxuanze = Picture(GetImgDir() + "pindaoxuanze.png", dx=362, dy=40, dw=54, dh=14)
+
+putongjuese = Picture(GetImgDir() + "putongjuese.png")
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -516,6 +530,53 @@ class GlobalState(State):
         if isinstance(player.stateMachine.currentState, OpenGame):
             return
 
+        # 领取
+        if IsManInChengzhen() and xinfeng.Match():
+            lingqus = [lingqubtn1, lingqubtn2, lingqubtn3, lingqubtn4]
+            for lingqu in lingqus:
+                if lingqu.Match():
+                    pos = lingqu.Pos()
+                    MouseMoveTo(pos[0] + lingqu.dx, pos[1] + lingqu.dy), KongjianSleep()
+                    MouseLeftClick(), KongjianSleep()
+        states = [SelectJuese, CreateRole, OpenGame, Train]
+
+        def IsCurstateFlag(curstate):
+            for s in states:
+                if isinstance(curstate, s):
+                    return True
+            return False
+
+        # 在游戏状态中
+        if not IsCurstateFlag(player.stateMachine.currentState) and \
+                (player.latestcheckkasi is None or (time.time() - player.latestcheckkasi) > 60):
+            # 60s检查下是否卡死或者闪退了
+            if player.latestcheckpic is not None:
+
+                curpic = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
+
+                if (curpic == player.latestcheckpic).all():
+                    logger.warning("超过60s游戏画面未动,关闭dnf")
+                    os.system("taskkill /im DNF.exe"), RanSleep(5.0)
+                    player.ChangeState(OpenGame())
+
+                    player.latestcheckpic = None
+                    player.latestcheckkasi = None
+                    return
+
+                player.latestcheckkasi = time.time()
+                player.latestcheckpic = curpic
+
+            else:
+                player.latestcheckkasi = time.time()
+                player.latestcheckpic = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
+
+            #  游戏进程不存在
+            if not checkIfProcessRunning("DNF.exe"):
+                player.ChangeState(OpenGame())
+                player.latestcheckpic = None
+                player.latestcheckkasi = None
+                return
+
         # 锁血处理
         if IsLockedHp():
             if player.latestlockhp is None:
@@ -621,45 +682,6 @@ class GlobalState(State):
                     player.ChangeState(StuckShit())
                 player.ResetStuckInfo()
 
-        states = [SelectJuese, CreateRole, OpenGame, Train]
-
-        def IsCurstateFlag(curstate):
-            for s in states:
-                if isinstance(curstate, s):
-                    return True
-            return False
-
-        # 在游戏状态中
-        if not IsCurstateFlag(player.stateMachine.currentState) and \
-                (player.latestcheckkasi is None or (time.time() - player.latestcheckkasi) > 60):
-            # 60s检查下是否卡死或者闪退了
-            if player.latestcheckpic is not None:
-
-                curpic = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
-
-                if (curpic == player.latestcheckpic).all():
-                    logger.warning("超过60s游戏画面未动,关闭dnf")
-                    os.system("taskkill /im DNF.exe"), RanSleep(5.0)
-                    player.ChangeState(OpenGame())
-
-                    player.latestcheckpic = None
-                    player.latestcheckkasi = None
-                    return
-
-                player.latestcheckkasi = time.time()
-                player.latestcheckpic = curpic
-
-            else:
-                player.latestcheckkasi = time.time()
-                player.latestcheckpic = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
-
-            #  游戏进程不存在
-            if not checkIfProcessRunning("DNF.exe"):
-                player.ChangeState(OpenGame())
-                player.latestcheckpic = None
-                player.latestcheckkasi = None
-                return
-
         # 流水表,不影响图内效率
         # if not IsManInMap():
         #     pass
@@ -735,6 +757,13 @@ class InChengzhen(State):
         meninfo = GetMenInfo()
         deal = DealEquip()
         eq = Equips()
+
+        # 频道选择界面 (让你选频道说明网络不好呀)
+        if pindaoxuanze.Match():
+            logger.warning("频道切换?")
+            os.system("taskkill /im DNF.exe"), RanSleep(5.0)
+            player.ChangeState(OpenGame())
+            return
 
         # 关闭弹窗
         if closebtn.Match():
@@ -1359,7 +1388,7 @@ class SelectJuese(State):
             DbStateUpdate(account=GetAccount(), region=GetRegion(), role=obj.name, curlevel=obj.level)
 
         if len(outlst) == 0 or not IsTodayHavePilao(account=GetAccount(), region=GetRegion()):
-            curnums = AccountRoles(account=GetAccount(), region=GetRegion()) < 12
+            curnums = AccountRoles(account=GetAccount(), region=GetRegion())
             daycreatenums = DayCreateJueseNum(account=GetAccount(), region=GetRegion())
             if curnums < 3 and daycreatenums < 2:
                 logger.info("当前角色数量: %d , 小于3个, 创建角色" % curnums)
@@ -1428,6 +1457,11 @@ class SelectJuese(State):
                 pos = closebtn.Pos()
                 MouseMoveTo(pos[0], pos[1]), KongjianSleep()
                 MouseLeftClick(), KongjianSleep()
+            elif IsManInChengzhen():
+                # 进入城镇后去掉一些弹出来的窗口
+                PressKey(VK_CODE['esc']), KongjianSleep()
+                while IsEscTop():
+                    PressKey(VK_CODE['esc']), KongjianSleep()
             else:
                 logger.info("等待进入城镇 %d " % i), RanSleep(1.0)
 
@@ -1512,6 +1546,11 @@ class CreateRole(State):
             MouseLeftClick(), RanSleep(0.3)
 
             RanSleep(1), logger.info("等待到取名字界面")
+
+            if putongjuese.Match():
+                pos = putongjuese.Pos()
+                MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                MouseLeftClick(), KongjianSleep()
 
         if not quxiaobtn.Match():
             logger.warning("没有在取名字页面!!!")
@@ -1805,7 +1844,8 @@ def GameTop():
                 logger.warning("发现 TPHelper.exe, 关闭!!!")
                 os.system("taskkill /F /im TPHelper.exe"), RanSleep(1)
 
-            GameWindowToTop()
+        pythoncom.CoInitialize()
+        GameWindowToTop()
         time.sleep(10)
 
 

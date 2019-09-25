@@ -568,7 +568,7 @@ def MoveTo(destname, player):
 
     if player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 10.0:
         # 移动下 防止卡死!!!
-        if random.uniform(0, 1) < 0.05:
+        if random.uniform(0, 1) < 0.5:
             PressKey(VK_CODE['left_arrow'])
         else:
             PressKey(VK_CODE['right_arrow'])
