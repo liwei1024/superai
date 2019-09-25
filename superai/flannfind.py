@@ -172,7 +172,7 @@ class Picture:
 def sifttest():
     if len(sys.argv) < 2:
         print("usage: {} png".format(sys.argv[0]))
-        exit(0)
+        sys.exit()
     CompareTwoPicture(sys.argv[1], sys.argv[2])
     # RealTimeCompare(sys.argv[1])
 
@@ -180,7 +180,7 @@ def sifttest():
 def templatefindtest():
     if len(sys.argv) < 2:
         print("usage: {} png".format(sys.argv[0]))
-        exit(0)
+        sys.exit()
 
     img1 = cv2.imread(sys.argv[1], cv2.IMREAD_COLOR)
     img2 = cv2.imread(sys.argv[2], cv2.IMREAD_COLOR)
@@ -281,7 +281,7 @@ def FlushImg():
 def main():
     InitLog()
     if not YijianshuInit():
-        exit(0)
+        sys.exit()
 
     # moqiangshi_ciji = Picture(basedir + "/kongge.png")
     # pos = moqiangshi_ciji.Pos()

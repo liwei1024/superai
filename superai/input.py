@@ -9,7 +9,7 @@ from superai.yijianshu import YijianshuInit, KeyInputString, RanSleep
 
 def main():
     if not YijianshuInit():
-        exit(0)
+        sys.exit()
     # GameWindowToTop()
 
     if len(sys.argv) > 1:

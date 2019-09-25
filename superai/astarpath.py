@@ -744,7 +744,7 @@ def DrawNextDoorPath():
 def main():
     InitLog()
     if not GameApiInit():
-        exit(0)
+        sys.exit()
     FlushPid()
 
     # DrawNextDoorPath()

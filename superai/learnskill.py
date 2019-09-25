@@ -583,10 +583,10 @@ class Occupationkills:
 def main():
     InitLog()
     if not GameApiInit():
-        exit(0)
+        sys.exit()
     FlushPid()
     if not YijianshuInit():
-        exit(0)
+        sys.exit()
     GameWindowToTop()
 
     print(skillstore.Match())

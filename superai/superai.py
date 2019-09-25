@@ -1823,7 +1823,7 @@ EXIT = False
 def Hotkey():
     while True:
         statealt = win32api.GetAsyncKeyState(VK_CODE['alt'])
-        statetab = win32api.GetAsyncKeyState(VK_CODE['tab'])
+        statetab = win32api.GetAsyncKeyState(VK_CODE['ctrl'])
         statek = win32api.GetAsyncKeyState(VK_CODE['q'])
         global EXIT
         if (statealt != 0 and statek != 0 and statetab != 0) or EXIT is True:
@@ -1856,11 +1856,11 @@ def main():
 
     InitLog()
     if not GameApiInit():
-        exit(0)
+        sys.exit()
     FlushPid()
 
     if not YijianshuInit():
-        exit(0)
+        sys.exit()
 
     InitDb()
 

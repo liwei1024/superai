@@ -481,7 +481,7 @@ def DeleteAll():
 def main():
     InitLog()
     if not YijianshuInit():
-        exit(0)
+        sys.exit()
 
     # GameWindowToTop()
     # RanSleep(2)
