@@ -93,6 +93,8 @@ pindaoxuanze = Picture(GetImgDir() + "pindaoxuanze.png", dx=362, dy=40, dw=54, d
 
 putongjuese = Picture(GetImgDir() + "putongjuese.png")
 
+aerwenfangxian = Picture(GetImgDir() + "aierwenfangxian.png", dx=292, dy=275, dw=73, dh=27)
+
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
 
@@ -538,6 +540,13 @@ class GlobalState(State):
                     pos = lingqu.Pos()
                     MouseMoveTo(pos[0] + lingqu.dx, pos[1] + lingqu.dy), KongjianSleep()
                     MouseLeftClick(), KongjianSleep()
+
+        # 艾尔文防线
+        if IsManInChengzhen() and aerwenfangxian.Match():
+            pos = aerwenfangxian.Pos()
+            MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+            MouseLeftClick(), KongjianSleep()
+
         states = [SelectJuese, CreateRole, OpenGame, Train]
 
         def IsCurstateFlag(curstate):

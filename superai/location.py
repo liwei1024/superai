@@ -31,6 +31,7 @@ wenzijingxiang = Picture(GetImgDir() + "wenzi_jingxiangalade.png", 610, 22, 182,
 sailiya = Picture(GetImgDir() + "ditu_sailiya.png")
 
 
+
 # 是否在赛丽亚访问
 def IsinSailiya():
     if sailiya.Match():
