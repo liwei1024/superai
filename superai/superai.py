@@ -1823,9 +1823,10 @@ EXIT = False
 def Hotkey():
     while True:
         statealt = win32api.GetAsyncKeyState(VK_CODE['alt'])
+        statetab = win32api.GetAsyncKeyState(VK_CODE['tab'])
         statek = win32api.GetAsyncKeyState(VK_CODE['q'])
         global EXIT
-        if (statealt != 0 and statek != 0) or EXIT is True:
+        if (statealt != 0 and statek != 0 and statetab != 0) or EXIT is True:
             EXIT = True
             logger.warning("exit!!!")
             break
