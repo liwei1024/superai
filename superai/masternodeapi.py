@@ -5,6 +5,8 @@ import threading
 
 import logging
 
+from engineio.async_drivers import gevent
+
 logger = logging.getLogger(__name__)
 
 from flask import Flask
@@ -22,7 +24,7 @@ app = Flask(__name__)
 CORS(app)
 
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
-socketio = SocketIO(app, cors_allowed_origins='*')
+socketio = SocketIO(app, cors_allowed_origins='*', async_mode='gevent')
 
 
 @app.route('/')
@@ -31,7 +33,7 @@ def test():
 
 
 subs = [
-    (1, "192.168.0.88"),
+    (1, "192.168.0.89"),
 ]
 
 

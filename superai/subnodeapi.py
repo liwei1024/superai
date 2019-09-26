@@ -5,6 +5,8 @@ import threading
 
 import logging
 
+from engineio.async_drivers import gevent
+
 logger = logging.getLogger(__name__)
 
 from flask import Flask
@@ -18,13 +20,13 @@ from superai.common import InitLog
 
 from superai.sysmonitor import sysFlushThread, cpuFlushStop, \
     getCpuResult, getSysversionResult, getMemResult, getDiskResult, getNetworkResult
-from superai.subnodedb import DbEventSelect, DbStateSelect, DbItemSelect
+from superai.subnodedb import DbEventSelect, DbStateSelect, DbItemSelect, DbStateGetNearestTimepoint
 
 app = Flask(__name__)
 CORS(app)
 
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
-socketio = SocketIO(app, cors_allowed_origins='*')
+socketio = SocketIO(app, cors_allowed_origins='*',async_mode='gevent')
 
 
 @app.route('/')
@@ -64,7 +66,8 @@ def getMachineState():
         "cpuInfo": getCpuResult(),
         "memInfo": getMemResult(),
         "diskInfo": getDiskResult(),
-        "networkInfo": getNetworkResult()
+        "networkInfo": getNetworkResult(),
+        "latestStateInfo":  DbStateGetNearestTimepoint()
     }
     jsonstr = json.dumps(result, ensure_ascii=False)
     return jsonstr

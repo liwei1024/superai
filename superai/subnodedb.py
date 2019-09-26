@@ -144,6 +144,12 @@ def DbStateSelect():
     return result
 
 
+# 查询最近的状态的时间戳
+def DbStateGetNearestTimepoint():
+    result = query_db("select timepoint,account,region  from state order by timepoint desc limit 1")
+    return result
+
+
 # 账号&大区  下的角色有多少
 def AccountRoles(account, region):
     count = 0
