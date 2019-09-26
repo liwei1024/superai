@@ -4,6 +4,7 @@ import random
 import sys
 import time
 
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
@@ -836,6 +837,16 @@ def MeetNpcFoo(destname):
         if destname == "赛丽亚":
             # 返回角色再进入
             if BackAndEnter():
+                RanSleep(1.0)
+
+                from superai.superai import lingqingnewbtn
+
+                if lingqingnewbtn.Match():
+                    pos = lingqingnewbtn.Pos()
+                    MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                    MouseLeftClick(), KongjianSleep()
+
+                    PressKey(VK_CODE['esc']), KongjianSleep()
 
                 meninfo = GetMenInfo()
                 if not IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, 447, 163, 20):
@@ -1007,6 +1018,18 @@ def 长脚罗特斯():
 
 
 meetbaerleina = False
+meetaerbote = False
+attackqiju = False
+meetaganzuo = False
+
+
+# 切换角色后要置空
+def ResetAllChongming():
+    global meetbaerleina, meetaerbote, attackqiju, meetaganzuo
+    meetbaerleina = False
+    meetaerbote = False
+    attackqiju = False
+    meetaganzuo = False
 
 
 # 同名任务
@@ -1044,9 +1067,6 @@ def 寻找幸存者():
     return foo
 
 
-meetaerbote = False
-
-
 # 同名任务
 def 被绑架的居民():
     def foo(player):
@@ -1058,9 +1078,6 @@ def 被绑架的居民():
     return foo
 
 
-attackqiju = False
-
-
 # 同名任务
 def 棋局的秘密():
     def foo(player):
@@ -1070,9 +1087,6 @@ def 棋局的秘密():
             MeetNpcFoo("帕丽丝2")(player)
 
     return foo
-
-
-meetaganzuo = False
 
 
 # 同名任务

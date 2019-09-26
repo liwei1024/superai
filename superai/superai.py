@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 logger = logging.getLogger(__name__)
 
+from superai.subnodeapi import subnodeapi
 from superai.screenshots import WindowCaptureToMem, WindowCaptureToFile
 
 import random
@@ -38,7 +39,7 @@ from superai.accountsetup import IsAccountSetted, PrintSwitchTips, BlockGetSetti
 
 from superai.dealequip import DealEquip
 from superai.equip import Equips
-from superai.plot import TaskCtx, HasPlot, plotMap, OpenSelect
+from superai.plot import TaskCtx, HasPlot, plotMap, OpenSelect, ResetAllChongming
 from superai.learnskill import Occupationkills
 from superai.common import InitLog, GameWindowToTop, HideConsole, ClientWindowToTop
 from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, SafeGetDAndOb, Zuobiao
@@ -94,6 +95,8 @@ pindaoxuanze = Picture(GetImgDir() + "pindaoxuanze.png", dx=362, dy=40, dw=54, d
 putongjuese = Picture(GetImgDir() + "putongjuese.png")
 
 aerwenfangxian = Picture(GetImgDir() + "aierwenfangxian.png", dx=292, dy=275, dw=73, dh=27)
+
+lingqingnewbtn = Picture(GetImgDir() + "lingqingnewbtn.png", dx=381, dy=380, dw=41, dh=13)
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -533,19 +536,29 @@ class GlobalState(State):
             return
 
         # 领取
-        if IsManInChengzhen() and xinfeng.Match():
-            lingqus = [lingqubtn1, lingqubtn2, lingqubtn3, lingqubtn4]
-            for lingqu in lingqus:
-                if lingqu.Match():
-                    pos = lingqu.Pos()
-                    MouseMoveTo(pos[0] + lingqu.dx, pos[1] + lingqu.dy), KongjianSleep()
-                    MouseLeftClick(), KongjianSleep()
+        if IsManInChengzhen():
+            # 领取阶段奖励
+            if xinfeng.Match():
+                lingqus = [lingqubtn1, lingqubtn2, lingqubtn3, lingqubtn4]
+                for lingqu in lingqus:
+                    if lingqu.Match():
+                        pos = lingqu.Pos()
+                        MouseMoveTo(pos[0] + lingqu.dx, pos[1] + lingqu.dy), KongjianSleep()
+                        MouseLeftClick(), KongjianSleep()
 
-        # 艾尔文防线
-        if IsManInChengzhen() and aerwenfangxian.Match():
-            pos = aerwenfangxian.Pos()
-            MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-            MouseLeftClick(), KongjianSleep()
+            # 选择地图,艾尔文防线
+            if aerwenfangxian.Match():
+                pos = aerwenfangxian.Pos()
+                MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                MouseLeftClick(), KongjianSleep()
+
+            # 领取
+            if lingqingnewbtn.Match():
+                pos = lingqingnewbtn.Pos()
+                MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                MouseLeftClick(), KongjianSleep()
+
+                PressKey(VK_CODE['esc']), KongjianSleep()
 
         states = [SelectJuese, CreateRole, OpenGame, Train]
 
@@ -1459,6 +1472,7 @@ class SelectJuese(State):
                 player.ChangeState(Setup())
                 RanSleep(1.0), GameWindowToTop()
                 MouseMoveTo(2, 2), KongjianSleep()
+                ResetAllChongming()
                 return
             elif closebtn.Match():
                 # 关闭弹窗
@@ -1519,7 +1533,7 @@ class CreateRole(State):
 
         # 选择创建角色
         createJueselst = CreateJueses(account=GetAccount(), region=GetRegion())
-        juesesetting = jueselst * 2
+        juesesetting = jueselst
         for juese in createJueselst:
             juese = juese["juese"]
             juesesetting.remove(juese)
@@ -1859,10 +1873,7 @@ def GameTop():
         time.sleep(10)
 
 
-def main():
-    # HideConsole()
-    # ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 6)
-
+def superai():
     InitLog()
     if not GameApiInit():
         sys.exit()
@@ -1871,6 +1882,7 @@ def main():
     if not YijianshuInit():
         sys.exit()
 
+    # 初始化数据库
     InitDb()
 
     # 热键线程
@@ -1906,7 +1918,14 @@ def main():
     SetThreadExit()  # 截图线程退出
     EXIT = True  # 热键线程退出
     logger.info("main thread exit")
-    # sys.exit()
+
+
+def main():
+    # jsonrpc websocket 推送
+    t = threading.Thread(target=subnodeapi)
+    t.start()
+
+    superai()
 
 
 if __name__ == "__main__":

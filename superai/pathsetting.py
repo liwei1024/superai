@@ -12,7 +12,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 runPath = os.path.split(sys.executable)[0]
 runPath = os.path.split(runPath)[0]
 xxxiiiPath = "d:/win/reference/project/xxiii"
@@ -25,8 +24,6 @@ def GetHelpdllLib():
         lib = CDLL(os.path.join(runPath, "x64/Release/helpdll-xxiii.dll"), RTLD_GLOBAL)
     else:
         lib = CDLL(os.path.join(xxxiiiPath, "x64/Release/helpdll-xxiii.dll"), RTLD_GLOBAL)
-
-    logger.info(lib)
     return lib
 
 
@@ -36,9 +33,8 @@ def GetDriverStartFile():
         p = os.path.join(runPath, "x64/Release/load.cmd")
     else:
         p = os.path.join(xxxiiiPath, "x64/Release/load.cmd")
-
-    logger.info(p)
     return p
+
 
 # 易键鼠dll
 def GetYiLib():
@@ -46,8 +42,6 @@ def GetYiLib():
         lib = CDLL(os.path.join(runPath, "superai/dll/msdk.dll"), RTLD_GLOBAL)
     else:
         lib = CDLL(os.path.join(superaiPath, "dll/msdk.dll"), RTLD_GLOBAL)
-
-    logger.info(lib)
     return lib
 
 
@@ -57,8 +51,6 @@ def GetYoulingLib():
         lib = CDLL(os.path.join(runPath, "superai/dll/kmllib64.dll"), RTLD_GLOBAL)
     else:
         lib = CDLL(os.path.join(superaiPath, "dll/kmllib64.dll"), RTLD_GLOBAL)
-
-    logger.info(lib)
     return lib
 
 
@@ -68,8 +60,6 @@ def GetImgDir():
         basedir = os.path.join(runPath, "superimg/")
     else:
         basedir = os.path.join(superaiPath, "superimg/")
-
-    logger.info(basedir)
     return basedir
 
 
@@ -79,8 +69,6 @@ def GetCfgPath():
         settingdir = os.path.join(runPath, "supercfg/")
     else:
         settingdir = os.path.join(superaiPath, "supercfg/")
-
-    logger.info(settingdir)
     return settingdir
 
 
@@ -95,8 +83,6 @@ def GetDbDir():
         dbdir = os.path.join(runPath, "superdb/")
     else:
         dbdir = os.path.join(superaiPath, "superdb/")
-
-    logger.info(dbdir)
     return dbdir
 
 
@@ -111,7 +97,6 @@ def GetvercodeDir():
         d = os.path.join(runPath, "supervercode/")
     else:
         d = os.path.join(superaiPath, "supervercode/")
-    logger.info(d)
     return d
 
 
@@ -127,5 +112,4 @@ def GameFileDir():
         config.read(os.path.join(GetCfgPath(), "superai.cfg"))
         gamedir = config.get('superai', '游戏路径')
 
-    logger.info(gamedir)
     return gamedir

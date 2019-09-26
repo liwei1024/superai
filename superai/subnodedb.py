@@ -78,9 +78,9 @@ def DbEventAppend(account, region, role, content):
             c.execute("rollback")
 
 
-# 查询事件
+# 查询事件 (最近20条?)
 def DbEventSelect():
-    result = query_db("select account, region, role, timepoint, content from event ")
+    result = query_db("select account, region, role, timepoint, content from event order by timepoint desc limit 20")
     return result
 
 
@@ -140,7 +140,7 @@ def DbStateUpdate(account, region, role, curlevel=None, zhiye=None, curpilao=Non
 # 查询状态
 def DbStateSelect():
     result = query_db(
-        "select account, region, role, curlevel, zhiye, curpilao, money, wuse, kicktime, kicklong, timepoint from state")
+        "select account, region, role, curlevel, zhiye, curpilao, money, wuse, kicktime, kicklong, timepoint from state  where timepoint != 0 order by timepoint desc")
     return result
 
 
@@ -319,7 +319,7 @@ def DbItemAppend(account, region, role, moneyadd=None, wuseadd=None, timeadd=Non
 # 查询流水
 def DbItemSelect():
     result = query_db(
-        "select account, region, role, yyyymmdd, todaymoney, todaywuse, todaysumtime from item")
+        "select account, region, role, yyyymmdd, todaymoney, todaywuse, todaysumtime from item order by yyyymmdd desc")
     return result
 
 

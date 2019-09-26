@@ -32,6 +32,7 @@ def test():
     return 'subnodeapi'
 
 
+# jsonprc 事件
 @jsonrpc.method('getEvent')
 def getEvent():
     rows = DbEventSelect()
@@ -39,6 +40,7 @@ def getEvent():
     return jsonstr
 
 
+# jsonrpc 状态
 @jsonrpc.method('getState')
 def getState():
     rows = DbStateSelect()
@@ -46,6 +48,7 @@ def getState():
     return jsonstr
 
 
+# jsonrpc 流水
 @jsonrpc.method('getItem')
 def getItem():
     rows = DbItemSelect()
@@ -53,6 +56,7 @@ def getItem():
     return jsonstr
 
 
+# jsonrpc
 @jsonrpc.method('getMachineState')
 def getMachineState():
     result = {
@@ -66,21 +70,25 @@ def getMachineState():
     return jsonstr
 
 
+# websocket 推送事件
 @socketio.on('geteventpush')
 def geteventpush():
     socketio.emit('geteventpush', getEvent())
 
 
+# websocket 推送状态
 @socketio.on('getstatepush')
 def getstatepush():
     socketio.emit('getstatepush', getState())
 
 
+# websocket 推送流水
 @socketio.on('getitempush')
 def getitempush():
     socketio.emit('getitempush', getItem())
 
 
+# websocket 推送状态信息
 @socketio.on('machinestatepush')
 def machinestatepush():
     socketio.emit('machinestatepush', getMachineState())
@@ -98,9 +106,7 @@ def background_thread():
         socketio.sleep(2)
 
 
-def main():
-    InitLog()
-
+def subnodeapi():
     t = threading.Thread(target=sysFlushThread)
     t.start()
     from gevent import pywsgi
@@ -109,6 +115,12 @@ def main():
     socketio.start_background_task(target=background_thread)
     server.serve_forever()
     cpuFlushStop()
+
+
+def main():
+    InitLog()
+
+    subnodeapi()
 
 
 if __name__ == '__main__':

@@ -95,7 +95,7 @@ def diskInfo():
 
 # 网卡/ip信息
 def networkInfo():
-    matchlist = ["WLAN", "Ethernet"]
+    matchlist = ["WLAN"]
 
     def isInMatchList(s):
         for v in matchlist:
