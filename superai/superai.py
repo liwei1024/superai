@@ -836,7 +836,7 @@ class InChengzhen(State):
         # 等级 >= 10, 身上,背包没有合适的幸运星武器
         if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and \
                 AccountXingyunxingRule(GetAccount(), GetRegion()) > 0 and \
-                meninfo.fuzhongcur / meninfo.fuzhongmax < 0.70:
+                (meninfo.fuzhongmax > 0.0 and meninfo.fuzhongcur / meninfo.fuzhongmax < 0.70):
             player.ChangeState(HireEquip())
             return
 
@@ -851,7 +851,7 @@ class InChengzhen(State):
             return
 
         # 负重超过一定程度,分解 (需要先到副本外)
-        if meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65:
+        if meninfo.fuzhongmax > 0.0 and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.65:
             pos = deal.GetFenjieJiPos()
             if pos is not None and pos != (0, 0):
                 player.ChangeState(FenjieEquip())

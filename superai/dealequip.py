@@ -178,7 +178,7 @@ class DealEquip:
         equips = GetEquipObj()
         for v in equips:
             if v.bodypos in BODYPOS or v.bodypos == 12:
-                if v.curnaijiu / v.maxnaijiu < 0.25:
+                if v.maxnaijiu > 0.0 and v.curnaijiu / v.maxnaijiu < 0.25:
                     return True
 
         return False
