@@ -13,7 +13,6 @@ import names
 import win32api
 import win32gui
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 logger = logging.getLogger(__name__)
@@ -579,7 +578,7 @@ class GlobalState(State):
 
                 if (curpic == player.latestcheckpic).all():
                     logger.warning("超过60s游戏画面未动,关闭dnf")
-                    os.system("taskkill /im DNF.exe"), RanSleep(5.0)
+                    os.system("taskkill /F /im DNF.exe"), RanSleep(5.0)
                     player.ChangeState(OpenGame())
 
                     player.latestcheckpic = None
@@ -784,7 +783,7 @@ class InChengzhen(State):
         # 频道选择界面 (让你选频道说明网络不好呀)
         if pindaoxuanze.Match():
             logger.warning("频道切换?")
-            os.system("taskkill /im DNF.exe"), RanSleep(5.0)
+            os.system("taskkill /F /im DNF.exe"), RanSleep(5.0)
             player.ChangeState(OpenGame())
             return
 
@@ -1423,7 +1422,7 @@ class SelectJuese(State):
             for i in range(10):
                 logger.warning("游戏即将结束!!! : %d" % (10 - i)), time.sleep(1)
 
-            os.system("taskkill /im DNF.exe"), RanSleep(5.0)
+            os.system("taskkill /F /im DNF.exe"), RanSleep(5.0)
             player.ChangeState(OpenGame())
             return
 
@@ -1537,7 +1536,12 @@ class CreateRole(State):
         juesesetting = jueselst
         for juese in createJueselst:
             juese = juese["juese"]
-            juesesetting.remove(juese)
+
+            if juese in juesesetting:  juesesetting.remove(juese)
+
+        if len(juesesetting) < 1:
+            juesesetting = ["男鬼剑士"]
+
         logger.info("还剩下这些角色可以被创建: " + str(juesesetting))
         idx = random.randint(0, len(juesesetting) - 1)
         logger.info("创建: %s" % juesesetting[idx])
@@ -1630,10 +1634,10 @@ class OpenGame(State):
         for i in range(10):
             if checkIfProcessRunning("DNF.exe"):
                 logger.warning("关闭DNF.exe")
-                os.system("taskkill /im DNF.exe"), RanSleep(5.0)
+                os.system("taskkill /F /im DNF.exe"), RanSleep(5.0)
             elif win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序") != 0:
                 logger.warning("关闭登陆器")
-                os.system("taskkill /im Client.exe"), RanSleep(5.0)
+                os.system("taskkill /F /im Client.exe"), RanSleep(5.0)
             else:
                 break
             time.sleep(1), logger.info("等待游戏/登陆器关闭")

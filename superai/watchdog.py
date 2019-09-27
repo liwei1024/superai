@@ -1,5 +1,10 @@
+import subprocess
+
+
+
+
 def main():
-    pass
+    subprocess.call('powershell.exe ipconfig')
 
 
 if __name__ == '__main__':

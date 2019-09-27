@@ -149,7 +149,7 @@ class Equips:
 
         elif occupationbefore in ["格斗家"]:
             self.bodystragy = ANYStrategy
-            self.wuqistragy = ["手套", "臂铠", "爪", "拳套", "东方棍"]
+            self.wuqistragy = ["手套", "臂铠", "爪", "东方棍"]
             self.xingyunwuqipos = (-56, 111)
             if occupationafter in ["气功师", "百花缭乱", "念帝"]:
                 self.bodystragy = BUJIA

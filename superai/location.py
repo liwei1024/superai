@@ -30,7 +30,7 @@ wenzijingxiang = Picture(GetImgDir() + "wenzi_jingxiangalade.png", 610, 22, 182,
 
 sailiya = Picture(GetImgDir() + "ditu_sailiya.png")
 
-
+fuckgame = Picture(GetImgDir() + "fuckgame.png")
 
 # 是否在赛丽亚访问
 def IsinSailiya():
@@ -118,6 +118,8 @@ class Location:
             return "阿法利亚"
         elif IsInJingxiangalade():
             return "镜像阿拉德"
+        elif fuckgame.Match():
+            return "艾尔文防线"
         return ""
 
 

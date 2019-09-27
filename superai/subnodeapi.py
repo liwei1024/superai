@@ -58,7 +58,7 @@ def getItem():
     return jsonstr
 
 
-# jsonrpc
+# jsonrpc 机器信息
 @jsonrpc.method('getMachineState')
 def getMachineState():
     result = {
@@ -91,7 +91,7 @@ def getitempush():
     socketio.emit('getitempush', getItem())
 
 
-# websocket 推送状态信息
+# websocket 推送机器信息
 @socketio.on('machinestatepush')
 def machinestatepush():
     socketio.emit('machinestatepush', getMachineState())
