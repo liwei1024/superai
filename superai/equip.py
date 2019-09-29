@@ -130,7 +130,7 @@ class Equips:
                     self.xingyunwuqipos = (63, 107)
         elif occupationbefore in ["守护者"]:
             self.bodystragy = ANYStrategy
-            self.wuqistragy = ["短剑", "太刀", "钝器", "巨剑", "光剑"]
+            self.wuqistragy = ["短剑", "太刀", "钝器", "巨剑"]
             self.xingyunwuqipos = (0, 109)
             if occupationafter in ["帕拉丁", "曙光", "破晓女神"]:
                 self.bodystragy = BANJIA
@@ -139,7 +139,7 @@ class Equips:
                     self.xingyunwuqipos = (0, 109)
         elif occupationbefore in ["鬼剑士"]:
             self.bodystragy = ANYStrategy
-            self.wuqistragy = ["短剑", "太刀", "钝器", "巨剑", "光剑"]
+            self.wuqistragy = ["短剑", "太刀", "钝器", "巨剑"]
             self.xingyunwuqipos = (0, 109)
             if occupationafter in ["剑影", "夜刀神", "夜见罗刹"]:
                 self.bodystragy = PIJIA
