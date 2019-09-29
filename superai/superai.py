@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 logger = logging.getLogger(__name__)
 
+from superai.hanhua import Getyulu
 from superai.subnodeapi import subnodeapi
 from superai.screenshots import WindowCaptureToMem, WindowCaptureToFile
 
@@ -30,7 +31,8 @@ from superai.location import IsinSailiya
 from superai.login import GetDaqu, GetMainregionPos, GetRegionPos
 
 from superai.subnodedb import DbStateUpdate, DbStateSelect, IsTodayHavePilao, GetToSelectIdx, UpdateMenState, \
-    DbEventAppend, AccountRoles, InitDb, AccountXingyunxingRule, DayCreateJueseNum, CreateJueses, CreateJueseAppend
+    DbEventAppend, AccountRoles, InitDb, AccountXingyunxingRule, DayCreateJueseNum, CreateJueses, CreateJueseAppend, \
+    IsAccoutnZhicai
 
 from superai.pathsetting import GetImgDir, GameFileDir, GetvercodeDir
 
@@ -63,7 +65,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead, IsLockedHp, UnLockHp, IsFuzhongGou, \
     Zuobiaoyidong, Autoshuntu, GetCurmapXy, HavePilao, GetMapInfo, IsShitmoGu, BagHasFenjieEquip, GetSelectObj, \
     GetCurSelectIdx, IsFirstSelect, IsLastSelect, BagWuseNum, IsCurrentSupport, Openesc, IsCurrentInTrain, \
-    GetRemaindPilao
+    GetRemaindPilao, IsZhicai
 
 gamebegin = Picture(GetImgDir() + "gamebegin2.png")
 selectregion = Picture(GetImgDir() + "select_region.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
@@ -179,6 +181,12 @@ class Player:
         # 上次检查卡死时间
         self.latestcheckkasi = None
         self.latestcheckpic = None
+
+        # 上次喊话时间
+        self.latestspeektimepoint = None
+
+        # 上次鼠标移动
+        self.latestmousemovetimepoint = None
 
     # 重置地图卡死信息
     def ResetStuckInfo(self):
@@ -536,7 +544,7 @@ class GlobalState(State):
             return
 
         # 领取
-        if IsManInChengzhen():
+        if IsManInChengzhen() and not isinstance(player.stateMachine.currentState, Setup):
             # 领取 (阶段奖励)
             if xinfeng.Match():
                 lingqus = [lingqubtn1, lingqubtn2, lingqubtn3, lingqubtn4]
@@ -559,6 +567,38 @@ class GlobalState(State):
                 MouseLeftClick(), KongjianSleep()
 
                 PressKey(VK_CODE['esc']), KongjianSleep()
+
+            # 每隔5分钟讲一句台词
+            if player.latestspeektimepoint is None or time.time() - player.latestspeektimepoint > 5 * 60:
+                if player.latestspeektimepoint is None:
+                    player.latestspeektimepoint = time.time()
+                    logger.info("第一次不喊话! 过5分钟再喊")
+                else:
+                    player.latestspeektimepoint = time.time()
+                    logger.info("开始喊话")
+                    PressKey(VK_CODE['esc']), KongjianSleep()
+                    PressKey(VK_CODE['enter']), KongjianSleep()
+                    KeyInputString(Getyulu()), RanSleep(0.3)
+                    PressKey(VK_CODE['enter']), KongjianSleep()
+                    RanSleep(1.0)
+                    logger.info("喊话成功")
+
+            # 每隔30s 随便移动下鼠标
+            t = random.uniform(5, 30)
+            if player.latestmousemovetimepoint is None or time.time() - player.latestmousemovetimepoint > t:
+                logger.info("随机移动鼠标")
+                player.latestmousemovetimepoint = time.time()
+                dx = int(random.uniform(0, 800))
+                dy = int(random.uniform(0, 600))
+                MouseMoveTo(dx, dy), RanSleep(1)
+
+            # 制裁判断
+            if IsZhicai():
+                menname = GetMenInfo().name
+                logger.warning("制裁了!!!!! %s %s %s" % (GetAccount(), GetRegion(), menname))
+                DbEventAppend(GetAccount(), GetRegion(), menname, "制裁了")
+                DbStateUpdate(GetAccount(), GetRegion(), kicktime=int(time.time()),
+                              kicklong=24 * 60 * 60)  # 默认24小时吧
 
         states = [SelectJuese, CreateRole, OpenGame, Train]
 
@@ -735,15 +775,33 @@ class Setup(State):
             player.ChangeState(OpenGame())
             return
 
+        # 设置当前账号和大区
+        if not IsAccountSetted():
+
+            meninfo = GetMenInfo()
+            if meninfo.account != 0 and meninfo.region != "":
+
+                accounts = GetSettingAccounts()
+                for i, account in enumerate(accounts):
+                    if int(account.account) == meninfo.account and \
+                            meninfo.region in account.region:
+                        logger.info("寻找到了账号 大区")
+                        SetCurrentAccount(account.account, account.region)
+                        break
+
+                else:
+                    PrintSwitchTips()
+                    BlockGetSetting()
+
+            if not IsAccountSetted():
+                logger.warning("本账号或许没有在配置文件中出现")
+                PrintSwitchTips()
+                BlockGetSetting()
+
         # 选择角色
         if gamebegin.Match():
             player.ChangeState(SelectJuese())
             return
-
-        # 设置当前账号和大区
-        if not IsAccountSetted():
-            PrintSwitchTips()
-            BlockGetSetting()
 
         # 焦点移动到DNF
         RanSleep(1.0), GameWindowToTop()
@@ -1594,7 +1652,7 @@ class CreateRole(State):
 
             # 输入名字
             toinput = names.get_full_name().replace(' ', random.choice(
-                    ['=', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']))
+                ['=', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']))
             KeyInputString(toinput), RanSleep(0.3)
 
             # 重复按钮
@@ -1674,6 +1732,11 @@ class OpenGame(State):
                 logger.info("寻找到账号: %s %s 没有录入过数据库登录!" % (account.account, account.region))
                 break
             else:
+
+                if IsAccoutnZhicai(account.account):
+                    logger.warning("账号制裁: %s %s", (account.account, account.region))
+                    continue
+
                 if IsTodayHavePilao(account.account, account.region):
                     selectAccount = account
                     logger.info("寻找到账号: %s %s 还可以再刷! " % (account.account, account.region))
@@ -1866,14 +1929,14 @@ def Hotkey():
 # 置顶游戏线程
 def GameTop():
     while not EXIT:
-        if checkIfProcessRunning("DNF.exe"):
-            if checkIfProcessRunning("CrossProxy.exe"):
-                logger.warning("发现 CrossProxy.exe, 关闭!!!")
-                os.system("taskkill /F /im CrossProxy.exe"), RanSleep(1)
-
-            if checkIfProcessRunning("TPHelper.exe"):
-                logger.warning("发现 TPHelper.exe, 关闭!!!")
-                os.system("taskkill /F /im TPHelper.exe"), RanSleep(1)
+        # if checkIfProcessRunning("DNF.exe"):
+        #     if checkIfProcessRunning("CrossProxy.exe"):
+        #         logger.warning("发现 CrossProxy.exe, 关闭!!!")
+        #         os.system("taskkill /F /im CrossProxy.exe"), RanSleep(1)
+        #
+        #     if checkIfProcessRunning("TPHelper.exe"):
+        #         logger.warning("发现 TPHelper.exe, 关闭!!!")
+        #         os.system("taskkill /F /im TPHelper.exe"), RanSleep(1)
 
         pythoncom.CoInitialize()
         GameWindowToTop()

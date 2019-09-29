@@ -102,7 +102,8 @@ def DbStateInsert(account, region, role):
 
 
 # 更新状态
-def DbStateUpdate(account, region, role, curlevel=None, zhiye=None, curpilao=None, money=None, wuse=None, kicktime=None,
+def DbStateUpdate(account, region, role=None, curlevel=None, zhiye=None, curpilao=None, money=None, wuse=None,
+                  kicktime=None,
                   kicklong=None, timeup=False):
     with contextlib.closing(sqlite.connect(getDbFile())) as con:
         DbStateInsert(account, region, role)
@@ -110,8 +111,12 @@ def DbStateUpdate(account, region, role, curlevel=None, zhiye=None, curpilao=Non
         c = con.cursor()
         c.execute("begin")
         try:
-            conditionstr = " where account = ? and region = ? and role = ?"
-            conditiontup = (account, region, role)
+            if role is not None:
+                conditionstr = " where account = ? and region = ? and role = ?"
+                conditiontup = (account, region, role)
+            else:
+                conditionstr = " where account = ? and region = ?"
+                conditiontup = (account, region)
 
             if curlevel is not None:
                 c.execute("update state set curlevel = ? %s" % conditionstr, (curlevel,) + conditiontup)
@@ -229,6 +234,27 @@ def IsTodayHavePilao(account, region):
         return True
 
     return False
+
+
+# 是否处在制裁状态
+def IsAccoutnZhicai(account):
+    count = 0
+    with contextlib.closing(sqlite.connect(getDbFile())) as con:
+        c = con.cursor()
+        c.execute("begin")
+        try:
+            c.execute(
+                "select count(*)  from state where kicktime IS NOT NULL and date(kicktime, 'unixepoch', 'localtime') "
+                "< date('now', 'localtime') and date('now', 'localtime') < date(kicktime + kicklong, 'unixepoch', "
+                "'localtime')  and account=?",
+                (account,))
+            rows = c.fetchall()
+            count = rows[0][0]
+            c.execute("commit")
+        except con.Error as e:
+            logger.warning("sql error! %s" % e)
+            c.execute("rollback")
+    return count > 0
 
 
 # 获取应该选择角色下标

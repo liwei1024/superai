@@ -52,6 +52,9 @@ class MenInfo(Structure):
         ("h", c_uint32),
         ("chengzhenx", c_float),
         ("chengzheny", c_float),
+        ("account", c_uint32),
+        ("region", c_wchar * 30),
+        ("zhicai", c_uint32)
     ]
 
     def __str__(self):
@@ -65,6 +68,7 @@ class MenInfo(Structure):
         retstr += "负重 (%d,%d) 金币: %d\n" % (self.fuzhongcur, self.fuzhongmax, self.money)
         retstr += "弹出 %d esc %d\n" % (self.tanchu, self.esc)
         retstr += "城镇坐标: (%d, %d)\n" % (self.chengzhenx, self.chengzheny)
+        retstr += "制裁: %d 账号: %d, 大区: %s\n" % (self.zhicai, self.account, self.region)
         return retstr
 
 
@@ -1610,6 +1614,11 @@ def IsCurrentInTrain():
             return True
     return False
 
+
+# 是否制裁
+def IsZhicai():
+    meninfo = GetMenInfo()
+    return meninfo.zhicai != 0
 
 # 技能对应的按键
 idxkeymap = {
