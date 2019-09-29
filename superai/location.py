@@ -7,7 +7,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from superai.yijianshu import KongjianSleep, MouseMoveTo, MouseLeftClick
+from superai.vkcode import VK_CODE
+from superai.yijianshu import KongjianSleep, MouseMoveTo, MouseLeftClick, PressKey
 
 from superai.flannfind import Picture, GetImgDir
 
@@ -131,6 +132,9 @@ class Location:
             return "镜像阿拉德"
         elif fuckgame.Match():  # TODO 这里没有用
             return "艾尔文防线"
+        else:
+            logger.warning("无法判断在哪里所以按一下.")
+            PressKey(VK_CODE['.']), KongjianSleep()
         return ""
 
 

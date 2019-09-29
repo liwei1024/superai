@@ -1929,11 +1929,11 @@ def Hotkey():
 # 置顶游戏线程
 def GameTop():
     while not EXIT:
-        # if checkIfProcessRunning("DNF.exe"):
-        #     if checkIfProcessRunning("CrossProxy.exe"):
-        #         logger.warning("发现 CrossProxy.exe, 关闭!!!")
-        #         os.system("taskkill /F /im CrossProxy.exe"), RanSleep(1)
-        #
+        if checkIfProcessRunning("DNF.exe"):
+            if checkIfProcessRunning("CrossProxy.exe"):
+                logger.warning("发现 CrossProxy.exe, 关闭!!!")
+                os.system("taskkill /F /im CrossProxy.exe"), RanSleep(1)
+
         #     if checkIfProcessRunning("TPHelper.exe"):
         #         logger.warning("发现 TPHelper.exe, 关闭!!!")
         #         os.system("taskkill /F /im TPHelper.exe"), RanSleep(1)
@@ -1951,9 +1951,6 @@ def superai():
 
     if not YijianshuInit():
         sys.exit()
-
-    # 初始化数据库
-    InitDb()
 
     # 热键线程
     t = threading.Thread(target=Hotkey)
@@ -1991,6 +1988,9 @@ def superai():
 
 
 def main():
+    # 初始化数据库
+    InitDb()
+
     # jsonrpc websocket 推送
     t = threading.Thread(target=subnodeapi)
     t.start()

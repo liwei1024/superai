@@ -66,7 +66,8 @@ def SetCurrentAccount(account, region):
 
 # 读取文件中所有配置的账号
 def GetSettingAccounts():
-    accounts = []
+    accountmap = {}
+
     with open(GetCfgFile(), "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip('\r').strip('\n')
@@ -82,10 +83,24 @@ def GetSettingAccounts():
                         region = region[0:first]
 
                     account = Account(vecs[0], vecs[1], vecs[2], region)
-                    accounts.append(account)
+
+                    if account.account not in accountmap:
+                        accountmap[account.account] = [account]
+                    else:
+                        accountmap[account.account].append(account)
+    maxlen = 0
+
+    accounts = []
+    for k, v in accountmap.items():
+        if len(v) > maxlen:
+            maxlen = len(v)
+
+    for i in range(maxlen):
+        for k, v in accountmap.items():
+            if i < len(v):
+                accounts.append(v[i])
 
     return accounts
-
 
 class Account:
     def __init__(self, account, password, phone, region):
