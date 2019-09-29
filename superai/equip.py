@@ -166,7 +166,8 @@ class Equips:
                     self.wuqistragy = ["源力剑"]
                     self.xingyunwuqipos = (30, 110)
         else:
-            raise NotImplementedError("还未支持的职业 %s" % occupationafter)
+            logger.warning("还未支持的职业 %s" % occupationafter)
+            return
 
     # 身上没有装备
     def BodyEquiped(self, IDX):

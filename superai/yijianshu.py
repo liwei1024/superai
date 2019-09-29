@@ -367,7 +367,11 @@ def IsMovedTo(x, y):
 # 相对移动鼠标
 def MouseMoveTo(x, y):
     hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
-    centrex, centrey = win32gui.ClientToScreen(hwnd, (int(x), int(y)))
+
+    try:
+        centrex, centrey = win32gui.ClientToScreen(hwnd, (int(x), int(y)))
+    except:
+        return
 
     flag = False
     # 修正
@@ -384,7 +388,11 @@ def MouseMoveTo(x, y):
 # 相对移动鼠标,游戏登录界面
 def MouseMoveToLogin(x, y):
     hwnd = win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序")
-    centrex, centrey = win32gui.ClientToScreen(hwnd, (int(x), int(y)))
+
+    try:
+        centrex, centrey = win32gui.ClientToScreen(hwnd, (int(x), int(y)))
+    except:
+        return
 
     flag = False
     # 修正
@@ -437,6 +445,14 @@ def MouseLeftDownFor(t):
 def MouseRightDownFor(t):
     lib.M_RightDown(h), RanSleep(t)
     lib.M_RightUp(h)
+
+
+# shift + 左按键
+def ShiftLeft():
+    lib.M_KeyDown2(h, VK_CODE["left_shift"]), KongjianSleep()
+    lib.M_LeftDown(h), KongjianSleep()
+    lib.M_LeftUp(h)
+    lib.M_KeyUp2(h, VK_CODE["left_shift"])
 
 
 # 左键双击

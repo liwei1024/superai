@@ -19,7 +19,7 @@ from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, 
     CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc, SafeClear, \
     GetQuadrant, QuardantMap
 from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick, MouseLeftDown, MouseMoveR, \
-    MouseLeftUp, KongjianSleep, LanSleep, ReleaseAllKey
+    MouseLeftUp, KongjianSleep, LanSleep, ReleaseAllKey, DownZUO, UpZUO, DownYOU, UpYOU
 
 shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
 selectmen = Picture(GetImgDir() + "selectmen.png")
@@ -570,9 +570,11 @@ def MoveTo(destname, player):
     if player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 10.0:
         # 移动下 防止卡死!!!
         if random.uniform(0, 1) < 0.5:
-            PressKey(VK_CODE['left_arrow'])
+            DownZUO(), RanSleep(0.5)
+            UpZUO()
         else:
-            PressKey(VK_CODE['right_arrow'])
+            DownYOU(), RanSleep(0.5)
+            UpYOU()
 
         # 没有移动过或者超时
         logger.info("目标: %s 城镇位置: (%d,%d)  没有到达, 开始移动. 鼠标指向到 (%d, %d)" % (

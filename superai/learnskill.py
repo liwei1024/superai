@@ -87,7 +87,8 @@ class Occupationkills:
             if occupationafter in ["源能专家", "源力掌控者", "未来开拓者"]:
                 self.yuannengInit()
         else:
-            raise NotImplementedError("还未支持的职业: %s" % occupationafter)
+            logger.warning("还未支持的职业 %s" % occupationafter)
+            return
 
     # 删除必备技能
     def DelSkill(self, name):

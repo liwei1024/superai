@@ -14,8 +14,13 @@ logger = logging.getLogger(__name__)
 
 runPath = os.path.split(sys.executable)[0]
 runPath = os.path.split(runPath)[0]
-xxxiiiPath = "d:/win/reference/project/xxiii"
-superaiPath = "d:/win/reference/project/superai"
+
+if os.path.exists("c:/win/reference"):
+    xxxiiiPath = "c:/win/reference/project/xxiii"
+    superaiPath = "c:/win/reference/project/superai"
+else:
+    xxxiiiPath = "d:/win/reference/project/xxiii"
+    superaiPath = "d:/win/reference/project/superai"
 
 
 # 底层依赖

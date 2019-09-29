@@ -104,7 +104,7 @@ def background_thread():
         socketio.emit('getstatepush', getState())
         socketio.emit('getitempush', getItem())
 
-        logger.info("推送机器/业务数据 machinestatepush")
+        # logger.info("推送机器/业务数据 machinestatepush")
 
         socketio.sleep(2)
 

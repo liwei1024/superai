@@ -33,8 +33,7 @@ def test():
 
 
 subs = [
-    (1, "192.168.0.85"),
-    (2, "192.168.0.83")
+    (1, "192.168.0.5"),
 ]
 
 
@@ -55,7 +54,7 @@ def getsubspush():
 def background_thread():
     while True:
         socketio.emit('getsubspush', getSubs())
-        logger.info("推送机器列表 getsubspush")
+        # logger.info("推送机器列表 getsubspush")
         socketio.sleep(2)
 
 

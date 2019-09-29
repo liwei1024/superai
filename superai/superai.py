@@ -537,7 +537,7 @@ class GlobalState(State):
 
         # 领取
         if IsManInChengzhen():
-            # 领取阶段奖励
+            # 领取 (阶段奖励)
             if xinfeng.Match():
                 lingqus = [lingqubtn1, lingqubtn2, lingqubtn3, lingqubtn4]
                 for lingqu in lingqus:
@@ -552,7 +552,7 @@ class GlobalState(State):
                 MouseMoveTo(pos[0], pos[1]), KongjianSleep()
                 MouseLeftClick(), KongjianSleep()
 
-            # 领取
+            # 领取 (黄色按钮那个)
             if lingqingnewbtn.Match():
                 pos = lingqingnewbtn.Pos()
                 MouseMoveTo(pos[0], pos[1]), KongjianSleep()
@@ -881,7 +881,7 @@ class InChengzhen(State):
             player.ChangeState(TaskState())
             return
 
-        RanSleep(0.1)
+        logger.info("城镇内,没有切换至其他状态"), RanSleep(0.1)
 
 
 # 技能加点,移除不需要的技能,放入需要的技能
@@ -1412,8 +1412,8 @@ class SelectJuese(State):
         if len(outlst) == 0 or not IsTodayHavePilao(account=GetAccount(), region=GetRegion()):
             curnums = AccountRoles(account=GetAccount(), region=GetRegion())
             daycreatenums = DayCreateJueseNum(account=GetAccount(), region=GetRegion())
-            if curnums < 3 and daycreatenums < 2:
-                logger.info("当前角色数量: %d , 小于3个, 创建角色" % curnums)
+            if curnums < 2 and daycreatenums < 2:
+                logger.info("当前角色数量: %d , 小于2个, 创建角色" % curnums)
                 player.ChangeState(CreateRole())
                 return
 
@@ -1593,7 +1593,8 @@ class CreateRole(State):
             DeleteAll()
 
             # 输入名字
-            toinput = names.get_full_name().replace(' ', '=')
+            toinput = names.get_full_name().replace(' ', random.choice(
+                    ['=', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']))
             KeyInputString(toinput), RanSleep(0.3)
 
             # 重复按钮
@@ -1790,7 +1791,8 @@ class OpenGame(State):
 
                 MouseMoveTo(398, 289), KongjianSleep()
                 MouseLeftClick(), KongjianSleep()
-                toinput = names.get_full_name().replace(' ', '=')
+                toinput = names.get_full_name().replace(' ', random.choice(
+                    ['=', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']))
                 KeyInputString(toinput), RanSleep(0.3)
 
                 # 设置

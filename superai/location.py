@@ -7,6 +7,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from superai.yijianshu import KongjianSleep, MouseMoveTo, MouseLeftClick
+
 from superai.flannfind import Picture, GetImgDir
 
 locationGelanzhisen = Picture(GetImgDir() + "ditu_gelanzhisen.png")
@@ -32,6 +34,9 @@ sailiya = Picture(GetImgDir() + "ditu_sailiya.png")
 
 fuckgame = Picture(GetImgDir() + "fuckgame.png")
 
+maptip = Picture(GetImgDir() + "maptip.png", 742, 43, 12, 13)
+
+
 # 是否在赛丽亚访问
 def IsinSailiya():
     if sailiya.Match():
@@ -48,6 +53,12 @@ def IsinAierwenfnagxian():
         logger.info("在艾尔文防线")
         return True
 
+    elif maptip.Match():
+        pos = maptip.Pos()
+        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+        logger.info("在艾尔文防线")
+        return True
     else:
         # logger.warning("不在艾尔文防线")
         return False
@@ -118,7 +129,7 @@ class Location:
             return "阿法利亚"
         elif IsInJingxiangalade():
             return "镜像阿拉德"
-        elif fuckgame.Match():
+        elif fuckgame.Match():  # TODO 这里没有用
             return "艾尔文防线"
         return ""
 
