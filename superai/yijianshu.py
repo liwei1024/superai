@@ -451,9 +451,15 @@ def MouseRightDownFor(t):
 def ShiftLeft():
     lib.M_KeyDown2(h, VK_CODE["left_shift"]), KongjianSleep()
     lib.M_LeftDown(h), KongjianSleep()
-    lib.M_LeftUp(h)
+    lib.M_LeftUp(h),  KongjianSleep()
     lib.M_KeyUp2(h, VK_CODE["left_shift"])
 
+# shift + 右按键
+def ShiftRight():
+    lib.M_KeyDown2(h, VK_CODE["left_shift"]), KongjianSleep()
+    lib.M_RightDown(h), KongjianSleep()
+    lib.M_RightUp(h), KongjianSleep()
+    lib.M_KeyUp2(h, VK_CODE["left_shift"])
 
 # 左键双击
 def MouseLeftDoubleClick():

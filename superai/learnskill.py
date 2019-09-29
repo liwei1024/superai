@@ -4,7 +4,8 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.yijianshu import PressKey, VK_CODE, MouseMoveTo, YijianshuInit, MouseLeftDown, RanSleep, MouseLeftClick, \
-    MouseLeftUp, MouseLeftDownFor, MouseMoveR, MouseWheel, KongjianSleep, LanSleep, MouseRightDownFor
+    MouseLeftUp, MouseLeftDownFor, MouseMoveR, MouseWheel, KongjianSleep, LanSleep, MouseRightDownFor, ShiftLeft, \
+    ShiftRight
 from superai.common import InitLog, GameWindowToTop
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj, Clear, IsSkillLearned
@@ -399,7 +400,7 @@ class Occupationkills:
                     needLearn = True
                     logger.info("忘记,移动到相对位置: (%d,%d)" % (pos[0], pos[1]))
                     MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                    MouseRightDownFor(2.0), KongjianSleep()
+                    ShiftRight(), KongjianSleep()
 
         logger.info("开始学习技能")
         MouseMoveTo(536, 360), KongjianSleep()
@@ -428,7 +429,7 @@ class Occupationkills:
                     else:
                         needLearn = True
                         MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                        MouseLeftDownFor(1.0), KongjianSleep()
+                        ShiftLeft(), KongjianSleep()
             else:
                 logger.warning("没有找到技能栏")
 
@@ -459,7 +460,7 @@ class Occupationkills:
                 needLearn = True
                 logger.info("学习,移动到相对位置: (%d,%d)" % (pos[0], pos[1]))
                 MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                MouseLeftDownFor(1.0), KongjianSleep()
+                ShiftLeft(), KongjianSleep()
 
             # MouseMoveR(- (30 // 2 - 2), 0), KongjianSleep()
 
