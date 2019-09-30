@@ -839,7 +839,7 @@ def MeetNpcFoo(destname):
         if destname == "赛丽亚":
             # 返回角色再进入
             if BackAndEnter():
-                RanSleep(1.0)
+                logger.info("赛丽亚房间等待5秒(可能有领取按钮)"), RanSleep(5.0)
 
                 from superai.superai import lingqingnewbtn
 

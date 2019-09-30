@@ -1620,6 +1620,7 @@ def IsZhicai():
     meninfo = GetMenInfo()
     return meninfo.zhicai != 0
 
+
 # 技能对应的按键
 idxkeymap = {
     0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
@@ -1944,6 +1945,8 @@ def SafeClear(player, t=10):
 
 # 打开esc
 def Openesc():
+    PressKey(VK_CODE["esc"]), KongjianSleep()
+
     if not IsEscTop():
         logger.info("打开esc")
         PressKey(VK_CODE["esc"]), KongjianSleep()

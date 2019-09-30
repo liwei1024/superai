@@ -244,8 +244,8 @@ def IsAccoutnZhicai(account):
         c.execute("begin")
         try:
             c.execute(
-                "select count(*)  from state where kicktime IS NOT NULL and date(kicktime, 'unixepoch', 'localtime') "
-                "< date('now', 'localtime') and date('now', 'localtime') < date(kicktime + kicklong, 'unixepoch', "
+                "select count(*)  from state where kicktime IS NOT NULL and datetime(kicktime, 'unixepoch', 'localtime') "
+                "< datetime('now', 'localtime') and datetime('now', 'localtime') < datetime(kicktime + kicklong, 'unixepoch', "
                 "'localtime')  and account=?",
                 (account,))
             rows = c.fetchall()

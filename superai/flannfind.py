@@ -267,15 +267,13 @@ def SetThreadExit():
 # 不断截图把图片状态置到内存中
 def FlushImg():
     global gConfirmTop, gShipinScene
-
-    try:
-        while not gFlushExit:
+    while not gFlushExit:
+        try:
             gConfirmTop = True if confirm.Match() else False
             gShipinScene = True if shipinScene.IsBlack() else False
-            time.sleep(0.3)
-    except Exception:
-        logger.info("flushimg thread error ")
-        sys.exit()
+        except Exception:
+            logger.info("flushimg thread error ")
+        time.sleep(0.3)
 
 
 def main():

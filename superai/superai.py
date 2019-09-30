@@ -595,10 +595,12 @@ class GlobalState(State):
             # 制裁判断
             if IsZhicai():
                 menname = GetMenInfo().name
-                logger.warning("制裁了!!!!! %s %s %s" % (GetAccount(), GetRegion(), menname))
+                logger.warning("制裁了!!!!! %s %s %s 游戏结束" % (GetAccount(), GetRegion(), menname))
                 DbEventAppend(GetAccount(), GetRegion(), menname, "制裁了")
                 DbStateUpdate(GetAccount(), GetRegion(), kicktime=int(time.time()),
                               kicklong=24 * 60 * 60)  # 默认24小时吧
+                os.system("taskkill /F /im DNF.exe"), RanSleep(5.0)
+                return
 
         states = [SelectJuese, CreateRole, OpenGame, Train]
 
@@ -738,9 +740,9 @@ class GlobalState(State):
             if player.latestfucktime is None:
                 player.latestfucktime = time.time()
                 player.latestpilao = GetRemaindPilao()
-            elif time.time() - player.latestfucktime > 30.0:
+            elif time.time() - player.latestfucktime > 90:
                 if player.latestpilao == GetRemaindPilao():
-                    logger.warning("30s了疲劳还没有变,纠正一下")
+                    logger.warning("90s了疲劳还没有变,纠正一下")
                     player.ChangeState(StuckShit())
                 player.ResetStuckInfo()
 
@@ -785,7 +787,7 @@ class Setup(State):
                 for i, account in enumerate(accounts):
                     if int(account.account) == meninfo.account and \
                             meninfo.region in account.region:
-                        logger.info("寻找到了账号 大区")
+                        logger.info("寻找到了账号 大区 %d %s" % (int(account.account), account.region))
                         SetCurrentAccount(account.account, account.region)
                         break
 
@@ -1464,6 +1466,10 @@ class SelectJuese(State):
         MouseLeftClick(), KongjianSleep()
 
         outlst = GetSelectObj()
+        if len(outlst) > 48:
+            logger.warning("h获取角色列表失败")
+            return
+
         for obj in outlst:
             DbStateUpdate(account=GetAccount(), region=GetRegion(), role=obj.name, curlevel=obj.level)
 
@@ -1734,7 +1740,7 @@ class OpenGame(State):
             else:
 
                 if IsAccoutnZhicai(account.account):
-                    logger.warning("账号制裁: %s %s", (account.account, account.region))
+                    logger.warning("账号制裁: %s %s" % (account.account, account.region))
                     continue
 
                 if IsTodayHavePilao(account.account, account.region):
@@ -1743,7 +1749,9 @@ class OpenGame(State):
                     break
 
         if selectAccount is None:
-            logger.warning("没有可以再刷的帐号了")
+            for i in range(3600):
+                logger.warning("没有可以再刷的帐号了"), RanSleep(1.0)
+
             return
 
         SetCurrentAccount(selectAccount.account, selectAccount.region)
@@ -1930,17 +1938,17 @@ def Hotkey():
 def GameTop():
     while not EXIT:
         if checkIfProcessRunning("DNF.exe"):
-            if checkIfProcessRunning("CrossProxy.exe"):
-                logger.warning("发现 CrossProxy.exe, 关闭!!!")
-                os.system("taskkill /F /im CrossProxy.exe"), RanSleep(1)
+            # if checkIfProcessRunning("CrossProxy.exe"):
+            #     logger.warning("发现 CrossProxy.exe, 关闭!!!")
+            #     os.system("taskkill /F /im CrossProxy.exe"), RanSleep(1)
 
-        #     if checkIfProcessRunning("TPHelper.exe"):
-        #         logger.warning("发现 TPHelper.exe, 关闭!!!")
-        #         os.system("taskkill /F /im TPHelper.exe"), RanSleep(1)
+            #     if checkIfProcessRunning("TPHelper.exe"):
+            #         logger.warning("发现 TPHelper.exe, 关闭!!!")
+            #         os.system("taskkill /F /im TPHelper.exe"), RanSleep(1)
 
-        pythoncom.CoInitialize()
-        GameWindowToTop()
-        time.sleep(10)
+            pythoncom.CoInitialize()
+            GameWindowToTop()
+            time.sleep(10)
 
 
 def superai():

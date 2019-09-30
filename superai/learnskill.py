@@ -297,6 +297,7 @@ class Occupationkills:
             self.DelSkill("审判捶击")
             self.DelSkill("钩颈斩")
             self.DelSkill("罪业加身")
+            self.DelSkill("冲刺斩")
         if meninfo.level >= 35:
             self.learnstrategy.append(OccupationSkill("shengzhizhe", "贪婪之刺", "youmozhe_tanlanzhici.png"))
         if meninfo.level >= 40:
