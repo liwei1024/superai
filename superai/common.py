@@ -2,6 +2,7 @@ import ctypes
 import logging
 
 import coloredlogs
+import win32con
 import win32gui, win32com.client
 import win32gui
 
@@ -39,10 +40,19 @@ def ClientWindowToTop():
         win32gui.SetForegroundWindow(hwnd)
 
 
-
 # 隐藏控制台
 def HideConsole():
     whnd = ctypes.windll.kernel32.GetConsoleWindow()
     if whnd != 0:
         ctypes.windll.user32.ShowWindow(whnd, 0)
         ctypes.windll.kernel32.CloseHandle(whnd)
+
+
+def main():
+    hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
+    win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 1000, 600, 800, 600,
+                          win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+
+
+if __name__ == '__main__':
+    main()

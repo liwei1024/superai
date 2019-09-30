@@ -69,36 +69,30 @@ from superai.gameapi import GameApiInit, FlushPid, \
 
 gamebegin = Picture(GetImgDir() + "gamebegin2.png")
 selectregion = Picture(GetImgDir() + "select_region.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
-
 waitagain = Picture(GetImgDir() + "wait.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
 maoxiantuanshezhi = Picture(GetImgDir() + "mao'xuan'tuanshezhi.png")
 closebtn = Picture(GetImgDir() + "closebtn.png")
-
 quedingbtn = Picture(GetImgDir() + "queding.png")
 fanhuibtn = Picture(GetImgDir() + "fanhuibtn.png")
 quxiaobtn = Picture(GetImgDir() + "quxiaobtn.png")
 keyishiyong = Picture(GetImgDir() + "keyishiyong.png")
 queren3 = Picture(GetImgDir() + "queren3.png")
-
 shitqueding = Picture(GetImgDir() + "shitqueding.png")  # TODO
-
 loginqueding = Picture(GetImgDir() + "loginqueding.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
-
 lingqubtn1 = Picture(GetImgDir() + "lingqubtn.png", dx=158, dy=108, dw=36, dh=22)
 lingqubtn2 = Picture(GetImgDir() + "lingqubtn.png", dx=211, dy=109, dw=36, dh=22)
 lingqubtn3 = Picture(GetImgDir() + "lingqubtn.png", dx=263, dy=108, dw=36, dh=22)
 lingqubtn4 = Picture(GetImgDir() + "lingqubtn.png", dx=315, dy=107, dw=36, dh=22)
-
 yingbi = Picture(GetImgDir() + "yingbi.png", dx=156, dy=16, dw=22, dh=17)
 xinfeng = Picture(GetImgDir() + "xinfeng.png", dx=179, dy=244, dw=14, dh=10)
-
 pindaoxuanze = Picture(GetImgDir() + "pindaoxuanze.png", dx=362, dy=40, dw=54, dh=14)
-
 putongjuese = Picture(GetImgDir() + "putongjuese.png")
-
-aerwenfangxian = Picture(GetImgDir() + "aierwenfangxian.png", dx=292, dy=275, dw=73, dh=27)
-
+aerwenfangxian = Picture(GetImgDir() + "aierwenfangxian.png")
 lingqingnewbtn = Picture(GetImgDir() + "lingqingnewbtn.png", dx=381, dy=380, dw=41, dh=13)
+dianxin = Picture(GetImgDir() + "dianxin.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
+youjian = Picture(GetImgDir() + "youjian.png", dx=241, dy=471, dw=300, dh=78)
+xuanzejieshou = Picture(GetImgDir() + "xuanzejieshou.png")
+queren_youjian = Picture(GetImgDir() + "queren_youjian.png")
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -886,6 +880,11 @@ class InChengzhen(State):
         # 如果在图内,切换到图内
         if IsManInMap():
             player.ChangeState(FirstInMap())
+            return
+
+        # 领取邮件
+        if youjian.Match():
+            player.ChangeState(GetEmail())
             return
 
         # 等级发生变化, 技能加点
@@ -1723,10 +1722,19 @@ class OpenGame(State):
             logger.warning("寻找不到 '重新选择大区' 按钮, 重新启动")
             return
 
-        # 选择 "重新选择大区按钮"
-        pos = selectregion.Pos()
-        MouseMoveToLogin(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), RanSleep(1.0)
+        # 直到 "电信" 出现
+        for i in range(3):
+            if dianxin.Match():
+                break
+
+            # 选择 "重新选择大区按钮"
+            pos = selectregion.Pos()
+            MouseMoveToLogin(pos[0], pos[1]), KongjianSleep()
+            MouseLeftClick(), RanSleep(1.0)
+
+        if not dianxin.Match():
+            logger.warning("寻找不到 '电信' 按钮, 重新启动")
+            return
 
         # 选择合适的账号
         accounts = GetSettingAccounts()
@@ -1824,8 +1832,8 @@ class OpenGame(State):
 
         SetCurrentAccount(selectAccount.account, selectAccount.region)
 
-        # 等待8分钟
-        for i in range(480):
+        # 等待6分钟
+        for i in range(360):
 
             # 直接进入创建角色了
             if fanhuibtn.Match():
@@ -1915,6 +1923,35 @@ class Train(State):
 
             GameWindowToTop()
             time.sleep(1), logger.info("训练场景 %d", i)
+
+
+class GetEmail(State):
+    def Execute(self, player):
+        logger.info("领取邮件")
+
+        for i in range(3):
+            if xuanzejieshou.Match():
+                break
+            pos = youjian.pos()
+            MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+            MouseLeftClick(), KongjianSleep()
+            RanSleep(1.0), logger.info("等待打开邮件")
+
+        if not xuanzejieshou.Match():
+            player.ChangeState(InChengzhen())
+            return
+
+        pos = xuanzejieshou.Pos()
+        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        MouseLeftClick(), RanSleep(1)
+
+        if queren_youjian.Match():
+            pos = queren_youjian.Pos()
+            MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+            MouseLeftClick(), KongjianSleep()
+
+        PressKey(VK_CODE['esc']), KongjianSleep()
+        player.ChangeState(InChengzhen())
 
 
 EXIT = False

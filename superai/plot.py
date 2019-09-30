@@ -4,7 +4,6 @@ import random
 import sys
 import time
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
@@ -748,6 +747,27 @@ def GetMapInfo(fubenname):
     return mapname, quad, idx
 
 
+# 赛丽亚的直接过去的函数  (return True) 走出赛丽亚房间 (return False) 直接小地图按键过去
+def DoneSailiya(mapname):
+    if IsinSailiya():
+        meninfo = GetMenInfo()
+        if meninfo.level <= 20 and mapname in ["林纳斯", "艾尔文南", "格兰之森"]:
+            logger.info("直接移动过去")
+            return False
+        else:
+
+            # 在宽度内才向下哦
+            if  440 < meninfo.chengzhenx < 460:
+                logger.info("人物坐标在440 和 460 中间, 向下走出赛丽亚房间")
+                QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
+                QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
+                return True
+            else:
+                logger.warning("人物坐标向下不能移动出去赛丽亚房间, 直接小地图移动过去")
+                return False
+    return False
+
+
 # 返回一个打指定地图的函数
 def AttacktaskFoo(fubenname):
     def foo(player, fubenname=fubenname):
@@ -782,14 +802,8 @@ def AttacktaskFoo(fubenname):
         else:
 
             # 赛丽亚房间就退出来
-            if IsinSailiya():
-                meninfo = GetMenInfo()
-                if meninfo.level <= 20 and mapname in ["林纳斯", "艾尔文南", "格兰之森"]:
-                    logger.info("直接移动过去")
-                else:
-                    QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
-                    QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
-                    return
+            if DoneSailiya(mapname):
+                return
 
             destcheckFoo = GetDestCheckFoo(mapname)
             if not destcheckFoo():
@@ -839,16 +853,20 @@ def MeetNpcFoo(destname):
         if destname == "赛丽亚":
             # 返回角色再进入
             if BackAndEnter():
-                logger.info("赛丽亚房间等待5秒(可能有领取按钮)"), RanSleep(5.0)
-
                 from superai.superai import lingqingnewbtn
 
-                if lingqingnewbtn.Match():
-                    pos = lingqingnewbtn.Pos()
-                    MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                    MouseLeftClick(), KongjianSleep()
+                for i in range(5):
+                    logger.info("赛丽亚房间等待%d秒(可能有领取按钮)" % i)
 
-                    PressKey(VK_CODE['esc']), KongjianSleep()
+                    if lingqingnewbtn.Match():
+                        pos = lingqingnewbtn.Pos()
+                        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                        MouseLeftClick(), KongjianSleep()
+                        PressKey(VK_CODE['esc']), KongjianSleep()
+
+                        if not lingqingnewbtn.Match():
+                            break
+                    RanSleep(1.0)
 
                 meninfo = GetMenInfo()
                 if not IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, 447, 163, 20):
@@ -900,14 +918,8 @@ def MeetNpcFoo(destname):
             else:
 
                 # 赛丽亚房间就退出来
-                if IsinSailiya():
-                    meninfo = GetMenInfo()
-                    if meninfo.level <= 20 and destname in ["林纳斯", "艾尔文南", "格兰之森"]:
-                        logger.info("直接移动过去")
-                    else:
-                        QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
-                        QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
-                        return
+                if DoneSailiya(destname):
+                    return
 
                 destcheckFoo = GetDestCheckFoo(destname)
                 if not destcheckFoo():
