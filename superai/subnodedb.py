@@ -219,9 +219,9 @@ def IsTodayHavePilao(account, region):
                 if obj["curpilao"] is not None and obj["curpilao"] == 0:
                     pilaoShuawan += 1
 
-                # 最多刷3个!!!
-                if pilaoShuawan >= 3:
-                    logger.warning("最多刷3个角色!")
+                # 最多刷2个!!!
+                if pilaoShuawan >= 2:
+                    logger.warning("最多刷2个角色!")
                     return False
 
                 # 还有疲劳呢!!

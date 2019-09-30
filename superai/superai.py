@@ -91,6 +91,7 @@ aerwenfangxian = Picture(GetImgDir() + "aierwenfangxian.png")
 lingqingnewbtn = Picture(GetImgDir() + "lingqingnewbtn.png", dx=381, dy=380, dw=41, dh=13)
 dianxin = Picture(GetImgDir() + "dianxin.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
 youjian = Picture(GetImgDir() + "youjian.png", dx=241, dy=471, dw=300, dh=78)
+youjian2 = Picture(GetImgDir() + "youjian2.png", dx=241, dy=471, dw=300, dh=78)
 xuanzejieshou = Picture(GetImgDir() + "xuanzejieshou.png")
 queren_youjian = Picture(GetImgDir() + "queren_youjian.png")
 
@@ -883,7 +884,7 @@ class InChengzhen(State):
             return
 
         # 领取邮件
-        if youjian.Match():
+        if youjian.Match() or youjian2.Match():
             player.ChangeState(GetEmail())
             return
 
@@ -1757,9 +1758,8 @@ class OpenGame(State):
                     break
 
         if selectAccount is None:
-            for i in range(3600):
+            for i in range(60 * 10):  # 10 分钟重新启动下
                 logger.warning("没有可以再刷的帐号了"), RanSleep(1.0)
-
             return
 
         SetCurrentAccount(selectAccount.account, selectAccount.region)
@@ -1927,13 +1927,22 @@ class Train(State):
 
 class GetEmail(State):
     def Execute(self, player):
+
+        if IsEscTop():
+            PressKey(VK_CODE['esc']), KongjianSleep()
+
         logger.info("领取邮件")
 
         for i in range(3):
             if xuanzejieshou.Match():
                 break
-            pos = youjian.pos()
-            MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+
+            if youjian.Match():
+                pos = youjian.Pos()
+            else:
+                pos = youjian2.Pos()
+
+            MouseMoveTo(pos[0] + 241, pos[1] + 471), KongjianSleep()
             MouseLeftClick(), KongjianSleep()
             RanSleep(1.0), logger.info("等待打开邮件")
 

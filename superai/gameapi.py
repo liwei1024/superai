@@ -1618,7 +1618,7 @@ def IsCurrentInTrain():
 # 是否制裁
 def IsZhicai():
     meninfo = GetMenInfo()
-    return meninfo.zhicai != 0
+    return meninfo.zhicai == 4
 
 
 # 技能对应的按键
