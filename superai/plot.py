@@ -97,7 +97,7 @@ NpcInfos = {
             "索西雅": MoveInfo(destcoord=("ditu_suoxiya.png", 125, 266), mousecoord=(151, 212)),
             "凯丽": MoveInfo(destcoord=("ditu_kaili.png", 2703, 188), mousecoord=(410, 335)),
             "斯卡迪": MoveInfo(destcoord=("ditu_sikadi.png", 440, 205), mousecoord=(334, 234)),
-            "奥菲利亚": MoveInfo(destcoord=("ditu_aofeiliya.png", 860, 183), mousecoord=(533, 370)),
+            "奥菲利亚": MoveInfo(destcoord=("ditu_aofeiliya.png", 861, 187), mousecoord=(534, 369)),
             "卡坤": MoveInfo(destcoord=("ditu_kakun.png", 1077, 175), mousecoord=(543, 367)),
             "天帷巨兽": MoveInfo(destcoord=("ditu_tianzhuijushou.png", 712, 306), mousecoord=(647, 399)),
             "赫顿玛尔": MoveInfo(destcoord=("ditu_hedunmaer2.png", 1430, 188), mousecoord=(346, 335)),

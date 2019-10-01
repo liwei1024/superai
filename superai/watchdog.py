@@ -1,20 +1,17 @@
-import json
 import logging
 import os
 import sys
-import threading
 
 import subprocess
+import time
 
 from flask import Flask
 from flask_cors import CORS
 from flask_jsonrpc import JSONRPC
 
-
 logger = logging.getLogger(__name__)
 
-from superai.superai import checkIfProcessRunning
-from superai.yijianshu import RanSleep
+from superai.common import checkIfProcessRunning
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -34,11 +31,11 @@ def rsyncSuperai():
 
     if checkIfProcessRunning("superai.exe"):
         logger.warning("superai.exe 开启着,关闭!")
-        os.system("taskkill /F /im superai.exe"), RanSleep(5.0)
+        os.system("taskkill /F /im superai.exe"), time.sleep(5.0)
 
     if checkIfProcessRunning("DNF.exe"):
         logger.warning("DNF.exe 开启着,关闭!")
-        os.system("taskkill /F /im DNF.exe"), RanSleep(5.0)
+        os.system("taskkill /F /im DNF.exe"), time.sleep(5.0)
 
     command = """set-ExecutionPolicy RemoteSigned -Force;$IP="%s";net use \\$IP\win yqsy021 /user:yq /y;mkdir -Force 
     "c:\win\script";XCOPY \\$IP\win\studio\script c:\win\script /s /e /r /k /y /d; cd 
@@ -68,6 +65,7 @@ def arrangeSuperai():
 def main():
     # 慎重启动 (本机不要开起来 = =)
     rsyncSuperai()
-    
+
+
 if __name__ == '__main__':
     main()

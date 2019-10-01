@@ -48,6 +48,24 @@ def HideConsole():
         ctypes.windll.kernel32.CloseHandle(whnd)
 
 
+import psutil
+
+
+def checkIfProcessRunning(processName):
+    '''
+    Check if there is any running process that contains the given name processName.
+    '''
+    # Iterate over the all the running process
+    for proc in psutil.process_iter():
+        try:
+            # Check if process name contains the given name string.
+            if processName.lower() in proc.name().lower():
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return False
+
+
 def main():
     hwnd = win32gui.FindWindow("地下城与勇士", "地下城与勇士")
     win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 1000, 600, 800, 600,

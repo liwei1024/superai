@@ -505,10 +505,10 @@ def main():
     if not YijianshuInit():
         sys.exit()
 
-    # GameWindowToTop()
+    GameWindowToTop()
     # RanSleep(2)
 
-    MouseMoveR(100, 100)
+    MouseMoveTo(534, 369)
 
     # DeleteAll()
     # MouseMoveTo(537, 468)
