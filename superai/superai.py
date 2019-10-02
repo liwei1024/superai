@@ -540,6 +540,9 @@ class GlobalState(State):
 
         # 领取
         if IsManInChengzhen() and not isinstance(player.stateMachine.currentState, Setup):
+            if IsEscTop():
+                PressKey(VK_CODE['esc'])
+
             # 领取 (阶段奖励)
             if xinfeng.Match():
                 lingqus = [lingqubtn1, lingqubtn2, lingqubtn3, lingqubtn4]
@@ -564,19 +567,19 @@ class GlobalState(State):
                 PressKey(VK_CODE['esc']), KongjianSleep()
 
             # 每隔5分钟讲一句台词
-            if player.latestspeektimepoint is None or time.time() - player.latestspeektimepoint > 5 * 60:
-                if player.latestspeektimepoint is None:
-                    player.latestspeektimepoint = time.time()
-                    logger.info("第一次不喊话! 过5分钟再喊")
-                else:
-                    player.latestspeektimepoint = time.time()
-                    logger.info("开始喊话")
-                    PressKey(VK_CODE['esc']), KongjianSleep()
-                    PressKey(VK_CODE['enter']), KongjianSleep()
-                    KeyInputString(Getyulu()), RanSleep(0.3)
-                    PressKey(VK_CODE['enter']), KongjianSleep()
-                    RanSleep(1.0)
-                    logger.info("喊话成功")
+            # if player.latestspeektimepoint is None or time.time() - player.latestspeektimepoint > 5 * 60:
+            #     if player.latestspeektimepoint is None:
+            #         player.latestspeektimepoint = time.time()
+            #         logger.info("第一次不喊话! 过5分钟再喊")
+            #     else:
+            #         player.latestspeektimepoint = time.time()
+            #         logger.info("开始喊话")
+            #         PressKey(VK_CODE['esc']), KongjianSleep()
+            #         PressKey(VK_CODE['enter']), KongjianSleep()
+            #         KeyInputString(Getyulu()), RanSleep(0.3)
+            #         PressKey(VK_CODE['enter']), KongjianSleep()
+            #         RanSleep(1.0)
+            #         logger.info("喊话成功")
 
             # 每隔30s 随便移动下鼠标
             t = random.uniform(5, 30)
@@ -746,8 +749,6 @@ class GlobalState(State):
         #     pass
 
 
-
-
 # 初始化
 class Setup(State):
     def Execute(self, player):
@@ -868,9 +869,9 @@ class InChengzhen(State):
             return
 
         # 领取邮件
-        if youjian.Match() or youjian2.Match():
-            player.ChangeState(GetEmail())
-            return
+        # if youjian.Match() or youjian2.Match():
+        #     player.ChangeState(GetEmail())
+        #     return
 
         # 等级发生变化, 技能加点
         if player.HasLevelChanged():
@@ -1539,7 +1540,7 @@ class SelectJuese(State):
         logger.warning("在选择角色页面"), RanSleep(0.1)
 
 
-jueselst = ["魔枪士", "女圣职者", "守护者", "女格斗家", "男鬼剑士"]  # "枪剑士" 太垃圾, 不放进去了
+jueselst = ["魔枪士", "守护者", "女格斗家", "男鬼剑士"]  # "枪剑士" 太垃圾, 不放进去了,  "女圣职者" 看不惯也不加进去
 
 jueseseall = {
     "枪剑士": (127, 487),
@@ -1695,7 +1696,8 @@ class OpenGame(State):
         hwnd = win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序")
         if hwnd == 0:
             gamedir = GameFileDir()
-            subprocess.Popen(gamedir)
+            # subprocess.Popen(gamedir)
+            os.system("start %s" % gamedir)
 
         for i in range(100):
             ClientWindowToTop()
@@ -1860,19 +1862,19 @@ class OpenGame(State):
 
                 # 设置
                 MouseMoveTo(347, 425), KongjianSleep()
-                MouseLeftClick(), KongjianSleep()
+                MouseLeftClick(), RanSleep(1)
 
                 # 确认
                 MouseMoveTo(371, 364), KongjianSleep()
-                MouseLeftClick(), KongjianSleep()
+                MouseLeftClick(), RanSleep(1)
 
                 # 确认
                 MouseMoveTo(301, 322), KongjianSleep()
-                MouseLeftClick(), KongjianSleep()
+                MouseLeftClick(), RanSleep(1)
 
                 # 返回
                 MouseMoveTo(767, 21), KongjianSleep()
-                MouseLeftClick(), KongjianSleep()
+                MouseLeftClick(), RanSleep(1)
 
             elif gamebegin.Match():
                 break

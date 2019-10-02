@@ -17,3 +17,4 @@ wmi
 psutil
 names
 requests
+pyqt5

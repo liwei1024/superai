@@ -21,14 +21,10 @@ lib.OpenDevice.restype = c_bool
 
 def main():
     InitLog()
-
     print(1)
     res = lib.OpenDevice()
     print(2)
-
     print(res)
-
-
 
 
 if __name__ == '__main__':

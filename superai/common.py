@@ -25,7 +25,11 @@ def GameWindowToTop():
     if hwnd != 0:
         shell = win32com.client.Dispatch("WScript.Shell")
         shell.SendKeys('%')
-        win32gui.SetForegroundWindow(hwnd)
+
+        try:
+            win32gui.SetForegroundWindow(hwnd)
+        except:
+            pass
 
 
 # 置顶登录界面
@@ -37,7 +41,11 @@ def ClientWindowToTop():
     if hwnd != 0:
         shell = win32com.client.Dispatch("WScript.Shell")
         shell.SendKeys('%')
-        win32gui.SetForegroundWindow(hwnd)
+
+        try:
+            win32gui.SetForegroundWindow(hwnd)
+        except:
+            pass
 
 
 # 隐藏控制台
