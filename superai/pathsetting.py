@@ -109,8 +109,12 @@ def GetvercodeDir():
 def GameFileDir():
     if os.path.exists("c:/win/dnf"):
         gamedir = "c:/win/dnf/地下城与勇士/start/DNFchina.exe"
+        if os.path.exists(gamedir):
+            return gamedir
     else:
         gamedir = "d:/win/game/dnf/地下城与勇士/start/DNFchina.exe"
+        if os.path.exists(gamedir):
+            return gamedir
 
     if os.path.exists(os.path.join(GetCfgPath(), "superai.cfg")):
         config = configparser.RawConfigParser()

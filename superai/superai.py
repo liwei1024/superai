@@ -1,3 +1,6 @@
+import configparser
+import shutil
+
 import pythoncom
 
 import ctypes
@@ -34,7 +37,7 @@ from superai.subnodedb import DbStateUpdate, DbStateSelect, IsTodayHavePilao, Ge
     DbEventAppend, AccountRoles, InitDb, AccountXingyunxingRule, DayCreateJueseNum, CreateJueses, CreateJueseAppend, \
     IsAccoutnZhicai
 
-from superai.pathsetting import GetImgDir, GameFileDir, GetvercodeDir
+from superai.pathsetting import GetImgDir, GameFileDir, GetvercodeDir, GetCfgPath
 
 from superai.accountsetup import IsAccountSetted, PrintSwitchTips, BlockGetSetting, GetAccount, GetRegion, \
     GetSettingAccounts, SetCurrentAccount
@@ -1983,8 +1986,34 @@ def GameTop():
             time.sleep(10)
 
 
+def InitSetting():
+    accountsfile = os.path.join(GetCfgPath(), "accounts")
+
+    if not os.path.exists(accountsfile):
+        f = open(accountsfile, "a+")
+        f.close()
+        logger.warning("没有创建accounts文件, 创建了一个")
+
+    cfgfile = os.path.join(GetCfgPath(), "superai.cfg")
+    if not os.path.exists(cfgfile):
+        f = open(cfgfile, "a+")
+
+        config = configparser.RawConfigParser()
+        config.read(cfgfile)
+        gamedir = GameFileDir()
+
+        config.add_section("superai")
+        config.set("superai", "游戏路径", gamedir)
+        config.set("superai", "单账号刷角色数量", "1")
+        config.write(f)
+
+        f.close()
+        logger.warning("没有创建superai.cfg文件, 创建了一个")
+
+
 def superai():
     InitLog()
+    InitSetting()
     if not GameApiInit():
         sys.exit()
     FlushPid()
@@ -2032,8 +2061,8 @@ def main():
     InitDb()
 
     # jsonrpc websocket 推送
-    t = threading.Thread(target=subnodeapi)
-    t.start()
+    # t = threading.Thread(target=subnodeapi)
+    # t.start()
 
     superai()
 
