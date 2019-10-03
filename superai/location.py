@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 from superai.vkcode import VK_CODE
 from superai.yijianshu import KongjianSleep, MouseMoveTo, MouseLeftClick, PressKey
-
 from superai.flannfind import Picture, GetImgDir
 
 locationGelanzhisen = Picture(GetImgDir() + "ditu_gelanzhisen.png")

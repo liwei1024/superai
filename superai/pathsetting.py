@@ -1,7 +1,5 @@
 import configparser
 import os
-import sys
-import time
 from ctypes import CDLL, RTLD_GLOBAL
 
 import sys
@@ -120,5 +118,7 @@ def GameFileDir():
         config = configparser.RawConfigParser()
         config.read(os.path.join(GetCfgPath(), "superai.cfg"))
         gamedir = config.get('superai', '游戏路径')
+    else:
+        gamedir = ""
 
     return gamedir

@@ -3,7 +3,7 @@ import logging
 
 import coloredlogs
 import win32con
-import win32gui, win32com.client
+import win32com.client
 import win32gui
 
 

@@ -1,6 +1,5 @@
 import os
 import sys
-import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -10,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 from superai.common import InitLog, GameWindowToTop
 from superai.gameapi import GameApiInit, FlushPid, GetBagEquipObj, GetMenInfo, BODYPOS, Clear, GetEquipObj
-
 from superai.flannfind import Picture, GetImgDir
 from superai.location import Location
 from superai.yijianshu import MouseMoveTo, RanSleep, MouseLeftClick, MouseMoveR, PressKey, VK_CODE, YijianshuInit, \

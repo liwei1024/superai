@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+import threading
 import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
@@ -11,7 +12,7 @@ import numpy as np
 from superai.pathsetting import GetImgDir
 
 from superai.common import InitLog
-from superai.yijianshu import MouseMoveTo, YijianshuInit, RanSleep
+from superai.yijianshu import YijianshuInit
 from superai.screenshots import WindowCaptureToMem
 
 logger = logging.getLogger(__name__)
@@ -240,7 +241,6 @@ shipinScene = Picture(GetImgDir() + "shipin_scene.png", 291, 541, 232, 28)
 
 gConfirmTop = False
 gShipinScene = False
-gFlushExit = False
 
 
 # 是否有确认键置顶 (背景线程刷新)
@@ -258,44 +258,30 @@ def IsShipinTop():
     return gShipinScene
 
 
-# 设置截屏线程退出
-def SetThreadExit():
-    global gFlushExit
-    gFlushExit = True
+# 截图线程
+class FlushImgThread(threading.Thread):
+    def __init__(self):
+        super(FlushImgThread, self).__init__()
+        self.__stop = False
 
+    def run(self):
+        global gConfirmTop, gShipinScene
+        while not self.__stop:
+            try:
+                gConfirmTop = True if confirm.Match() else False
+                gShipinScene = True if shipinScene.IsBlack() else False
+            except Exception:
+                logger.info("flushimg thread error ")
+            time.sleep(0.3)
 
-# 不断截图把图片状态置到内存中
-def FlushImg():
-    global gConfirmTop, gShipinScene
-    while not gFlushExit:
-        try:
-            gConfirmTop = True if confirm.Match() else False
-            gShipinScene = True if shipinScene.IsBlack() else False
-        except Exception:
-            logger.info("flushimg thread error ")
-        time.sleep(0.3)
+    def stop(self):
+        self.__stop = True
 
 
 def main():
     InitLog()
     if not YijianshuInit():
         sys.exit()
-
-    # moqiangshi_ciji = Picture(basedir + "/kongge.png")
-    # pos = moqiangshi_ciji.Pos()
-    # print(pos)
-    # MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-
-    # while True:
-    #     if IsCartoonTop():
-    #         logger.info("1")
-    #     time.sleep(0.5)
-
-    # sifttest()
-    # templatefindtest()
-
-    from superai.location import IsinSailiya
-    # print(IsinSailiya())
 
 
 if __name__ == "__main__":

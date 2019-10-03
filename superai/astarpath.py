@@ -1,24 +1,18 @@
 import os
 import queue
 import sys
-import time
-
+import logging
 import cv2
 import numpy as np
+import copy
+
+logger = logging.getLogger(__name__)
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.common import InitLog
-import logging
-
-logger = logging.getLogger(__name__)
-
-# a* 8方位
-import copy
-
 from superai.astartdemo import idxTohw, hwToidx, dist_between, idxToXY
-from superai.gameapi import FlushPid, GameApiInit, GetMenInfo, GetNextDoorWrap, ZUO, QuardantMap, YOU, SHANG, XIA, \
-    Quardant
+from superai.gameapi import FlushPid, GameApiInit, GetMenInfo, GetNextDoorWrap, QuardantMap, Quardant
 from superai.obstacle import GetGameObstacleData, GameObstacleData, drawWithOutDoor
 
 
@@ -419,7 +413,6 @@ class AStartPaths:
         for (adjx, adjy) in checks:
             if self.ob.TouchedAnything([adjx, adjy]):
                 continue
-            # cv2.rectangle(img, (adjx * 10, adjy * 10), (adjx * 10 + 10, adjy * 10 + 10), (0, 0, 139), 1)
             adjs.append(hwToidx(adjx, adjy, self.manCellWLen))
         return adjs
 
@@ -558,10 +551,6 @@ class BfsNextRangeCorrect:
         t = celly * 10
         d = celly * 10 + 10
 
-        # if img is not None:
-        #     cv2.rectangle(img, (l, t), (r, d),
-        #                   (0, 0, 139), 3)
-
         # 不超过矩形的范围
         return not IsRectangleOverlap(Zuobiao(self.range_l + 1, self.range_t + 1),
                                       Zuobiao(self.range_r - 1, self.range_d - 1),
@@ -592,12 +581,6 @@ class BfsNextRangeCorrect:
     def bfs(self):
         q = queue.Queue()
         q.put(self.s)
-
-        # global img
-        # if img is not None:
-        #     (cellx, celly) = idxTohw(self.s, self.manCellWLen)
-        #     drawx, drawy = cellx * 10, celly * 10
-        #     cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
 
         while q.qsize() != 0:
             v = q.get()
@@ -747,8 +730,8 @@ def main():
         sys.exit()
     FlushPid()
 
-    # DrawNextDoorPath()
-    DrawAnyPath(1108, 306, 739, 313)
+    DrawNextDoorPath()
+    # DrawAnyPath(1108, 306, 739, 313)
 
 
 if __name__ == '__main__':

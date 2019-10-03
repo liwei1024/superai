@@ -1,21 +1,19 @@
 import os
 import sys
-import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
 
 logger = logging.getLogger(__name__)
-from superai.common import InitLog, GameWindowToTop
 
+from superai.common import InitLog, GameWindowToTop
 from superai.flannfind import Picture, GetImgDir
 from superai.vkcode import VK_CODE
 from superai.yijianshu import PressKey, RanSleep, MouseMoveTo, MouseLeftDown, MouseLeftUp, YijianshuInit, \
-    MouseLeftClick, MouseMoveR, MouseRightClick, KongjianSleep, LanSleep
-
-from superai.gameapi import GetMenInfo, GetEquipObj, GetBagEquipObj, GameApiInit, FlushPid, TYPEMAP, BODYPOS, WUQIPOS, \
-    SHIPINPOS, IsEscTop, GetXingyunxing, Clear, ChengHaoRequire, Openesc
+    MouseLeftClick, MouseRightClick, KongjianSleep, LanSleep
+from superai.gameapi import GetMenInfo, GetEquipObj, GetBagEquipObj, GameApiInit, FlushPid, BODYPOS, WUQIPOS, \
+    SHIPINPOS, GetXingyunxing, Clear, ChengHaoRequire, Openesc
 
 # 任意策略
 ANYStrategy = -1
@@ -94,11 +92,9 @@ def OpenBagScene():
 
 # 关闭装备栏
 def CloseBagScene():
-
     while bagScene.Match():
         logger.info("关闭装备栏")
         PressKey(VK_CODE["esc"]), KongjianSleep()
-
 
 
 class Equips:

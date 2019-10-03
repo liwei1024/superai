@@ -5,8 +5,6 @@ import threading
 
 import logging
 
-from engineio.async_drivers import gevent
-
 logger = logging.getLogger(__name__)
 
 from flask import Flask
@@ -26,7 +24,7 @@ app = Flask(__name__)
 CORS(app)
 
 jsonrpc = JSONRPC(app, '/api', enable_web_browsable_api=True)
-socketio = SocketIO(app, cors_allowed_origins='*',async_mode='gevent')
+socketio = SocketIO(app, cors_allowed_origins='*', async_mode='gevent')
 
 
 @app.route('/')
@@ -67,7 +65,7 @@ def getMachineState():
         "memInfo": getMemResult(),
         "diskInfo": getDiskResult(),
         "networkInfo": getNetworkResult(),
-        "latestStateInfo":  DbStateGetNearestTimepoint()
+        "latestStateInfo": DbStateGetNearestTimepoint()
     }
     jsonstr = json.dumps(result, ensure_ascii=False)
     return jsonstr

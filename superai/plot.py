@@ -757,7 +757,7 @@ def DoneSailiya(mapname):
         else:
 
             # 在宽度内才向下哦
-            if  440 < meninfo.chengzhenx < 460:
+            if 440 < meninfo.chengzhenx < 460:
                 logger.info("人物坐标在440 和 460 中间, 向下走出赛丽亚房间")
                 QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
                 QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
@@ -950,6 +950,7 @@ def MeetNpcFoo(destname):
                     foos[0](player)
                 else:
                     MoveTo(destname, player)
+
 
     return foo
 

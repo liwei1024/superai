@@ -1,16 +1,15 @@
 import os
 import sys
 import time
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
-
+from ctypes import *
 import logging
-
-logger = logging.getLogger(__name__)
-
 import copy
 from enum import Enum
 import math
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
+
+logger = logging.getLogger(__name__)
 
 from superai.pathsetting import GetHelpdllLib, GetDriverStartFile
 from superai.common import InitLog
@@ -19,8 +18,6 @@ from superai.yijianshu import PressSkill, PressKey, DownZUO, DownYOU, DownSHANG,
     MouseMoveTo, KongjianSleep, MouseLeftClick
 from superai.vkcode import VK_CODE
 from superai.defer import defer
-
-from ctypes import *
 
 lib = GetHelpdllLib()
 
@@ -1265,6 +1262,7 @@ def GetMonstersWrap():
 
     return monsters
 
+
 # 斯卡迪女王的印章
 UnuseFilterStr = u"克尔顿的印章|撒勒的印章|达人HP药剂|达人MP药剂|专家MP药剂|专家HP药剂|熟练MP药剂|熟练HP药剂|血滴石|黑曜石|紫玛瑙|金刚石|海蓝宝石|月饼硬币|飞盘 2|暗黑倾向药剂|命运硬币|肉干|砂砾|天空树果实|燃烧瓶|军用回旋镖|裂空镖|甜瓜|飞镖|轰雷树果实|越桔|神圣葡萄酒|轰爆弹|爆弹|燃烧瓶|精灵香精|魔力之花|石头|苎麻花叶|怒海霸主银币|解密礼盒|无尽的永恒|风化的碎骨|破旧的皮革|最下级砥石|最下级硬化剂|生锈的铁片|碎布片|回旋镖|天界珍珠|朗姆酒|飞盘|魔力之花|卡勒特指令书|入门HP药剂|入门MP药剂|普通HP药剂|普通MP药剂|飞盘2|邪恶药剂|圣杯|肉干"
 
@@ -1621,6 +1619,26 @@ def IsZhicai():
     return meninfo.zhicai == 4
 
 
+# 是否锁血
+gHplocked = False
+
+
+# 是否锁血了 (某些技能会让怪物锁1血, 那时候不要遍历出来)
+def IsLockedHp():
+    return gHplocked
+
+
+# 锁血
+def LockHp():
+    global gHplocked
+    gHplocked = True
+
+
+# 解除锁血
+def UnLockHp():
+    global gHplocked
+    gHplocked = False
+
 # 技能对应的按键
 idxkeymap = {
     0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
@@ -1670,27 +1688,6 @@ class SkillData:
 
         for k, w in kw.items():
             setattr(self, k, w)
-
-
-# 是否锁血
-gHplocked = False
-
-
-# 是否锁血了 (某些技能会让怪物锁1血, 那时候不要遍历出来)
-def IsLockedHp():
-    return gHplocked
-
-
-# 锁血
-def LockHp():
-    global gHplocked
-    gHplocked = True
-
-
-# 解除锁血
-def UnLockHp():
-    global gHplocked
-    gHplocked = False
 
 
 # 单个技能包装

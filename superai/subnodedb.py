@@ -1,5 +1,5 @@
+import configparser
 import contextlib
-import json
 import os
 import sys
 import time
@@ -7,10 +7,9 @@ import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from superai.accountsetup import GetAccount, GetRegion
 from superai.gameapi import IsDestSupport, GetMenInfo, BagWuseNum, GetRemaindPilao
 
-from superai.pathsetting import getDbFile, GetDbDir
+from superai.pathsetting import getDbFile, GetDbDir, GetCfgPath
 from superai.common import InitLog
 
 import logging
@@ -219,9 +218,13 @@ def IsTodayHavePilao(account, region):
                 if obj["curpilao"] is not None and obj["curpilao"] == 0:
                     pilaoShuawan += 1
 
-                # 最多刷2个!!!
-                if pilaoShuawan >= 2:
-                    logger.warning("最多刷2个角色!")
+                cfgfile = os.path.join(GetCfgPath(), "superai.cfg")
+                config = configparser.RawConfigParser()
+                config.read(cfgfile)
+                juesenum = int(config.get("superai", "单账号刷角色数量"))
+
+                if pilaoShuawan >= juesenum:
+                    logger.warning("最多刷%d个角色!" % juesenum)
                     return False
 
                 # 还有疲劳呢!!
@@ -285,9 +288,9 @@ def GetToSelectIdx(account, region):
 
 
 # 更新人物信息
-def UpdateMenState():
+def UpdateMenState(player):
     meninfo = GetMenInfo()
-    DbStateUpdate(account=GetAccount(), region=GetRegion(), role=meninfo.name, curlevel=meninfo.level,
+    DbStateUpdate(account=player.accountSetting.currentaccount, region=player.accountSetting.currentregion, role=meninfo.name, curlevel=meninfo.level,
                   zhiye=meninfo.zhuanzhihou, curpilao=GetRemaindPilao(), money=meninfo.money,
                   wuse=BagWuseNum(), timeup=True)
 

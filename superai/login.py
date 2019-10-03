@@ -3,8 +3,6 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from superai.common import ClientWindowToTop
-
 firstposes = [
     (324, 155), (452, 155), (570, 155), (691, 155), (814, 155),
     (324, 208), (452, 208), (570, 208), (691, 208), (814, 208),
@@ -391,7 +389,5 @@ def main():
         print("")
 
 
-
 if __name__ == '__main__':
     main()
-

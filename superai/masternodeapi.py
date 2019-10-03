@@ -1,11 +1,8 @@
 import json
 import os
 import sys
-import threading
 
 import logging
-
-from engineio.async_drivers import gevent
 
 logger = logging.getLogger(__name__)
 

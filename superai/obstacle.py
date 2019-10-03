@@ -5,17 +5,15 @@ import time
 import cv2
 import numpy as np
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from superai.common import InitLog
+
 import logging
 
 logger = logging.getLogger(__name__)
-
-from superai.plot import IsTaskaccept, DidPlotAccept
-
-from superai.gameapi import GameApiInit, GetSeceneInfo, FlushPid, GetMenInfo, GetMonsters, GetGoods, IsManInMap, \
+from superai.common import InitLog
+from superai.plot import DidPlotAccept
+from superai.gameapi import GameApiInit, GetSeceneInfo, FlushPid, GetMenInfo, GetGoods, IsManInMap, \
     GetNextDoor, GetMapInfo, GetMonstersWrap
 
 
@@ -82,6 +80,7 @@ def drawObstacles(img, d):
 
 
 def drawOther(img):
+
     # 人,怪物,物品. x,y中点
     meninfo = GetMenInfo()
     halfw = int(meninfo.w / 2)

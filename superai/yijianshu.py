@@ -1,20 +1,18 @@
 import os
 import sys
 import threading
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
-
-import logging
-
-logger = logging.getLogger(__name__)
-
 import time
 import win32gui
 import random
-from superai.pathsetting import GetYiLib
+import logging
 from ctypes import *
-from superai.common import InitLog, GameWindowToTop
 
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
+
+logger = logging.getLogger(__name__)
+
+from superai.pathsetting import GetYiLib
+from superai.common import InitLog, GameWindowToTop
 from superai.vkcode import *
 
 lib = GetYiLib()
@@ -183,6 +181,10 @@ def IsInit():
 # 初始化函数
 def YijianshuInit(pid=None, vid=None):
     global h, x
+
+    if h is not None and x is not None:
+        logger.info("Init 易键鼠 ok")
+        return True
 
     h = lib.M_Open_VidPid(0x612c, 0x1030)
     x = c_void_p(h)
@@ -451,8 +453,9 @@ def MouseRightDownFor(t):
 def ShiftLeft():
     lib.M_KeyDown2(h, VK_CODE["left_shift"]), KongjianSleep()
     lib.M_LeftDown(h), KongjianSleep()
-    lib.M_LeftUp(h),  KongjianSleep()
+    lib.M_LeftUp(h), KongjianSleep()
     lib.M_KeyUp2(h, VK_CODE["left_shift"])
+
 
 # shift + 右按键
 def ShiftRight():
@@ -460,6 +463,7 @@ def ShiftRight():
     lib.M_RightDown(h), KongjianSleep()
     lib.M_RightUp(h), KongjianSleep()
     lib.M_KeyUp2(h, VK_CODE["left_shift"])
+
 
 # 左键双击
 def MouseLeftDoubleClick():
