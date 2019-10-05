@@ -27,7 +27,7 @@ from superai.dealequip import DealEquip
 from superai.equip import Equips
 from superai.plot import TaskCtx, HasPlot, plotMap, OpenSelect, ResetAllChongming
 from superai.learnskill import Occupationkills
-from superai.common import InitLog, GameWindowToTop, ClientWindowToTop, checkIfProcessRunning
+from superai.common import InitLog, GameWindowToTop, ClientWindowToTop, checkIfProcessRunning, killall
 from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, SafeGetDAndOb, Zuobiao
 from superai.astartdemo import idxToXY
 from superai.flannfind import IsConfirmTop, GetConfirmPos, IsShipinTop, Picture, FlushImgThread
@@ -582,7 +582,7 @@ class GlobalState(State):
                 DbStateUpdate(player.accountSetting.currentaccount, player.accountSetting.currentregion,
                               kicktime=int(time.time()),
                               kicklong=24 * 60 * 60)  # 默认24小时吧
-                os.system("taskkill /F /im DNF.exe"), RanSleep(5.0)
+                killall(), RanSleep(5)
                 return
 
         states = [SelectJuese, CreateRole, OpenGame, Train]
@@ -603,7 +603,7 @@ class GlobalState(State):
 
                 if (curpic == player.latestcheckpic).all():
                     logger.warning("超过60s游戏画面未动,关闭dnf")
-                    os.system("taskkill /F /im DNF.exe"), RanSleep(5.0)
+                    killall(), RanSleep(5)
                     player.ChangeState(OpenGame())
 
                     player.latestcheckpic = None
@@ -797,7 +797,7 @@ class InChengzhen(State):
         # 频道选择界面 (让你选频道说明网络不好呀)
         if pindaoxuanze.Match():
             logger.warning("频道切换?")
-            os.system("taskkill /F /im DNF.exe"), RanSleep(5.0)
+            killall(), RanSleep(5)
             player.ChangeState(OpenGame())
             return
 
@@ -1471,7 +1471,7 @@ class SelectJuese(State):
             for i in range(10):
                 logger.warning("游戏即将结束!!! : %d" % (10 - i)), time.sleep(1)
 
-            os.system("taskkill /F /im DNF.exe"), RanSleep(5.0)
+            killall(), RanSleep(5)
             player.ChangeState(OpenGame())
             return
 
@@ -1584,7 +1584,7 @@ class CreateRole(State):
         # 选择创建角色
         createJueselst = CreateJueses(account=player.accountSetting.currentaccount,
                                       region=player.accountSetting.currentregion)
-        juesesetting = jueselst
+        juesesetting = jueselst * 2
         for juese in createJueselst:
             juese = juese["juese"]
 
@@ -1687,10 +1687,10 @@ class OpenGame(State):
         for i in range(10):
             if checkIfProcessRunning("DNF.exe"):
                 logger.warning("关闭DNF.exe")
-                os.system("taskkill /F /im DNF.exe"), RanSleep(5.0)
+                killall(), RanSleep(5)
             elif win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序") != 0:
                 logger.warning("关闭登陆器")
-                os.system("taskkill /F /im Client.exe"), RanSleep(5.0)
+                killall(), RanSleep(5)
             else:
                 break
             time.sleep(1), logger.info("等待游戏/登陆器关闭")
@@ -1744,6 +1744,17 @@ class OpenGame(State):
                 if IsTodayHavePilao(account.account, account.region):
                     selectAccount = account
                     logger.info("寻找到账号: %s %s 还可以再刷! " % (account.account, account.region))
+                    break
+
+                cfgfile = os.path.join(GetCfgPath(), "superai.cfg")
+                config = configparser.RawConfigParser()
+                config.read(cfgfile)
+                juesenum = int(config.get("superai", "单账号刷角色数量"))
+                if AccountRoles(account.account, account.region) < juesenum and DayCreateJueseNum(
+                        account=player.accountSetting.currentaccount,
+                        region=player.accountSetting.currentregion) < 2:
+                    selectAccount = account
+                    logger.info("角色未满 %d 个, 并且今日还可以创建角色" % juesenum)
                     break
 
         if selectAccount is None:

@@ -1,10 +1,19 @@
 import ctypes
 import logging
+import os
 
 import coloredlogs
 import win32con
 import win32com.client
 import win32gui
+
+
+def killall():
+    os.system("taskkill /F /im DNF.exe")
+    os.system("taskkill /F /im TenioDL.exe")
+    os.system("taskkill /F /im GameLoader.exe")
+    os.system("taskkill /F /im TPHelper.exe")
+    os.system("taskkill /F /im Client.exe")
 
 
 def InitLog():
