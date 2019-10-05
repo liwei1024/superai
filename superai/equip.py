@@ -170,7 +170,15 @@ class Equips:
                 if meninfo.level >= 20:
                     self.wuqistragy = ["棍棒"]
                     self.xingyunwuqipos = (0, 109)
-
+        # elif occupationbefore in ["女魔法师"]:
+        #     self.bodystragy = ANYStrategy
+        #     self.wuqistragy = ["矛", "棍棒", "魔杖", "法杖"]
+        #     self.xingyunwuqipos = (-22, 105)
+        #     if occupationafter in ["召唤师", "月之女皇", "月蚀"]:
+        #         self.bodystragy = BUJIA
+        #         if meninfo.level >= 20:
+        #             self.wuqistragy = ["法杖"]
+        #             self.xingyunwuqipos = (30, 111)
         else:
             logger.warning("还未支持的职业 %s" % occupationafter)
             return

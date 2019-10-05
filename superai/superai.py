@@ -1541,7 +1541,7 @@ class SelectJuese(State):
         logger.warning("在选择角色页面"), RanSleep(0.1)
 
 
-jueselst = ["守护者", "女格斗家", "男鬼剑士", "男魔法师"]  # "枪剑士" 太垃圾, 不放进去了,  "女圣职者"  "魔枪士"看不惯也不加进去
+jueselst = ["守护者", "女格斗家", "男鬼剑士", "男魔法师"]  # "枪剑士" 太垃圾, 不放进去了,  "女圣职者"  "魔枪士"看不惯也不加进去 "女魔法师"
 
 jueseseall = {
     "枪剑士": (127, 487),
@@ -1593,8 +1593,8 @@ class CreateRole(State):
         if len(juesesetting) < 1:
             juesesetting = ["男鬼剑士"]
 
-        logger.info("还剩下这些角色可以被创建: " + str(juesesetting))
-        idx = random.randint(0, len(juesesetting) - 1)
+        logger.info("还剩下这些角色可以被创建: %s" % str(juesesetting))
+        idx = 0
         logger.info("创建: %s" % juesesetting[idx])
 
         # 创建角色页面

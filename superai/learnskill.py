@@ -91,6 +91,10 @@ class Occupationkills:
             self.nanmofaInit()
             if occupationafter in ["逐风者", "御风者", "风神"]:
                 self.fengfaInit()
+        # elif occupationbefore in ["女魔法师"]:
+        #     self.nvmofaInit()
+        #     if occupationafter in ["召唤师", "月之女皇", "月蚀"]:
+        #         self.zhaohuanInit()
         else:
             logger.warning("还未支持的职业 %s" % occupationafter)
             return
@@ -104,6 +108,14 @@ class Occupationkills:
                         self.deletedskills.append(v)
                     self.learnstrategy.remove(v)
                     return
+
+    # 女魔法师
+    def nvmofaInit(self):
+        pass
+
+    # 召唤
+    def zhaohuanInit(self):
+        pass
 
     # 男魔法师
     def nanmofaInit(self):

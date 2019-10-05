@@ -36,6 +36,7 @@ zhuanzhiQigong = Picture(GetImgDir() + "zhuanzhi_qigong.png")
 zhuanzhiJianying = Picture(GetImgDir() + "zhuanzhi_jianying.png")
 zhuanzhiYuanneng = Picture(GetImgDir() + "zhuanzhi_yuannneng.png")
 zhuanzhiZhufengzhe = Picture(GetImgDir() + "zhuanzhi_zhufengzhe.png")
+zhuanzhiZhaohuan = Picture(GetImgDir() + "zhuanzhi_zhaohuanshi.png")
 zhuanzhiConfirm = Picture(GetImgDir() + "zhuanzhi_confirm.png")
 dituHedunmaer = Picture(GetImgDir() + "ditu_hedunmaer.png")
 dituHedunmaer3 = Picture(GetImgDir() + "ditu_hedunmaer3.png")
@@ -996,6 +997,8 @@ def 守护森林的战斗(player):
             pic = zhuanzhiYuanneng
         elif meninfo.zhuanzhiqian in ["男魔法师"]:
             pic = zhuanzhiZhufengzhe
+        # elif meninfo.zhuanzhiqian in ["女魔法师"]:
+        #     pic = zhuanzhiZhaohuan
         if pic is None:
             raise NotImplementedError("职业不支持: %s" % meninfo.zhuanzhiqian)
 
