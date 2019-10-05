@@ -115,7 +115,7 @@ class Equips:
                     self.wuqistragy = ["暗矛"]
                     self.xingyunwuqipos = (30, 111)
 
-        elif occupationbefore in ["圣职者"]:
+        elif occupationbefore in ["女圣职者"]:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["十字架", "念珠", "图腾", "镰刀", "战斧"]
             self.xingyunwuqipos = (4, 107)
@@ -133,7 +133,7 @@ class Equips:
                 if meninfo.level >= 20:
                     self.wuqistragy = ["钝器"]
                     self.xingyunwuqipos = (0, 109)
-        elif occupationbefore in ["鬼剑士"]:
+        elif occupationbefore in ["男鬼剑士"]:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["短剑", "太刀", "钝器", "巨剑"]
             self.xingyunwuqipos = (0, 109)
@@ -143,7 +143,7 @@ class Equips:
                     self.wuqistragy = ["太刀"]
                     self.xingyunwuqipos = (30, 110)
 
-        elif occupationbefore in ["格斗家"]:
+        elif occupationbefore in ["女格斗家"]:
             self.bodystragy = ANYStrategy
             self.wuqistragy = ["手套", "臂铠", "爪", "东方棍"]
             self.xingyunwuqipos = (-56, 111)
@@ -161,6 +161,16 @@ class Equips:
                 if meninfo.level >= 20:
                     self.wuqistragy = ["源力剑"]
                     self.xingyunwuqipos = (30, 110)
+        elif occupationbefore in ["男魔法师"]:
+            self.bodystragy = ANYStrategy
+            self.wuqistragy = ["矛", "棍棒", "魔杖", "法杖"]
+            self.xingyunwuqipos = (-22, 105)
+            if occupationafter in ["逐风者", "御风者", "风神"]:
+                self.bodystragy = PIJIA
+                if meninfo.level >= 20:
+                    self.wuqistragy = ["棍棒"]
+                    self.xingyunwuqipos = (0, 109)
+
         else:
             logger.warning("还未支持的职业 %s" % occupationafter)
             return
@@ -194,13 +204,27 @@ class Equips:
             return False
 
         if v1.bodypos == WUQIPOS and v1.canbeusedlevel >= suitlevel and "幸运星" in v1.name and v1.wuqitype in self.wuqistragy:
-            return True
+            if "幸运星" in v2.name:
+                return v1.canbeusedlevel > v2.canbeusedlevel
+            else:
+                return True
         elif v2.bodypos == WUQIPOS and v2.canbeusedlevel >= suitlevel and "幸运星" in v2.name and v2.wuqitype in self.wuqistragy:
-            return False
+            if "幸运星" in v1.name:
+                if v2.canbeusedlevel > v1.canbeusedlevel:
+                    return False
+                else:
+                    return True
+            else:
+                return False
 
         if v1.canbeusedlevel == 35 and "耀之荣光" in v1.name:
             return True
         elif v2.canbeusedlevel == 35 and "耀之荣光" in v2.name:
+            return False
+
+        if v1.canbeusedlevel == 1 and "圣物" in v1.name:
+            return True
+        elif v2.canbeusedlevel == 1 and "圣物" in v2.name:
             return False
 
         if v1.canbeusedlevel > v2.canbeusedlevel:
@@ -215,7 +239,7 @@ class Equips:
         meninfo = GetMenInfo()
 
         # 等级判断
-        if equip.canbeusedlevel <= meninfo.level:
+        if equip.canbeusedlevel <= meninfo.level or ("幸运星" in equip.name):
 
             # 身体
             if equip.bodypos in BODYPOS:
@@ -316,11 +340,11 @@ class Equips:
         suitlevel = (meninfo.level // 10) * 10
         equips = GetBagEquipObj()
         for v in equips:
-            if v.bodypos == WUQIPOS and v.canbeusedlevel == suitlevel and "幸运星" in v.name and v.wuqitype in self.wuqistragy:
+            if v.bodypos == WUQIPOS and v.canbeusedlevel >= suitlevel and "幸运星" in v.name and v.wuqitype in self.wuqistragy:
                 return True
         equips = GetEquipObj()
         for v in equips:
-            if v.bodypos == WUQIPOS and v.canbeusedlevel == suitlevel and "幸运星" in v.name and v.wuqitype in self.wuqistragy:
+            if v.bodypos == WUQIPOS and v.canbeusedlevel >= suitlevel and "幸运星" in v.name and v.wuqitype in self.wuqistragy:
                 return True
         return False
 
@@ -330,7 +354,7 @@ class Equips:
         suitlevel = (meninfo.level // 10) * 10
         equips = GetEquipObj()
         for v in equips:
-            if v.bodypos == WUQIPOS and v.canbeusedlevel == suitlevel and "幸运星" in v.name and v.wuqitype in self.wuqistragy:
+            if v.bodypos == WUQIPOS and v.canbeusedlevel >= suitlevel and "幸运星" in v.name and v.wuqitype in self.wuqistragy:
                 return True
         return False
 

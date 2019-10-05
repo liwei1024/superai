@@ -819,9 +819,9 @@ class InChengzhen(State):
             player.ChangeState(SelectJuese())
             return
 
-        # 只有一个角色是一级, 并且在城镇
+        # (3个角色内), 并且在城镇
         if AccountRoles(player.accountSetting.currentaccount,
-                        player.accountSetting.currentregion) == 1 and IsManInChengzhen() and GetMenInfo().level == 1:
+                        player.accountSetting.currentregion) <= 3 and IsManInChengzhen() and GetMenInfo().level == 1:
             logger.info("开启跳过所有动画")
             if not Openesc():
                 logger.warning("打开esc失败")
@@ -1429,6 +1429,7 @@ class NoPilao(State):
 # 选择角色
 class SelectJuese(State):
     def Execute(self, player):
+
         if not player.accountSetting.IsAccountSetted():
             player.accountSetting.PrintSwitchTips()
             player.accountSetting.BlockGetSetting()
@@ -1449,6 +1450,7 @@ class SelectJuese(State):
 
         if len(outlst) == 0 or not IsTodayHavePilao(account=player.accountSetting.currentaccount,
                                                     region=player.accountSetting.currentregion):
+
             curnums = AccountRoles(account=player.accountSetting.currentaccount,
                                    region=player.accountSetting.currentregion)
             daycreatenums = DayCreateJueseNum(account=player.accountSetting.currentaccount,
@@ -1539,7 +1541,7 @@ class SelectJuese(State):
         logger.warning("在选择角色页面"), RanSleep(0.1)
 
 
-jueselst = ["守护者", "女格斗家", "男鬼剑士"]  # "枪剑士" 太垃圾, 不放进去了,  "女圣职者"  "魔枪士"看不惯也不加进去
+jueselst = ["守护者", "女格斗家", "男鬼剑士", "男魔法师"]  # "枪剑士" 太垃圾, 不放进去了,  "女圣职者"  "魔枪士"看不惯也不加进去
 
 jueseseall = {
     "枪剑士": (127, 487),
@@ -1981,23 +1983,23 @@ class GameTopThread(threading.Thread):
     def __init__(self):
         super(GameTopThread, self).__init__()
         self.__stop = False
-        self.latesttime  = None
+        self.latesttime = None
 
     def run(self):
         while not self.__stop:
-            if self.latesttime is None or time.time() - self.latesttime > 10.0:
-                if checkIfProcessRunning("DNF.exe"):
-                    # if checkIfProcessRunning("CrossProxy.exe"):
-                    #     logger.warning("发现 CrossProxy.exe, 关闭!!!")
-                    #     os.system("taskkill /F /im CrossProxy.exe"), RanSleep(1)
+            if checkIfProcessRunning("DNF.exe"):
+                # if checkIfProcessRunning("CrossProxy.exe"):
+                #     logger.warning("发现 CrossProxy.exe, 关闭!!!")
+                #     os.system("taskkill /F /im CrossProxy.exe"), RanSleep(1)
 
-                    #     if checkIfProcessRunning("TPHelper.exe"):
-                    #         logger.warning("发现 TPHelper.exe, 关闭!!!")
-                    #         os.system("taskkill /F /im TPHelper.exe"), RanSleep(1)
+                #     if checkIfProcessRunning("TPHelper.exe"):
+                #         logger.warning("发现 TPHelper.exe, 关闭!!!")
+                #         os.system("taskkill /F /im TPHelper.exe"), RanSleep(1)
 
-                    pythoncom.CoInitialize()
-                    GameWindowToTop()
-            time.sleep(1)
+                pythoncom.CoInitialize()
+                GameWindowToTop()
+
+            time.sleep(10)
 
     def stop(self):
         self.__stop = True

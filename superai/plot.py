@@ -35,6 +35,7 @@ zhuanzhiPalading = Picture(GetImgDir() + "zhuanzhi_palading.png")
 zhuanzhiQigong = Picture(GetImgDir() + "zhuanzhi_qigong.png")
 zhuanzhiJianying = Picture(GetImgDir() + "zhuanzhi_jianying.png")
 zhuanzhiYuanneng = Picture(GetImgDir() + "zhuanzhi_yuannneng.png")
+zhuanzhiZhufengzhe = Picture(GetImgDir() + "zhuanzhi_zhufengzhe.png")
 zhuanzhiConfirm = Picture(GetImgDir() + "zhuanzhi_confirm.png")
 dituHedunmaer = Picture(GetImgDir() + "ditu_hedunmaer.png")
 dituHedunmaer3 = Picture(GetImgDir() + "ditu_hedunmaer3.png")
@@ -721,6 +722,7 @@ def SubmitTask(player):
         player.taskctx.latestsubmitpoint = time.time()
     else:
         PressKey(VK_CODE["esc"]), KongjianSleep()
+        PressKey(VK_CODE["spacebar"]), KongjianSleep()
         logger.warning("完成任务不能多次点击,本次啥都不做")
 
 
@@ -980,19 +982,20 @@ def 守护森林的战斗(player):
         # TODO  目前写死职业 . 要添加配置
         pic = None
         meninfo = GetMenInfo()
-        if meninfo.zhuanzhiqian in ["圣职者"]:
+        if meninfo.zhuanzhiqian in ["女圣职者"]:
             pic = zhuanzhiYoumozhe
         elif meninfo.zhuanzhiqian in ["魔枪士"]:
             pic = zhuanzhiAnqiangshi
         elif meninfo.zhuanzhiqian in ["守护者"]:
             pic = zhuanzhiPalading
-        elif meninfo.zhuanzhiqian in ["格斗家"]:
+        elif meninfo.zhuanzhiqian in ["女格斗家"]:
             pic = zhuanzhiQigong
-        elif meninfo.zhuanzhiqian in ["鬼剑士"]:
+        elif meninfo.zhuanzhiqian in ["男鬼剑士"]:
             pic = zhuanzhiJianying
         elif meninfo.zhuanzhiqian in ["枪剑士"]:
             pic = zhuanzhiYuanneng
-
+        elif meninfo.zhuanzhiqian in ["男魔法师"]:
+            pic = zhuanzhiZhufengzhe
         if pic is None:
             raise NotImplementedError("职业不支持: %s" % meninfo.zhuanzhiqian)
 

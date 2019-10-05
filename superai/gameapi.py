@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 import sys
 import time
@@ -51,7 +53,8 @@ class MenInfo(Structure):
         ("chengzheny", c_float),
         ("account", c_uint32),
         ("region", c_wchar * 30),
-        ("zhicai", c_uint32)
+        ("zhicai", c_uint32),
+        ("zhiyedw", c_uint32)
     ]
 
     def __str__(self):
@@ -60,7 +63,7 @@ class MenInfo(Structure):
         retstr += "obj: 0x%08X 名称: %s 等级: %d hp: %d mp: %d 疲劳: %d/%d 状态: %s 方向: %d 疾跑: %d \n" % (
             self.object, self.name, self.level, self.hp, self.mp,
             self.maxpilao - self.curpilao, self.maxpilao, self.statestr, self.fangxiang, self.jipao)
-        retstr += " 转职前: %s 转职后: %s\n" % (self.zhuanzhiqian, self.zhuanzhihou)
+        retstr += " 转职前: %s 转职后: %s 数字: %d\n" % (self.zhuanzhiqian, self.zhuanzhihou, self.zhiyedw)
         retstr += "人物坐标 (%.f,%.f,%.f) w h %d %d\n" % (self.x, self.y, self.z, self.w, self.h)
         retstr += "负重 (%d,%d) 金币: %d\n" % (self.fuzhongcur, self.fuzhongmax, self.money)
         retstr += "弹出 %d esc %d\n" % (self.tanchu, self.esc)
@@ -1264,7 +1267,7 @@ def GetMonstersWrap():
 
 
 # 斯卡迪女王的印章
-UnuseFilterStr = u"克尔顿的印章|撒勒的印章|达人HP药剂|达人MP药剂|专家MP药剂|专家HP药剂|熟练MP药剂|熟练HP药剂|血滴石|黑曜石|紫玛瑙|金刚石|海蓝宝石|月饼硬币|飞盘 2|暗黑倾向药剂|命运硬币|肉干|砂砾|天空树果实|燃烧瓶|军用回旋镖|裂空镖|甜瓜|飞镖|轰雷树果实|越桔|神圣葡萄酒|轰爆弹|爆弹|燃烧瓶|精灵香精|魔力之花|石头|苎麻花叶|怒海霸主银币|解密礼盒|无尽的永恒|风化的碎骨|破旧的皮革|最下级砥石|最下级硬化剂|生锈的铁片|碎布片|回旋镖|天界珍珠|朗姆酒|飞盘|魔力之花|卡勒特指令书|入门HP药剂|入门MP药剂|普通HP药剂|普通MP药剂|飞盘2|邪恶药剂|圣杯|肉干"
+UnuseFilterStr = u"克尔顿的印章|撒勒的印章|达人HP药剂|达人MP药剂|专家MP药剂|专家HP药剂|熟练MP药剂|熟练HP药剂|血滴石|黑曜石|紫玛瑙|金刚石|海蓝宝石|月饼硬币|暗黑倾向药剂|命运硬币|肉干|砂砾|天空树果实|燃烧瓶|军用回旋镖|裂空镖|甜瓜|飞镖|轰雷树果实|越桔|神圣葡萄酒|轰爆弹|爆弹|燃烧瓶|精灵香精|魔力之花|石头|苎麻花叶|怒海霸主银币|解密礼盒|无尽的永恒|风化的碎骨|破旧的皮革|最下级砥石|最下级硬化剂|生锈的铁片|碎布片|回旋镖|天界珍珠|朗姆酒|飞盘|魔力之花|卡勒特指令书|入门HP药剂|入门MP药剂|普通HP药剂|普通MP药剂|飞盘2|邪恶药剂|圣杯|肉干"
 
 UnuseFilter = UnuseFilterStr.split("|")
 
@@ -1585,14 +1588,15 @@ def IsLastSelect():
 
 # 目标职业是否支持
 def IsDestSupport(zhiye):
-    if zhiye in ["魔枪士", "圣职者", "守护者", "格斗家", "鬼剑士", "枪剑士"]:
+    if zhiye in ["魔枪士", "女圣职者", "守护者", "女格斗家", "男鬼剑士", "枪剑士", "男魔法师"]:
         return True
     if zhiye in ["暗枪士", "狂怒恶鬼", "幽影夜神",
                  "诱魔者", "断罪者", "救世者",
                  "帕拉丁", "曙光", "破晓女神",
                  "气功师", "百花缭乱", "念帝",
                  "剑影", "夜刀神", "夜见罗刹",
-                 "源能专家", "源力掌控者", "未来开拓者"]:
+                 "源能专家", "源力掌控者", "未来开拓者",
+                 "逐风者", "御风者", "风神"]:
         return True
     return False
 
@@ -1914,6 +1918,9 @@ skillSettingMap = {
     "源能应用": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
     "镭射源能枪": SkillData(type=SkillType.Gongji, v_w=400 / 2, h_w=40 / 2, ),
     "脉冲斩": SkillData(type=SkillType.Gongji, v_w=400 / 2, h_w=40 / 2, ),
+
+    # 风法
+    "流风诀": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 }
 
 # 普通攻击

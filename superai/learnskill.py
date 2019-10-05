@@ -67,7 +67,7 @@ class Occupationkills:
             self.moqiangInit()
             if occupationafter in ["暗枪士", "狂怒恶鬼", "幽影夜神"]:
                 self.anqiangInit()
-        elif occupationbefore in ["圣职者"]:
+        elif occupationbefore in ["女圣职者"]:
             self.shengzhiInit()
             if occupationafter in ["诱魔者", "断罪者", "救世者"]:
                 self.youmozheInit()
@@ -75,11 +75,11 @@ class Occupationkills:
             self.shouhuInit()
             if occupationafter in ["帕拉丁", "曙光", "破晓女神"]:
                 self.paladingInit()
-        elif occupationbefore in ["格斗家"]:
+        elif occupationbefore in ["女格斗家"]:
             self.gedouInit()
             if occupationafter in ["气功师", "百花缭乱", "念帝"]:
                 self.nvqigongInit()
-        elif occupationbefore in ["鬼剑士"]:
+        elif occupationbefore in ["男鬼剑士"]:
             self.guijianshiInit()
             if occupationafter in ["剑影", "夜刀神", "夜见罗刹"]:
                 self.jianyingInit()
@@ -87,18 +87,64 @@ class Occupationkills:
             self.qiangjianshiInit()
             if occupationafter in ["源能专家", "源力掌控者", "未来开拓者"]:
                 self.yuannengInit()
+        elif occupationbefore in ["男魔法师"]:
+            self.nanmofaInit()
+            if occupationafter in ["逐风者", "御风者", "风神"]:
+                self.fengfaInit()
         else:
             logger.warning("还未支持的职业 %s" % occupationafter)
             return
 
     # 删除必备技能
-    def DelSkill(self, name):
+    def DelSkill(self, name, virtual=False):
         if self.learnstrategy:
             for v in self.learnstrategy:
                 if v.name == name:
-                    self.deletedskills.append(v)
+                    if not virtual:
+                        self.deletedskills.append(v)
                     self.learnstrategy.remove(v)
                     return
+
+    # 男魔法师
+    def nanmofaInit(self):
+        self.learnstrategy = []
+        meninfo = GetMenInfo()
+        if meninfo.level >= 1:
+            self.learnstrategy.append(OccupationSkill("nanmofa", "魔法冰球", "mofashi_mofangbingqiu.png"))
+        if meninfo.level >= 5:
+            self.learnstrategy.append(OccupationSkill("nanmofa", "擒拿掌", "mofashi_qinnazhang.png"))
+        if meninfo.level >= 10:
+            self.learnstrategy.append(OccupationSkill("nanmofa", "旋火盾", "mofashi_xuanhuodun.png"))
+
+    # 风法
+    def fengfaInit(self):
+        self.AttackType = WULI
+        meninfo = GetMenInfo()
+
+        if meninfo.level >= 15:
+            self.DelSkill("魔法冰球", virtual=True), self.learnstrategy.append(
+                OccupationSkill("nanmofa", "魔法冰球", "mofashi_mofangbingqiu.png", beidong=True))
+            self.DelSkill("擒拿掌", virtual=True), self.learnstrategy.append(
+                OccupationSkill("nanmofa", "擒拿掌", "mofashi_qinnazhang.png", beidong=True))
+            self.DelSkill("旋火盾", virtual=True), self.learnstrategy.append(
+                OccupationSkill("nanmofa", "旋火盾", "mofashi_xuanhuodun.png", beidong=True))
+            self.learnstrategy.append(OccupationSkill("nanmofa", "狂风冲刺", "fengfa_kuangfengchongci.png"))
+            self.learnstrategy.append(OccupationSkill("nanmofa", "回风斩", "fengfa_huifengzhan.png"))
+            self.learnstrategy.append(OccupationSkill("nanmofa", "疾风之棍棒精通", "fengfa_gunbangjingtong.png", beidong=True))
+
+        if meninfo.level >= 20:
+            self.DelSkill("擒拿掌")
+            self.learnstrategy.append(OccupationSkill("nanmofa", "朔风牵引", "fengfa_sufengqianying.png"))
+            self.learnstrategy.append(OccupationSkill("nanmofa", "流风诀", "fengfa_liufengjue.png"))
+
+        if meninfo.level >= 25:
+            self.DelSkill("魔法冰球")
+            self.DelSkill("旋火盾")
+            self.learnstrategy.append(OccupationSkill("nanmofa", "风鸣冲击", "fengfa_fnegmingchongji.png"))
+            self.learnstrategy.append(OccupationSkill("nanmofa", "游离之风", "fengfa_youlingzhifen.png"))
+
+        if meninfo.level >= 30:
+            self.learnstrategy.append(OccupationSkill("nanmofa", "双翼风刃", "fengfa_shuangyifengren.png"))
 
     # 枪剑士
     def qiangjianshiInit(self):
@@ -142,7 +188,7 @@ class Occupationkills:
         if meninfo.level >= 45:
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "光导裂地斩", "yuanneng_guangdaoliedizhan.png"))
 
-    # 鬼剑士
+    # 男鬼剑士
     def guijianshiInit(self):
         self.learnstrategy = []
         meninfo = GetMenInfo()
@@ -189,7 +235,7 @@ class Occupationkills:
         if meninfo.level >= 45:
             self.learnstrategy.append(OccupationSkill("guijianshi", "冥灵断魂斩", "jianying_minlingdunhunzhan.png"))
 
-    # 格斗家
+    # 女格斗家
     def gedouInit(self):
         self.learnstrategy = []
         meninfo = GetMenInfo()
