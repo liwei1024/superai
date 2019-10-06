@@ -64,6 +64,10 @@ lingqubtn1 = Picture(GetImgDir() + "lingqubtn.png", dx=158, dy=108, dw=36, dh=22
 lingqubtn2 = Picture(GetImgDir() + "lingqubtn.png", dx=211, dy=109, dw=36, dh=22)
 lingqubtn3 = Picture(GetImgDir() + "lingqubtn.png", dx=263, dy=108, dw=36, dh=22)
 lingqubtn4 = Picture(GetImgDir() + "lingqubtn.png", dx=315, dy=107, dw=36, dh=22)
+lingqubtn5 = Picture(GetImgDir() + "lingqubtn.png", dx=158, dy=219, dw=36, dh=22)
+lingqubtn6 = Picture(GetImgDir() + "lingqubtn.png", dx=211, dy=219, dw=36, dh=22)
+lingqubtn7 = Picture(GetImgDir() + "lingqubtn.png", dx=263, dy=219, dw=36, dh=22)
+lingqubtn8 = Picture(GetImgDir() + "lingqubtn.png", dx=315, dy=219, dw=36, dh=22)
 yingbi = Picture(GetImgDir() + "yingbi.png", dx=156, dy=16, dw=22, dh=17)
 xinfeng = Picture(GetImgDir() + "xinfeng.png", dx=179, dy=244, dw=14, dh=10)
 pindaoxuanze = Picture(GetImgDir() + "pindaoxuanze.png", dx=362, dy=40, dw=54, dh=14)
@@ -534,7 +538,9 @@ class GlobalState(State):
 
             # 领取 (阶段奖励)
             if xinfeng.Match():
-                lingqus = [lingqubtn1, lingqubtn2, lingqubtn3, lingqubtn4]
+                lingqus = [lingqubtn1, lingqubtn2, lingqubtn3, lingqubtn4,
+                           lingqubtn5, lingqubtn6, lingqubtn7, lingqubtn8]
+
                 for lingqu in lingqus:
                     if lingqu.Match():
                         pos = lingqu.Pos()
@@ -638,6 +644,9 @@ class GlobalState(State):
             logger.info("视频状态")
             PressKey(VK_CODE["esc"]), RanSleep(0.3)
             PressKey(VK_CODE["spacebar"]), KongjianSleep()
+            PressKey(VK_CODE["esc"]), RanSleep(0.3)
+            PressKey(VK_CODE["spacebar"]), KongjianSleep()
+
             if not IsShiPinTopWrap():
                 player.RestoreContext()
             return

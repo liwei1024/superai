@@ -18,3 +18,4 @@ psutil
 names
 requests
 PyQt5
+screeninfo
