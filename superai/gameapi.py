@@ -54,7 +54,9 @@ class MenInfo(Structure):
         ("account", c_uint32),
         ("region", c_wchar * 30),
         ("zhicai", c_uint32),
-        ("zhiyedw", c_uint32)
+        ("zhiyedw", c_uint32),
+        ("tiaoguo", c_uint32),
+        ("yinying", c_uint32)
     ]
 
     def __str__(self):
@@ -69,6 +71,7 @@ class MenInfo(Structure):
         retstr += "弹出 %d esc %d\n" % (self.tanchu, self.esc)
         retstr += "城镇坐标: (%d, %d)\n" % (self.chengzhenx, self.chengzheny)
         retstr += "制裁: %d 账号: %d, 大区: %s\n" % (self.zhicai, self.account, self.region)
+        retstr += "跳过: %d 阴影: %d\n" % (self.tiaoguo, self.yinying)
         return retstr
 
 
@@ -964,7 +967,6 @@ def GetCurSelectIdx():
 def GetXingyunxing():
     xingyunxing = Xingyunxing()
     lib.ExGetXingyunxing(pointer(xingyunxing))
-    xingyunxing.num = 100  # TODO 更新了,不好逆向TMD
     return xingyunxing
 
 
@@ -1464,6 +1466,18 @@ def IsMenDead():
     return meninfo.hp <= 1
 
 
+# 是否设置了跳过所有动画
+def IsSettingSkip():
+    meninfo = GetMenInfo()
+    return meninfo.tiaoguo == 1
+
+
+# 是否设置了屏蔽效果(通过阴影判断)
+def IsSettingYinyingSkip():
+    meninfo = GetMenInfo()
+    return meninfo.yinying == 0
+
+
 # 冰霜幽暗密林第一个门有冰柱挡住
 def GetNextDoorWrap():
     mapinfo = GetMapInfo()
@@ -1588,7 +1602,7 @@ def IsLastSelect():
 
 # 目标职业是否支持
 def IsDestSupport(zhiye):
-    if zhiye in ["魔枪士", "女圣职者", "枪剑士", "守护者", "女格斗家", "男鬼剑士", "男魔法师"]: # "女魔法师"
+    if zhiye in ["魔枪士", "女圣职者", "枪剑士", "守护者", "女格斗家", "男鬼剑士", "男魔法师"]:  # "女魔法师"
         return True
     if zhiye in ["暗枪士", "狂怒恶鬼", "幽影夜神",
                  "诱魔者", "断罪者", "救世者",
@@ -1643,6 +1657,7 @@ def LockHp():
 def UnLockHp():
     global gHplocked
     gHplocked = False
+
 
 # 技能对应的按键
 idxkeymap = {
@@ -2006,7 +2021,7 @@ def main():
     PrintWH()
     # PrintSelectObj()
     PrintSelectIdx()
-    # PrintXingyunxing()
+    PrintXingyunxing()
 
     # PrintSceneInfo() # 数据太多
     # SpeedTest() # 速度还可以

@@ -34,7 +34,8 @@ from superai.flannfind import IsConfirmTop, GetConfirmPos, IsShipinTop, Picture,
 from superai.vkcode import VK_CODE
 from superai.yijianshu import YijianshuInit, PressRight, \
     PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, PressKey, MouseMoveTo, MouseLeftClick, \
-    PressUp, PressDown, KongjianSleep, DeleteAll, KeyInputString, MouseMoveToLogin
+    PressUp, PressDown, KongjianSleep, DeleteAll, KeyInputString, MouseMoveToLogin, MouseMoveR, MouseLeftDown, \
+    MouseLeftUp, MouseWheel
 from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, GetMenXY, GetQuadrant, GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
     NearestGood, IsNextDoorOpen, IsCurrentInBossFangjian, GetMenInfo, \
@@ -44,7 +45,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead, IsFuzhongGou, \
     Zuobiaoyidong, Autoshuntu, GetCurmapXy, HavePilao, GetMapInfo, IsShitmoGu, GetSelectObj, \
     GetCurSelectIdx, IsFirstSelect, IsLastSelect, IsCurrentSupport, Openesc, IsCurrentInTrain, \
-    GetRemaindPilao, IsZhicai, UnLockHp, IsLockedHp
+    GetRemaindPilao, IsZhicai, UnLockHp, IsLockedHp, IsSettingSkip, IsSettingYinyingSkip
 
 gamebegin = Picture(GetImgDir() + "gamebegin2.png")
 selectregion = Picture(GetImgDir() + "select_region.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
@@ -78,6 +79,7 @@ youjian = Picture(GetImgDir() + "youjian.png", dx=241, dy=471, dw=300, dh=78)
 youjian2 = Picture(GetImgDir() + "youjian2.png", dx=241, dy=471, dw=300, dh=78)
 xuanzejieshou = Picture(GetImgDir() + "xuanzejieshou.png")
 queren_youjian = Picture(GetImgDir() + "queren_youjian.png")
+btnpress = Picture(GetImgDir() + "btnpress.png")
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -531,7 +533,7 @@ class GlobalState(State):
             if aerwenfangxian.Match():
                 pos = aerwenfangxian.Pos()
                 MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                MouseLeftClick(), RanSleep(1)
+                MouseLeftClick(), RanSleep(0.3)
 
             if IsEscTop():
                 PressKey(VK_CODE['esc'])
@@ -577,7 +579,7 @@ class GlobalState(State):
                 player.latestmousemovetimepoint = time.time()
                 dx = int(random.uniform(0, 800))
                 dy = int(random.uniform(0, 600))
-                MouseMoveTo(dx, dy), RanSleep(1)
+                MouseMoveTo(dx, dy), RanSleep(0.3)
 
             # 制裁判断
             if IsZhicai():
@@ -659,7 +661,7 @@ class GlobalState(State):
                 return
 
             logger.info("对话状态")
-            PressKey(VK_CODE["spacebar"]), KongjianSleep()
+            PressKey(VK_CODE["spacebar"]), RanSleep(0.05)
             if not IsWindowTop():
                 player.RestoreContext()
             return
@@ -780,9 +782,7 @@ class Setup(State):
             return
 
         # 焦点移动到DNF
-        RanSleep(1.0), GameWindowToTop()
-        MouseMoveTo(1, 1), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        GameWindowToTop()
 
         if IsManInMap():
             player.ChangeState(FirstInMap())
@@ -794,6 +794,93 @@ class Setup(State):
 
         logger.warning("setup状态...")
         RanSleep(0.1)
+
+
+# 跳过设置
+def settingTiaoguo():
+    logger.warning("设置跳过所有动画")
+    if not Openesc():
+        logger.warning("打开esc失败")
+        return
+
+    # "游戏设置"
+    MouseMoveTo(280, 452), KongjianSleep()
+    MouseLeftClick(), RanSleep(0.3)
+
+    # "系统"
+    MouseMoveTo(312, 168), KongjianSleep()
+    MouseLeftClick(), RanSleep(0.3)
+
+    # 滚到最上面
+    MouseMoveR(0, 30)
+    MouseWheel(30)
+
+    # "自动跳过动画" 下拉框
+    MouseMoveTo(419, 416), KongjianSleep()
+    MouseLeftClick(), RanSleep(0.3)
+
+    # "跳过所有动画"
+    MouseMoveTo(321, 452), KongjianSleep()
+    MouseLeftClick(), RanSleep(0.3)
+
+    # "保存"
+    MouseMoveTo(371, 448), KongjianSleep()
+    MouseLeftClick(), RanSleep(0.3)
+
+    RanSleep(2)
+
+
+# 设置屏蔽效果
+def settintPingbi():
+    logger.warning("设置屏蔽效果")
+    if not Openesc():
+        logger.warning("打开esc失败")
+        return
+
+    # "游戏设置"
+    MouseMoveTo(280, 452), KongjianSleep()
+    MouseLeftClick(), RanSleep(0.3)
+
+    # "图像"
+    MouseMoveTo(187, 167), KongjianSleep()
+    MouseLeftClick(), RanSleep(0.3)
+
+    # 滚到最下面
+    MouseMoveR(0, 30)
+    MouseWheel(-40)
+
+    # "效果设置"
+    MouseMoveTo(287, 215), KongjianSleep()
+    MouseLeftClick(), RanSleep(0.3)
+
+    buttons = [
+        (284, 233), (486, 233), (284, 253), (485, 253), (284, 273), (483, 273), (284, 314),
+        (285, 334), (484, 335)
+    ]
+
+    # "单选框"
+    for btn in buttons:
+        w, h = 16, 16
+        halfw, halfh = w // 2, h // 2
+        selected = Picture(GetImgDir()+ "btnpress.png", dx=btn[0] - halfw, dy=btn[1] - halfh, dw=w, dh=h)
+        if not selected.Match():
+            logger.warning("不需要取消掉")
+            continue
+
+        MouseMoveTo(btn[0], btn[1]), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+
+    # 进度条
+    progresses = [(283, 355), (283, 373), (283, 394), (283, 414)]
+    for prog in progresses:
+        MouseMoveTo(prog[0], prog[1]), KongjianSleep()
+        MouseLeftClick(), KongjianSleep()
+
+    # "保存"
+    MouseMoveTo(371, 448), KongjianSleep()
+    MouseLeftClick(), RanSleep(0.3)
+
+    RanSleep(2)
 
 
 # 城镇
@@ -819,6 +906,7 @@ class InChengzhen(State):
 
         # 重新选择角色
         if IsManInChengzhen() and not IsCurrentSupport():
+            logger.warning("当前角色不支持!!")
             if not Openesc():
                 logger.warning("打开esc失败")
                 return
@@ -828,40 +916,18 @@ class InChengzhen(State):
             player.ChangeState(SelectJuese())
             return
 
-        # (3个角色内), 并且在城镇
-        if AccountRoles(player.accountSetting.currentaccount,
-                        player.accountSetting.currentregion) <= 3 and IsManInChengzhen() and GetMenInfo().level == 1:
-            logger.info("开启跳过所有动画")
-            if not Openesc():
-                logger.warning("打开esc失败")
-                return
-
-            # "游戏设置"
-            MouseMoveTo(280, 452), KongjianSleep()
-            MouseLeftClick(), RanSleep(1)
-
-            # "系统"
-            MouseMoveTo(312, 168), KongjianSleep()
-            MouseLeftClick(), RanSleep(1)
-
-            # "自动跳过动画" 下拉框
-            MouseMoveTo(419, 416), KongjianSleep()
-            MouseLeftClick(), RanSleep(1)
-
-            # "跳过所有动画"
-            MouseMoveTo(321, 452), KongjianSleep()
-            MouseLeftClick(), RanSleep(1)
-
-            # "保存"
-            MouseMoveTo(371, 448), KongjianSleep()
-            MouseLeftClick(), RanSleep(1)
-
-            RanSleep(3)
-
         # 如果在图内,切换到图内
         if IsManInMap():
             player.ChangeState(FirstInMap())
             return
+
+        # 设置跳过所有动画
+        if IsManInChengzhen() and not IsSettingSkip():
+            settingTiaoguo()
+
+        # 设置屏蔽效果
+        if IsManInChengzhen() and not IsSettingYinyingSkip():
+            settintPingbi()
 
         # 领取邮件
         # if youjian.Match() or youjian2.Match():
@@ -874,9 +940,7 @@ class InChengzhen(State):
             return
 
         # 等级 >= 10, 身上,背包没有合适的幸运星武器
-        if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and \
-                AccountXingyunxingRule(player.accountSetting.currentaccount,
-                                       player.accountSetting.currentregion) > 0 and \
+        if meninfo.level >= 10 and not eq.DoesHaveHireEquip() and eq.HaveEnoughXingyunxing() and \
                 (meninfo.fuzhongmax > 0.0 and meninfo.fuzhongcur / meninfo.fuzhongmax < 0.70):
             player.ChangeState(HireEquip())
             return
@@ -1518,7 +1582,7 @@ class SelectJuese(State):
             MouseMoveTo(401, 543), KongjianSleep()
             MouseLeftClick(), KongjianSleep()
 
-        for i in range(20):
+        for i in range(60):
             # 一级角色训练场景
             if IsCurrentInTrain():
                 RanSleep(1), UpdateMenState(player)
@@ -1545,7 +1609,7 @@ class SelectJuese(State):
                 while IsEscTop():
                     PressKey(VK_CODE['esc']), KongjianSleep()
             else:
-                logger.info("等待进入城镇 %d " % i), RanSleep(1.0)
+                logger.info("等待进入城镇 %d " % i), RanSleep(0.3)
 
         logger.warning("在选择角色页面"), RanSleep(0.1)
 

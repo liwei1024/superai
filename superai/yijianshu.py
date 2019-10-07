@@ -436,7 +436,6 @@ def MouseLeftClick():
     lib.M_LeftDown(h), KongjianSleep()
     lib.M_LeftUp(h)
 
-
 # 左键持续按键
 def MouseLeftDownFor(t):
     lib.M_LeftDown(h), RanSleep(t)

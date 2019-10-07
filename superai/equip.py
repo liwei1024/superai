@@ -75,6 +75,9 @@ levelNumMap = {
     40: 15,
     50: 20,
     60: 25,
+    70: 30,
+    80: 35,
+    90: 40
 }
 
 ZhunangbeiPos = (-89, 193)
@@ -368,10 +371,6 @@ class Equips:
 
     # 获取幸运星数量
     def GetXingyunxing(self):
-        if not self.OpenZupin():
-            logger.warning("打开租聘失败")
-            return 0
-
         return GetXingyunxing().num
 
     # 租聘武器

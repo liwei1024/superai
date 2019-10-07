@@ -31,7 +31,7 @@ class AccountSetting:
     def GetSettingAccounts(self):
         accountmap = {}
 
-        with open(GetCfgFile(), "r", encoding="utf-8") as f:
+        with open(GetCfgFile(), "r") as f:
             for line in f:
                 line = line.strip('\r').strip('\n')
                 vecs = line.split('----')
