@@ -108,25 +108,26 @@ def main():
         msgBox.setText("成功修改配置")
         msgBox.exec_()
 
-    startbtn = QPushButton("start(f11)")
+    startbtn = QPushButton("start(alt+f11)")
 
     t = SuperAiThread(stophotkey=True)
 
     def start():
         nonlocal t
-        if startbtn.text() == "start(f11)":
+        if startbtn.text() == "start(alt+f11)":
             t.start()
-            startbtn.setText("stop(f11)")
+            startbtn.setText("stop(alt+f11)")
         else:
             t.stop()
             t = SuperAiThread(stophotkey=True)
-            startbtn.setText("start(f11)")
+            startbtn.setText("start(alt+f11)")
 
     class Hotkey(QThread):
         def run(self) -> None:
             while True:
                 f11 = win32api.GetAsyncKeyState(VK_CODE['F11'])
-                if f11 != 0:
+                alt = win32api.GetAsyncKeyState(VK_CODE['alt'])
+                if f11 != 0 and alt != 0:
                     startbtn.clicked.emit()
                     time.sleep(1)
                 time.sleep(0.005)

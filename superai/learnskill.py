@@ -157,7 +157,14 @@ class Occupationkills:
 
         if meninfo.level >= 30:
             self.learnstrategy.append(OccupationSkill("nanmofa", "双翼风刃", "fengfa_shuangyifengren.png"))
+        
+        if meninfo.level >= 35:
+            self.learnstrategy.append(OccupationSkill("nanmofa", "刃风", "fengfa_renfeng.png"))
+            self.learnstrategy.append(OccupationSkill("nanmofa", "风暴之眼", "fengfa_fengbaozhiyan.png"))
 
+        if meninfo.level >= 40:
+            self.learnstrategy.append(OccupationSkill("nanmofa", "真空旋风破", "fengfa_zhenkongxuanfengpo.png"))
+        
     # 枪剑士
     def qiangjianshiInit(self):
         self.learnstrategy = []

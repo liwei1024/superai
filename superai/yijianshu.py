@@ -1,3 +1,4 @@
+# coding=utf-8
 import os
 import sys
 import threading
@@ -6,6 +7,8 @@ import win32gui
 import random
 import logging
 from ctypes import *
+
+from win32con import WM_COPYDATA
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -195,7 +198,7 @@ def YijianshuInit(pid=None, vid=None):
         r = True
         ReleaseAllKey()
     else:
-        h = lib.M_Open_VidPid(0000, 0000)
+        h = lib.M_Open_VidPid(0xC216, 0x0301)
         x = c_void_p(h)
 
         if IsInit():
@@ -436,6 +439,7 @@ def MouseLeftClick():
     lib.M_LeftDown(h), KongjianSleep()
     lib.M_LeftUp(h)
 
+
 # 左键持续按键
 def MouseLeftDownFor(t):
     lib.M_LeftDown(h), RanSleep(t)
@@ -509,16 +513,6 @@ def main():
         sys.exit()
 
     GameWindowToTop()
-    # RanSleep(2)
-
-    MouseMoveTo(534, 369)
-
-    # DeleteAll()
-    # MouseMoveTo(537, 468)
-    # RanSleep(3.0)
-    # KeyInputString("GGC88zyj")
-    # GameWindowToTop()
-    # MouseMoveTo(329, 335)
 
 
 if __name__ == "__main__":

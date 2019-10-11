@@ -238,9 +238,11 @@ def FindPicturePos(img1, img2):
 
 confirm = Picture(GetImgDir() + "confirm.png")
 shipinScene = Picture(GetImgDir() + "shipin_scene.png", 291, 541, 232, 28)
+tiaoguo = Picture(GetImgDir() + "tiaoguo.png", 634, 556, 35, 24)
 
 gConfirmTop = False
 gShipinScene = False
+gTiaoguo = False
 
 
 # 是否有确认键置顶 (背景线程刷新)
@@ -258,6 +260,11 @@ def IsShipinTop():
     return gShipinScene
 
 
+# 是否需要跳过
+def IsNeedtiaoguo():
+    return gTiaoguo
+
+
 # 截图线程
 class FlushImgThread(threading.Thread):
     def __init__(self):
@@ -265,11 +272,12 @@ class FlushImgThread(threading.Thread):
         self.__stop = False
 
     def run(self):
-        global gConfirmTop, gShipinScene
+        global gConfirmTop, gShipinScene, gTiaoguo
         while not self.__stop:
             try:
                 gConfirmTop = True if confirm.Match() else False
                 gShipinScene = True if shipinScene.IsBlack() else False
+                gTiaoguo = True if tiaoguo.Match() else False
             except Exception:
                 logger.info("flushimg thread error ")
             time.sleep(0.3)

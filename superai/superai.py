@@ -6,6 +6,7 @@ import random
 import sys
 import threading
 import time
+
 import names
 import pythoncom
 import win32api
@@ -20,7 +21,7 @@ from superai.screenshots import WindowCaptureToMem, WindowCaptureToFile
 from superai.location import IsinSailiya
 from superai.login import GetDaqu, GetMainregionPos, GetRegionPos
 from superai.subnodedb import DbStateUpdate, IsTodayHavePilao, GetToSelectIdx, UpdateMenState, \
-    DbEventAppend, AccountRoles, InitDb, AccountXingyunxingRule, DayCreateJueseNum, CreateJueses, CreateJueseAppend, \
+    DbEventAppend, AccountRoles, InitDb, DayCreateJueseNum, CreateJueses, CreateJueseAppend, \
     IsAccoutnZhicai
 from superai.pathsetting import GetImgDir, GameFileDir, GetvercodeDir, GetCfgPath
 from superai.dealequip import DealEquip
@@ -30,12 +31,11 @@ from superai.learnskill import Occupationkills
 from superai.common import InitLog, GameWindowToTop, ClientWindowToTop, checkIfProcessRunning, killall
 from superai.astarpath import GetPaths, GetCorrectDoorXY, idxToZuobiao, SafeGetDAndOb, Zuobiao
 from superai.astartdemo import idxToXY
-from superai.flannfind import IsConfirmTop, GetConfirmPos, IsShipinTop, Picture, FlushImgThread
+from superai.flannfind import IsConfirmTop, GetConfirmPos, IsShipinTop, Picture, FlushImgThread, IsNeedtiaoguo
 from superai.vkcode import VK_CODE
 from superai.yijianshu import YijianshuInit, PressRight, \
     PressLeft, JiPaoZuo, JiPaoYou, ReleaseAllKey, PressX, PressHouTiao, RanSleep, PressKey, MouseMoveTo, MouseLeftClick, \
-    PressUp, PressDown, KongjianSleep, DeleteAll, KeyInputString, MouseMoveToLogin, MouseMoveR, MouseLeftDown, \
-    MouseLeftUp, MouseWheel
+    PressUp, PressDown, KongjianSleep, DeleteAll, KeyInputString, MouseMoveToLogin, MouseMoveR, MouseWheel
 from superai.gameapi import GameApiInit, FlushPid, \
     HaveMonsters, GetMenXY, GetQuadrant, GetMenChaoxiang, RIGHT, Skills, LEFT, HaveGoods, \
     NearestGood, IsNextDoorOpen, IsCurrentInBossFangjian, GetMenInfo, \
@@ -52,6 +52,8 @@ selectregion = Picture(GetImgDir() + "select_region.png", classname="TWINCONTROL
 dianxin = Picture(GetImgDir() + "dianxin.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
 loginqueding = Picture(GetImgDir() + "loginqueding.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
 waitagain = Picture(GetImgDir() + "wait.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
+checkbtn = Picture(GetImgDir() + "checkbtn.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序", dx=935, dy=403,
+                   dw=20, dh=18)
 
 maoxiantuanshezhi = Picture(GetImgDir() + "mao'xuan'tuanshezhi.png")
 closebtn = Picture(GetImgDir() + "closebtn.png")
@@ -65,10 +67,10 @@ lingqubtn1 = Picture(GetImgDir() + "lingqubtn.png", dx=158, dy=108, dw=36, dh=22
 lingqubtn2 = Picture(GetImgDir() + "lingqubtn.png", dx=211, dy=109, dw=36, dh=22)
 lingqubtn3 = Picture(GetImgDir() + "lingqubtn.png", dx=263, dy=108, dw=36, dh=22)
 lingqubtn4 = Picture(GetImgDir() + "lingqubtn.png", dx=315, dy=107, dw=36, dh=22)
-lingqubtn5 = Picture(GetImgDir() + "lingqubtn.png", dx=158, dy=219, dw=36, dh=22)
-lingqubtn6 = Picture(GetImgDir() + "lingqubtn.png", dx=211, dy=219, dw=36, dh=22)
-lingqubtn7 = Picture(GetImgDir() + "lingqubtn.png", dx=263, dy=219, dw=36, dh=22)
-lingqubtn8 = Picture(GetImgDir() + "lingqubtn.png", dx=315, dy=219, dw=36, dh=22)
+lingqubtn5 = Picture(GetImgDir() + "lingqubtn2.png", dx=161, dy=211, dw=36, dh=22)
+lingqubtn6 = Picture(GetImgDir() + "lingqubtn2.png", dx=211, dy=213, dw=36, dh=22)
+lingqubtn7 = Picture(GetImgDir() + "lingqubtn2.png", dx=264, dy=212, dw=36, dh=22)
+lingqubtn8 = Picture(GetImgDir() + "lingqubtn2.png", dx=314, dy=212, dw=36, dh=22)
 yingbi = Picture(GetImgDir() + "yingbi.png", dx=156, dy=16, dw=22, dh=17)
 xinfeng = Picture(GetImgDir() + "xinfeng.png", dx=179, dy=244, dw=14, dh=10)
 pindaoxuanze = Picture(GetImgDir() + "pindaoxuanze.png", dx=362, dy=40, dw=54, dh=14)
@@ -527,6 +529,11 @@ class GlobalState(State):
         if isinstance(player.stateMachine.currentState, OpenGame):
             return
 
+        # 动画跳过
+        if IsNeedtiaoguo():
+            PressKey(VK_CODE['esc']), KongjianSleep()
+            return
+
         # 领取
         if IsManInChengzhen() and not isinstance(player.stateMachine.currentState, Setup):
             # 选择地图,艾尔文防线
@@ -573,7 +580,7 @@ class GlobalState(State):
             #         logger.info("喊话成功")
 
             # 每隔30s 随便移动下鼠标
-            t = random.uniform(5, 30)
+            t = 30
             if player.latestmousemovetimepoint is None or time.time() - player.latestmousemovetimepoint > t:
                 logger.info("随机移动鼠标")
                 player.latestmousemovetimepoint = time.time()
@@ -644,9 +651,9 @@ class GlobalState(State):
         # 视频处理
         if player.IsEmptyFor(FOR_SHIPIN):
             logger.info("视频状态")
-            PressKey(VK_CODE["esc"]), RanSleep(0.3)
+            PressKey(VK_CODE["esc"]), RanSleep(0.5)
             PressKey(VK_CODE["spacebar"]), KongjianSleep()
-            PressKey(VK_CODE["esc"]), RanSleep(0.3)
+            PressKey(VK_CODE["esc"]), RanSleep(0.5)
             PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
             if not IsShiPinTopWrap():
@@ -703,9 +710,9 @@ class GlobalState(State):
                 self.beginx, self.beginy = GetMenXY()
 
             # 多久时间判断一次
-            checktime = 1.5
+            checktime = 1.0
             if len(player.pathfindinglst) > 0:
-                checktime = 2.0
+                checktime = 1.5
 
             if time.time() - self.latesttime > checktime:
                 latestx, latesty = self.beginx, self.beginy
@@ -730,6 +737,7 @@ class GlobalState(State):
         else:
             self.Reset()
 
+        # 真的卡死时恢复下
         if IsManInMap() and not isinstance(player.stateMachine.currentState, FubenOver):
             if player.latestfucktime is None:
                 player.latestfucktime = time.time()
@@ -739,10 +747,6 @@ class GlobalState(State):
                     logger.warning("90s了疲劳还没有变,纠正一下")
                     player.ChangeState(StuckShit())
                 player.ResetStuckInfo()
-
-        # 流水表,不影响图内效率
-        # if not IsManInMap():
-        #     pass
 
 
 # 初始化
@@ -854,15 +858,24 @@ def settintPingbi():
     MouseLeftClick(), RanSleep(0.3)
 
     buttons = [
-        (284, 233), (486, 233), (284, 253), (485, 253), (284, 273), (483, 273), (284, 314),
-        (285, 334), (484, 335)
+        (285, 233),  # 阴影特效
+        (485, 233),  # 光环特效
+        (285, 253),  # 转职觉醒特效
+        (485, 253),  # 勋章光环
+        (285, 273),  # 技能插图
+        (485, 273),  # 画面晃动
+        (285, 293),  # 强化增幅
+        (485, 293),  # 锻造
+        (285, 313),  # 武器属性
+        (285, 334),  # 觉醒装扮
+        (485, 334)  # 查看全身时装
     ]
 
     # "单选框"
     for btn in buttons:
         w, h = 16, 16
         halfw, halfh = w // 2, h // 2
-        selected = Picture(GetImgDir()+ "btnpress.png", dx=btn[0] - halfw, dy=btn[1] - halfh, dw=w, dh=h)
+        selected = Picture(GetImgDir() + "btnpress.png", dx=btn[0] - halfw, dy=btn[1] - halfh, dw=w, dh=h)
         if not selected.Match():
             logger.warning("不需要取消掉")
             continue
@@ -871,9 +884,9 @@ def settintPingbi():
         MouseLeftClick(), KongjianSleep()
 
     # 进度条
-    progresses = [(283, 355), (283, 373), (283, 394), (283, 414)]
+    progresses = [(284, 355), (284, 373), (284, 394), (284, 414)]
     for prog in progresses:
-        MouseMoveTo(prog[0], prog[1]), KongjianSleep()
+        MouseMoveTo(prog[0], prog[1]), RanSleep(0.3)
         MouseLeftClick(), KongjianSleep()
 
     # "保存"
@@ -1614,7 +1627,7 @@ class SelectJuese(State):
         logger.warning("在选择角色页面"), RanSleep(0.1)
 
 
-jueselst = ["守护者", "女格斗家", "男鬼剑士", "男魔法师"]  # "枪剑士" 太垃圾, 不放进去了,  "女圣职者"  "魔枪士"看不惯也不加进去 "女魔法师"
+jueselst = ["男鬼剑士", "男魔法师", "守护者", "女格斗家"]  # "枪剑士" 太垃圾, 不放进去了,  "女圣职者"  "魔枪士"看不惯也不加进去 "女魔法师"
 
 jueseseall = {
     "枪剑士": (127, 487),
@@ -1768,37 +1781,6 @@ class OpenGame(State):
                 break
             time.sleep(1), logger.info("等待游戏/登陆器关闭")
 
-        # 重新选择大区在最前面, 幂等
-        hwnd = win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序")
-        if hwnd == 0:
-            gamedir = GameFileDir()
-            # subprocess.Popen(gamedir)
-            os.system("start %s" % gamedir)
-
-        for i in range(100):
-            ClientWindowToTop()
-            if selectregion.Match():
-                break
-            logger.info("启动游戏 %d" % i), time.sleep(1)
-
-        if not selectregion.Match():
-            logger.warning("寻找不到 '重新选择大区' 按钮, 重新启动")
-            return
-
-        # 直到 "电信" 出现
-        for i in range(3):
-            if dianxin.Match():
-                break
-
-            # 选择 "重新选择大区按钮"
-            pos = selectregion.Pos()
-            MouseMoveToLogin(pos[0], pos[1]), KongjianSleep()
-            MouseLeftClick(), RanSleep(1.0)
-
-        if not dianxin.Match():
-            logger.warning("寻找不到 '电信' 按钮, 重新启动")
-            return
-
         # 选择合适的账号
         accounts = player.accountSetting.GetSettingAccounts()
         selectAccount = None
@@ -1832,7 +1814,7 @@ class OpenGame(State):
 
         if selectAccount is None:
             for i in range(60 * 10):  # 10 分钟重新启动下
-                logger.warning("没有可以再刷的帐号了"), RanSleep(1.0)
+                logger.warning("没有可以再刷的帐号了 %d" % i), RanSleep(1.0)
             return
 
         player.accountSetting.SetCurrentAccount(selectAccount.account, selectAccount.region)
@@ -1841,6 +1823,38 @@ class OpenGame(State):
 
         if daqu == "":
             raise Exception("不支持的大区: %s" % selectAccount.region)
+
+        # 开启游戏
+        # 重新选择大区在最前面, 幂等
+        hwnd = win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序")
+        if hwnd == 0:
+            gamedir = GameFileDir()
+            # subprocess.Popen(gamedir)
+            os.system("start %s" % gamedir)
+
+        for i in range(100):
+            ClientWindowToTop()
+            if selectregion.Match():
+                break
+            logger.info("启动游戏 %d" % i), time.sleep(1)
+
+        if not selectregion.Match():
+            logger.warning("寻找不到 '重新选择大区' 按钮, 重新启动")
+            return
+
+        # 直到 "电信" 出现
+        for i in range(3):
+            if dianxin.Match():
+                break
+
+            # 选择 "重新选择大区按钮"
+            pos = selectregion.Pos()
+            MouseMoveToLogin(pos[0], pos[1]), KongjianSleep()
+            MouseLeftClick(), RanSleep(1.0)
+
+        if not dianxin.Match():
+            logger.warning("寻找不到 '电信' 按钮, 重新启动")
+            return
 
         # 选择 "电信/联通"
         if daqu == "电信":
@@ -1898,6 +1912,12 @@ class OpenGame(State):
         MouseLeftClick(), RanSleep(1.0)
         # DeleteAll()
         KeyInputString(selectAccount.password), RanSleep(0.3)
+
+        # ”我已详细阅读并同意“
+        if not checkbtn.Match():
+            logger.warning("没有同意？ 同意一下！"), KongjianSleep()
+            MouseMoveToLogin(946, 412), KongjianSleep()
+            MouseLeftClick(), KongjianSleep()
 
         # 点击 "登录游戏"
         MouseMoveToLogin(1040, 500), RanSleep(0.3)
@@ -2046,7 +2066,8 @@ class HotKeyThread(threading.Thread):
     def run(self) -> None:
         while not self.__stop:
             f11 = win32api.GetAsyncKeyState(VK_CODE['F11'])
-            if f11 != 0:
+            alt = win32api.GetAsyncKeyState(VK_CODE['alt'])
+            if f11 != 0 and alt != 0:
                 self.__exit = True
                 logger.warning("exit!!!")
                 break
@@ -2099,8 +2120,6 @@ def InitSetting():
 
     cfgfile = os.path.join(GetCfgPath(), "superai.cfg")
     if not os.path.exists(cfgfile):
-        f = open(cfgfile, "a+")
-
         config = configparser.RawConfigParser()
         config.read(cfgfile)
         gamedir = GameFileDir()
@@ -2108,8 +2127,9 @@ def InitSetting():
         config.add_section("superai")
         config.set("superai", "游戏路径", gamedir)
         config.set("superai", "单账号刷角色数量", "2")
-        config.write(f)
 
+        f = open(cfgfile, "a+")
+        config.write(f)
         f.close()
         logger.warning("没有创建superai.cfg文件, 创建了一个")
 

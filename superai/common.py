@@ -14,6 +14,11 @@ def killall():
     os.system("taskkill /F /im GameLoader.exe")
     os.system("taskkill /F /im TPHelper.exe")
     os.system("taskkill /F /im Client.exe")
+    os.system("taskkill /F /im TASLogin.exe")
+    os.system("taskkill /F /im CrossProxy.exe")
+    os.system("taskkill /F /im tgp_browser.exe")
+    os.system("taskkill /F /im qbclient.exe")
+    os.system("taskkill /F /im GameAssistant.exe")
 
 
 def InitLog():
