@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 logger = logging.getLogger(__name__)
 
 from superai.pathsetting import GetYiLib
-from superai.common import InitLog, GameWindowToTop
+from superai.common import InitLog, GameWindowToTop, GetCursorInfo
 from superai.vkcode import *
 
 lib = GetYiLib()
@@ -365,7 +365,7 @@ def PressHouTiao():
 
 # 是否移动到目的位置
 def IsMovedTo(x, y):
-    _, _, (curx, cury) = win32gui.GetCursorInfo()
+    (curx, cury) = GetCursorInfo()
     return (curx, cury) == (x, y)
 
 
@@ -381,7 +381,7 @@ def MouseMoveTo(x, y):
     flag = False
     # 修正
     while not IsMovedTo(centrex, centrey):
-        _, _, (curx, cury) = win32gui.GetCursorInfo()
+        (curx, cury) = GetCursorInfo()
         relativex, relativey = centrex - curx, centrey - cury
         if flag:
             logger.warning("当前鼠标坐标: (%d, %d) != (%d, %d)" % (curx, cury, centrex, centrey))
@@ -402,7 +402,7 @@ def MouseMoveToLogin(x, y):
     flag = False
     # 修正
     while not IsMovedTo(centrex, centrey):
-        _, _, (curx, cury) = win32gui.GetCursorInfo()
+        (curx, cury) = GetCursorInfo()
         relativex, relativey = centrex - curx, centrey - cury
         if flag:
             logger.warning("当前鼠标坐标: (%d, %d) != (%d, %d)" % (curx, cury, centrex, centrey))
@@ -413,13 +413,13 @@ def MouseMoveToLogin(x, y):
 
 # 相对移动
 def MouseMoveR(x, y):
-    _, _, (curx, cury) = win32gui.GetCursorInfo()
+    (curx, cury) = GetCursorInfo()
     centrex, centrey = curx + x, cury + y
 
     flag = False
     # 修正
     while not IsMovedTo(centrex, centrey):
-        _, _, (curx, cury) = win32gui.GetCursorInfo()
+        (curx, cury) = GetCursorInfo()
         relativex, relativey = centrex - curx, centrey - cury
         if flag:
             logger.warning("当前鼠标坐标: (%d, %d) != (%d, %d)" % (curx, cury, centrex, centrey))

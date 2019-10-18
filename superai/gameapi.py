@@ -488,6 +488,14 @@ lib.ExZuobiaoyidong.argtypes = [c_float, c_float, c_float]
 
 lib.ExAutoshuntu.argtypes = []
 
+lib.ExEncrypt.argypes = [c_uint32, c_int]
+lib.ExDescrpt.argtypes = [c_uint32]
+lib.ExDescrpt.restype = c_int
+
+lib.ExEncryptF.argtypes = [c_uint32, c_float]
+lib.ExDescrptF.argtypes = [c_uint32]
+lib.ExDescrptF.restype = c_float
+
 lib.Free.argtypes = [c_void_p]
 
 # === enum
@@ -990,6 +998,24 @@ def Autoshuntu():
     lib.ExAutoshuntu()
 
 
+# 加密解密整数
+def Encrypt(address, value):
+    lib.ExEncrypt(address, value)
+
+
+def Descrypt(address):
+    return lib.ExDescrpt(address)
+
+
+# 加密解密浮点数
+def EncryptF(address, value):
+    lib.ExEncryptF(address, value)
+
+
+def DescryptF(address):
+    return lib.ExDescrptF(address)
+
+
 # === 调试打印
 def PrintMenInfo():
     menInfo = GetMenInfo()
@@ -1229,6 +1255,12 @@ def GetBossObj():
                     boss.y = 745
             return boss
 
+        if meninfo.level < 65 and "罗特斯的宫殿" in mapinfo.name:
+            if "领主 - 长脚罗特斯" == boss.name:
+                boss.x = 998 + 10
+                boss.y = 368
+            return boss
+
         return boss
 
 
@@ -1279,6 +1311,15 @@ def GetGoodsWrap():
     goods = GetGoods()
     goods = filter(lambda good: good.name not in UnuseFilter, goods)
     goods = list(goods)
+
+    menInfo = GetMenInfo()
+    if 60 < menInfo.level < 65:
+        mapinfo = GetMapInfo()
+        if "罗特斯的宫殿" in mapinfo.name and \
+                mapinfo.curx == 5 and \
+                mapinfo.cury == 0:
+            return []
+
     return goods
 
 
@@ -1610,8 +1651,8 @@ def IsDestSupport(zhiye):
                  "帕拉丁", "曙光", "破晓女神",
                  "气功师", "百花缭乱", "念帝",
                  "剑影", "夜刀神", "夜见罗刹",
-                 "逐风者", "御风者", "风神",
-                 "召唤师", "月之女皇", "月蚀"]:
+                 "逐风者", "御风者", "风神",   # "召唤师", "月之女皇", "月蚀"
+                 "征战者", "战魂", "不灭战神"]:
         return True
     return False
 

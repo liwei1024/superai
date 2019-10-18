@@ -82,6 +82,7 @@ youjian2 = Picture(GetImgDir() + "youjian2.png", dx=241, dy=471, dw=300, dh=78)
 xuanzejieshou = Picture(GetImgDir() + "xuanzejieshou.png")
 queren_youjian = Picture(GetImgDir() + "queren_youjian.png")
 btnpress = Picture(GetImgDir() + "btnpress.png")
+mingchengchongfu = Picture(GetImgDir() + "mingchengchongfu.png")
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -173,6 +174,10 @@ class Player:
 
         # 账号设置
         self.accountSetting = AccountSetting()
+
+        # 上次检查疲劳时间
+        self.latestcheckpilaopoint = None
+        self.latestcheckpilao = None
 
     # 重置地图卡死信息
     def ResetStuckInfo(self):
@@ -469,7 +474,7 @@ class Player:
         if self.latestlevel == 0:
             # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
-            return True
+            return False
         elif self.latestlevel != meninfo.level:
             # 变化了等级
             self.latestlevel = meninfo.level
@@ -529,6 +534,10 @@ class GlobalState(State):
         if isinstance(player.stateMachine.currentState, OpenGame):
             return
 
+        if isinstance(player.stateMachine.currentState, Setup):
+            return
+
+
         # 动画跳过
         if IsNeedtiaoguo():
             PressKey(VK_CODE['esc']), KongjianSleep()
@@ -542,9 +551,6 @@ class GlobalState(State):
                 MouseMoveTo(pos[0], pos[1]), KongjianSleep()
                 MouseLeftClick(), RanSleep(0.3)
 
-            if IsEscTop():
-                PressKey(VK_CODE['esc'])
-
             # 领取 (阶段奖励)
             if xinfeng.Match():
                 lingqus = [lingqubtn1, lingqubtn2, lingqubtn3, lingqubtn4,
@@ -555,6 +561,7 @@ class GlobalState(State):
                         pos = lingqu.Pos()
                         MouseMoveTo(pos[0] + lingqu.dx, pos[1] + lingqu.dy), KongjianSleep()
                         MouseLeftClick(), KongjianSleep()
+                MouseMoveR(100, 100)
 
             # 领取 (黄色按钮那个)
             if lingqingnewbtn.Match():
@@ -563,30 +570,6 @@ class GlobalState(State):
                 MouseLeftClick(), KongjianSleep()
 
                 PressKey(VK_CODE['esc']), KongjianSleep()
-
-            # 每隔5分钟讲一句台词
-            # if player.latestspeektimepoint is None or time.time() - player.latestspeektimepoint > 5 * 60:
-            #     if player.latestspeektimepoint is None:
-            #         player.latestspeektimepoint = time.time()
-            #         logger.info("第一次不喊话! 过5分钟再喊")
-            #     else:
-            #         player.latestspeektimepoint = time.time()
-            #         logger.info("开始喊话")
-            #         PressKey(VK_CODE['esc']), KongjianSleep()
-            #         PressKey(VK_CODE['enter']), KongjianSleep()
-            #         KeyInputString(Getyulu()), RanSleep(0.3)
-            #         PressKey(VK_CODE['enter']), KongjianSleep()
-            #         RanSleep(1.0)
-            #         logger.info("喊话成功")
-
-            # 每隔30s 随便移动下鼠标
-            t = 30
-            if player.latestmousemovetimepoint is None or time.time() - player.latestmousemovetimepoint > t:
-                logger.info("随机移动鼠标")
-                player.latestmousemovetimepoint = time.time()
-                dx = int(random.uniform(0, 800))
-                dy = int(random.uniform(0, 600))
-                MouseMoveTo(dx, dy), RanSleep(0.3)
 
             # 制裁判断
             if IsZhicai():
@@ -609,35 +592,56 @@ class GlobalState(State):
             return False
 
         # 在游戏状态中
-        if not IsCurstateFlag(player.stateMachine.currentState) and \
-                (player.latestcheckkasi is None or (time.time() - player.latestcheckkasi) > 60):
-            # 60s检查下是否卡死或者闪退了
-            if player.latestcheckpic is not None:
+        if not IsCurstateFlag(player.stateMachine.currentState):
+            if player.latestcheckkasi is None or (time.time() - player.latestcheckkasi) > 60:
 
-                curpic = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
+                # 截图检查画面如果没有变化就结束dnf.exe
+                if player.latestcheckpic is not None:
+                    curpic = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
+                    if (curpic == player.latestcheckpic).all():
+                        logger.warning("超过60s游戏画面未动,关闭dnf")
+                        killall(), RanSleep(5)
+                        player.ChangeState(OpenGame())
+                        player.latestcheckpic = None
+                        player.latestcheckkasi = None
+                        return
+                    else:
+                        player.latestcheckkasi = time.time()
+                        player.latestcheckpic = curpic
+                else:
+                    player.latestcheckkasi = time.time()
+                    player.latestcheckpic = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
 
-                if (curpic == player.latestcheckpic).all():
-                    logger.warning("超过60s游戏画面未动,关闭dnf")
+                #  检查游戏进程不存在
+                if not checkIfProcessRunning("DNF.exe"):
+                    logger.warning("游戏可能已经飞掉,再次开启")
                     killall(), RanSleep(5)
                     player.ChangeState(OpenGame())
-
                     player.latestcheckpic = None
                     player.latestcheckkasi = None
                     return
 
-                player.latestcheckkasi = time.time()
-                player.latestcheckpic = curpic
+            # 10分钟检查一下疲劳没有改变就
+            if player.latestcheckpilaopoint is None or (time.time() - player.latestcheckpilaopoint) > 10 * 60:
+                if player.latestcheckpilao is not None:
+                    meninfo = GetMenInfo()
+                    nowcheckpilao = (meninfo.name, meninfo.maxpilao - meninfo.curpilao)
+                    if player.latestcheckpilao == nowcheckpilao:
+                        logger.warning("10分钟内疲劳没有产生变化: ", nowcheckpilao, " 退出")
+                        killall(), RanSleep(5)
+                        player.ChangeState(OpenGame())
+                        player.latestcheckpilaopoint = None
+                        player.latestcheckpilao = None
+                        return
+                    else:
+                        player.latestcheckpilaopoint = time.time()
+                        player.latestcheckpilao = nowcheckpilao
 
-            else:
-                player.latestcheckkasi = time.time()
-                player.latestcheckpic = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
+                else:
+                    player.latestcheckpilaopoint = time.time()
+                    meninfo = GetMenInfo()
+                    player.latestcheckpilao = (meninfo.name, meninfo.maxpilao - meninfo.curpilao)
 
-            #  游戏进程不存在
-            if not checkIfProcessRunning("DNF.exe"):
-                player.ChangeState(OpenGame())
-                player.latestcheckpic = None
-                player.latestcheckkasi = None
-                return
 
         # 锁血处理
         if IsLockedHp():
@@ -651,8 +655,6 @@ class GlobalState(State):
         # 视频处理
         if player.IsEmptyFor(FOR_SHIPIN):
             logger.info("视频状态")
-            PressKey(VK_CODE["esc"]), RanSleep(0.5)
-            PressKey(VK_CODE["spacebar"]), KongjianSleep()
             PressKey(VK_CODE["esc"]), RanSleep(0.5)
             PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
@@ -759,10 +761,8 @@ class Setup(State):
 
         # 设置当前账号和大区
         if not player.accountSetting.IsAccountSetted():
-
             meninfo = GetMenInfo()
             if meninfo.account != 0 and meninfo.region != "":
-
                 accounts = player.accountSetting.GetSettingAccounts()
                 for i, account in enumerate(accounts):
                     if int(account.account) == meninfo.account and \
@@ -770,10 +770,6 @@ class Setup(State):
                         logger.info("寻找到了账号 大区 %d %s" % (int(account.account), account.region))
                         player.accountSetting.SetCurrentAccount(account.account, account.region)
                         break
-
-                else:
-                    player.accountSetting.PrintSwitchTips()
-                    player.accountSetting.BlockGetSetting()
 
             if not player.accountSetting.IsAccountSetted():
                 logger.warning("本账号或许没有在配置文件中出现")
@@ -1670,7 +1666,7 @@ class CreateRole(State):
         # 选择创建角色
         createJueselst = CreateJueses(account=player.accountSetting.currentaccount,
                                       region=player.accountSetting.currentregion)
-        juesesetting = jueselst * 2
+        juesesetting = jueselst * 3
         for juese in createJueselst:
             juese = juese["juese"]
 
@@ -1722,9 +1718,14 @@ class CreateRole(State):
             return
 
         # 可以使用的id提示框
-        for i in range(3):
+        for i in range(10):
             if keyishiyong.Match():
                 break
+
+            if mingchengchongfu.Match():
+                logger.warning("名称重复")
+                PressKey(VK_CODE['esc']), KongjianSleep()
+                return
 
             MouseMoveTo(436, 286), KongjianSleep()
             DeleteAll()
@@ -1945,6 +1946,7 @@ class OpenGame(State):
 
                 if not t["result"]:
                     logger.warning("接口验证码识别错误")
+                    continue
 
                 vercode = t["data"]["val"]
 
@@ -2065,9 +2067,8 @@ class HotKeyThread(threading.Thread):
 
     def run(self) -> None:
         while not self.__stop:
-            f11 = win32api.GetAsyncKeyState(VK_CODE['F11'])
-            alt = win32api.GetAsyncKeyState(VK_CODE['alt'])
-            if f11 != 0 and alt != 0:
+            end = win32api.GetAsyncKeyState(VK_CODE['end'])
+            if end != 0:
                 self.__exit = True
                 logger.warning("exit!!!")
                 break

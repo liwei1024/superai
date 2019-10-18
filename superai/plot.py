@@ -282,7 +282,7 @@ def InitGraph():
             logger.warning("我在哪儿?")
 
     def 镜像_赫顿玛尔(player):
-        if IsinHedunmaer():
+        if IsInJingxiangalade():
             if not HasMoveTo("镜像-赫顿玛尔"):
                 MoveTo("镜像-赫顿玛尔", player)
                 return
@@ -1128,7 +1128,7 @@ def 罗特斯所在之地():
         if meninfo.level < 50:
             AttacktaskFoo("第二脊椎")(player)
         else:
-            AttacktaskFoo("树精繁殖地")(player)
+            AttacktaskFoo("罗特斯的宫殿")(player)
 
     return foo
 

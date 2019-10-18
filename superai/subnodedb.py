@@ -148,6 +148,19 @@ def DbStateSelect():
     return result
 
 
+# 删除状态
+def DbStateDel():
+    with contextlib.closing(sqlite.connect(getDbFile())) as con:
+        c = con.cursor()
+        c.execute("begin")
+        try:
+            c.execute("delete from state")
+            c.execute("commit")
+        except con.Error as e:
+            logger.warning("sql error! %s" % e)
+            c.execute("rollback")
+
+
 # 查询最近的状态的时间戳
 def DbStateGetNearestTimepoint():
     result = query_db("select timepoint,account,region  from state order by timepoint desc limit 1")
@@ -290,7 +303,8 @@ def GetToSelectIdx(account, region):
 # 更新人物信息
 def UpdateMenState(player):
     meninfo = GetMenInfo()
-    DbStateUpdate(account=player.accountSetting.currentaccount, region=player.accountSetting.currentregion, role=meninfo.name, curlevel=meninfo.level,
+    DbStateUpdate(account=player.accountSetting.currentaccount, region=player.accountSetting.currentregion,
+                  role=meninfo.name, curlevel=meninfo.level,
                   zhiye=meninfo.zhuanzhihou, curpilao=GetRemaindPilao(), money=meninfo.money,
                   wuse=BagWuseNum(), timeup=True)
 

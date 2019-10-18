@@ -1,18 +1,20 @@
 import configparser
+import ctypes
 import os
 import sys
 import threading
 import time
 import logging
 import win32api
+from win32con import SW_MINIMIZE
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 logger = logging.getLogger(__name__)
 
-from PyQt5.QtCore import QTimer, QThread
+from PyQt5.QtCore import QTimer, QThread, pyqtSignal
 from superai.vkcode import VK_CODE
 from superai.superai import SuperAiThread
-from superai.subnodedb import InitDb, DbStateSelect
+from superai.subnodedb import InitDb, DbStateSelect, DbStateDel
 from superai.common import InitLog
 from superai.superai import InitSetting
 from superai.pathsetting import GetCfgPath
@@ -35,8 +37,8 @@ def main():
 
     # 列表
     table = QTableWidget()
-    columns = ["account", "region", "role", "level", "occupation", "curpilao", "money", "zhicaipoint",
-               "updatepoint"]
+    columns = ["账号", "大区", "角色", "等级", "职业", "当前疲劳", "金币", "制裁时间点",
+               "更新时间点"]
     table.setColumnCount(len(columns))
     table.setHorizontalHeaderLabels(columns)
 
@@ -47,6 +49,9 @@ def main():
         states = DbStateSelect()
 
         if len(states) > 0 and (len(states) != table.rowCount()):
+            table.clearContents()
+            table.setRowCount(len(states))
+        elif len(states) == 0:
             table.clearContents()
             table.setRowCount(len(states))
 
@@ -71,7 +76,7 @@ def main():
     tick()
 
     # 设置账号按钮
-    settingAccountbtn = QPushButton("setting account(notepad)")
+    settingAccountbtn = QPushButton("设置账号")
 
     def settingaccont():
         os.system("start notepad %s" % (os.path.join(GetCfgPath(), "accounts")))
@@ -82,7 +87,7 @@ def main():
     jueseSettingLayout = QHBoxLayout()
     juesenumedit = QLineEdit()
 
-    jueseSettingLayout.addWidget(QLabel("role num: "))
+    jueseSettingLayout.addWidget(QLabel("刷角色数量: "))
     jueseSettingLayout.addWidget(juesenumedit)
 
     cfgfile = os.path.join(GetCfgPath(), "superai.cfg")
@@ -93,7 +98,7 @@ def main():
 
     # 启动按钮
     buttonlayout = QHBoxLayout()
-    confirmbtn = QPushButton("save config")
+    confirmbtn = QPushButton("保存配置")
 
     def confirm():
         cfgfile = os.path.join(GetCfgPath(), "superai.cfg")
@@ -108,36 +113,50 @@ def main():
         msgBox.setText("成功修改配置")
         msgBox.exec_()
 
-    startbtn = QPushButton("start(alt+f11)")
+    startbtn = QLabel("开启(HOME)")
 
     t = SuperAiThread(stophotkey=True)
 
     def start():
         nonlocal t
-        if startbtn.text() == "start(alt+f11)":
+        if startbtn.text() == "开启(HOME)":
             t.start()
-            startbtn.setText("stop(alt+f11)")
+            startbtn.setText("关闭(END)")
         else:
+            logger.warning("已经开启了")
+
+    def stop():
+        nonlocal t
+        if startbtn.text() == "关闭(END)":
             t.stop()
             t = SuperAiThread(stophotkey=True)
-            startbtn.setText("start(alt+f11)")
+            startbtn.setText("开启(HOME)")
+        else:
+            logger.warning("已经关闭了")
 
     class Hotkey(QThread):
+        startsign = pyqtSignal()
+        stopsign = pyqtSignal()
+
         def run(self) -> None:
             while True:
-                f11 = win32api.GetAsyncKeyState(VK_CODE['F11'])
-                alt = win32api.GetAsyncKeyState(VK_CODE['alt'])
-                if f11 != 0 and alt != 0:
-                    startbtn.clicked.emit()
+                home = win32api.GetAsyncKeyState(VK_CODE['home'])
+                if home != 0:
+                    self.startsign.emit()
+                    time.sleep(1)
+                end = win32api.GetAsyncKeyState(VK_CODE['end'])
+                if end != 0:
+                    self.stopsign.emit()
                     time.sleep(1)
                 time.sleep(0.005)
 
+    # 快捷键
     hotkey = Hotkey()
+    hotkey.startsign.connect(start)
+    hotkey.stopsign.connect(stop)
     hotkey.start()
 
     confirmbtn.clicked.connect(confirm)
-
-    startbtn.clicked.connect(start)
 
     buttonlayout.addWidget(confirmbtn)
     buttonlayout.addWidget(startbtn)
@@ -145,9 +164,22 @@ def main():
     listlayout = QVBoxLayout()
     listlayout.addWidget(table)
 
+    def reset():
+        DbStateDel()
+
+        msgBox = QMessageBox()
+        msgBox.setText("成功重置数据库")
+        msgBox.exec_()
+
+    # 清除制裁状态按钮
+    resetbtn = QPushButton("重置数据库")
+
+    resetbtn.clicked.connect(reset)
+
     settinglayout = QVBoxLayout()
     settinglayout.addWidget(settingAccountbtn)
     settinglayout.addLayout(jueseSettingLayout)
+    settinglayout.addWidget(resetbtn)
     settinglayout.addSpacing(195)
     settinglayout.addLayout(buttonlayout)
     settinglayout.setAlignment(QtCore.Qt.AlignTop)
@@ -161,6 +193,7 @@ def main():
 
     w.setLayout(widgetlayout)
     w.show()
+
     app.exec_()
 
 

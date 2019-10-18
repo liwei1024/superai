@@ -8,6 +8,14 @@ import win32com.client
 import win32gui
 
 
+def GetCursorInfo():
+    try:
+        _, _, (curx, cury) = win32gui.GetCursorInfo()
+        return curx, cury
+    except:
+        return 0, 0
+
+
 def killall():
     os.system("taskkill /F /im DNF.exe")
     os.system("taskkill /F /im TenioDL.exe")
