@@ -1,14 +1,16 @@
 import os
 import sys
 
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
 
 logger = logging.getLogger(__name__)
 
+from superai.common import KongjianSleep
 from superai.vkcode import VK_CODE
-from superai.yijianshu import KongjianSleep, MouseMoveTo, MouseLeftClick, PressKey
+from superai.anjian import aj
 from superai.flannfind import Picture, GetImgDir
 
 locationGelanzhisen = Picture(GetImgDir() + "ditu_gelanzhisen.png")
@@ -55,8 +57,8 @@ def IsinAierwenfnagxian():
 
     elif maptip.Match():
         pos = maptip.Pos()
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
         logger.info("在艾尔文防线")
         return True
     else:
@@ -133,7 +135,7 @@ class Location:
             return "艾尔文防线"
         else:
             logger.warning("无法判断在哪里所以按一下.")
-            PressKey(VK_CODE['.']), KongjianSleep()
+            aj().PressKey(VK_CODE['.']), KongjianSleep()
         return ""
 
 

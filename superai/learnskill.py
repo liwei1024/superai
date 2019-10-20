@@ -3,12 +3,11 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from superai.yijianshu import PressKey, VK_CODE, MouseMoveTo, YijianshuInit, MouseLeftDown, RanSleep, MouseLeftClick, \
-    MouseLeftUp, MouseLeftDownFor, MouseMoveR, MouseWheel, KongjianSleep, LanSleep, MouseRightDownFor, ShiftLeft, \
-    ShiftRight
-from superai.common import InitLog, GameWindowToTop
+from superai.vkcode import VK_CODE
+from superai.anjian import aj
+from superai.common import InitLog, GameWindowToTop, KongjianSleep, LanSleep, RanSleep
 from superai.flannfind import Picture, GetImgDir
-from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj, Clear, IsSkillLearned
+from superai.gameapi import GetMenInfo, GameApiInit, FlushPid, GetSkillObj, IsSkillLearned
 
 import logging
 
@@ -157,14 +156,14 @@ class Occupationkills:
 
         if meninfo.level >= 30:
             self.learnstrategy.append(OccupationSkill("nanmofa", "双翼风刃", "fengfa_shuangyifengren.png"))
-        
+
         if meninfo.level >= 35:
             self.learnstrategy.append(OccupationSkill("nanmofa", "刃风", "fengfa_renfeng.png"))
             self.learnstrategy.append(OccupationSkill("nanmofa", "风暴之眼", "fengfa_fengbaozhiyan.png"))
 
         if meninfo.level >= 40:
             self.learnstrategy.append(OccupationSkill("nanmofa", "真空旋风破", "fengfa_zhenkongxuanfengpo.png"))
-        
+
     # 枪剑士
     def qiangjianshiInit(self):
         self.learnstrategy = []
@@ -442,8 +441,8 @@ class Occupationkills:
         needLearn = False
         if self.NeedWangji():
             logger.info("去掉不需要技能的加点")
-            MouseMoveTo(536, 360), KongjianSleep()
-            MouseWheel(30), KongjianSleep()
+            aj().MouseMoveTo(536, 360), KongjianSleep()
+            aj().MouseWheel(30), KongjianSleep()
 
             for v in self.deletedskills:
                 logger.info("开始忘记技能: %s", v.name)
@@ -455,8 +454,8 @@ class Occupationkills:
                     for i in range(3):
                         if self.FindedPic(v.picutre):
                             break
-                        MouseMoveTo(536, 360), KongjianSleep()
-                        MouseWheel(-3), KongjianSleep()
+                        aj().MouseMoveTo(536, 360), KongjianSleep()
+                        aj().MouseWheel(-3), KongjianSleep()
 
                     if not self.FindedPic(v.picutre):
                         logger.warning("找不到技能: %s" % v.name)
@@ -465,12 +464,12 @@ class Occupationkills:
                     pos = v.GetPos()
                     needLearn = True
                     logger.info("忘记,移动到相对位置: (%d,%d)" % (pos[0], pos[1]))
-                    MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                    ShiftRight(), KongjianSleep()
+                    aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                    aj().ShiftRight(), KongjianSleep()
 
         logger.info("开始学习技能")
-        MouseMoveTo(536, 360), KongjianSleep()
-        MouseWheel(30), KongjianSleep()
+        aj().MouseMoveTo(536, 360), KongjianSleep()
+        aj().MouseWheel(30), KongjianSleep()
 
         if self.AttackType is not None:
             pos = skillScene.Pos()
@@ -494,8 +493,8 @@ class Occupationkills:
                         logger.warning("暴击不需要学习")
                     else:
                         needLearn = True
-                        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                        ShiftLeft(), KongjianSleep()
+                        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                        aj().ShiftLeft(), KongjianSleep()
             else:
                 logger.warning("没有找到技能栏")
 
@@ -506,8 +505,8 @@ class Occupationkills:
             for i in range(3):
                 if self.FindedPic(v.picutre):
                     break
-                MouseMoveTo(536, 360), KongjianSleep()
-                MouseWheel(-3), KongjianSleep()
+                aj().MouseMoveTo(536, 360), KongjianSleep()
+                aj().MouseWheel(-3), KongjianSleep()
 
             if not self.FindedPic(v.picutre):
                 logger.warning("找不到技能: %s" % v.name)
@@ -525,36 +524,36 @@ class Occupationkills:
             else:
                 needLearn = True
                 logger.info("学习,移动到相对位置: (%d,%d)" % (pos[0], pos[1]))
-                MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                ShiftLeft(), KongjianSleep()
+                aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                aj().ShiftLeft(), KongjianSleep()
 
-            # MouseMoveR(- (30 // 2 - 2), 0), KongjianSleep()
+            # aj().MouseMoveR(- (30 // 2 - 2), 0), KongjianSleep()
 
         logger.info("技能已学习完毕")
 
         if needLearn:
             # 确认按钮
             learnpos = skillSceneLearn.Pos()
-            MouseMoveTo(learnpos[0], learnpos[1]), KongjianSleep()
-            MouseLeftClick(), RanSleep(0.3)
-            MouseLeftClick(), KongjianSleep()
+            aj().MouseMoveTo(learnpos[0], learnpos[1]), KongjianSleep()
+            aj().MouseLeftClick(), RanSleep(0.3)
+            aj().MouseLeftClick(), KongjianSleep()
 
     # 打开技能栏
     def OpenSkillScene(self):
         # Clear() 不要再这里. 因为连续3次 (加点,脱进来,脱出去,太浪费时间了)
         if not skillScene.Match():
             logger.info("打开技能栏")
-            PressKey(VK_CODE["k"]), LanSleep()
+            aj().PressKey(VK_CODE["k"]), LanSleep()
         return skillScene.Match()
 
     # 关闭技能栏
     def CloseSkillScene(self):
         while skillScene.Match():
             logger.info("关闭技能栏")
-            PressKey(VK_CODE["esc"]), KongjianSleep()
+            aj().PressKey(VK_CODE["esc"]), KongjianSleep()
 
             if skillstore.Match():
-                PressKey(VK_CODE["enter"]), KongjianSleep()
+                aj().PressKey(VK_CODE["enter"]), KongjianSleep()
 
     # 在技能策略中
     def IsInLearnStrategy(self, name):
@@ -584,10 +583,10 @@ class Occupationkills:
 
                 # 向上移动, 脱离
                 pos = idxposmap[v.idx]
-                MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                MouseLeftDown(), KongjianSleep()
-                MouseMoveTo(pos[0], pos[1] - 150), KongjianSleep()
-                MouseLeftUp(), KongjianSleep()
+                aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                aj().MouseLeftDown(), KongjianSleep()
+                aj().MouseMoveTo(pos[0], pos[1] - 150), KongjianSleep()
+                aj().MouseLeftUp(), KongjianSleep()
 
     # 该位置是否有技能
     def HasPosHaveSkill(self, i):
@@ -617,8 +616,8 @@ class Occupationkills:
             logger.warning("打开技能栏失败")
             return
 
-        MouseMoveTo(536, 360), KongjianSleep()
-        MouseWheel(30), KongjianSleep()
+        aj().MouseMoveTo(536, 360), KongjianSleep()
+        aj().MouseWheel(30), KongjianSleep()
 
         for v in self.learnstrategy:
             if v.beidong:
@@ -632,8 +631,8 @@ class Occupationkills:
                 for i in range(3):
                     if self.FindedPic(v.picutre):
                         break
-                    MouseMoveTo(536, 360), KongjianSleep()
-                    MouseWheel(-3), KongjianSleep()
+                    aj().MouseMoveTo(536, 360), KongjianSleep()
+                    aj().MouseWheel(-3), KongjianSleep()
 
                 if not self.FindedPic(v.picutre):
                     logger.warning("找不到技能: %s" % v.name)
@@ -641,11 +640,11 @@ class Occupationkills:
 
                 srcpos = v.GetPos()
 
-                MouseMoveTo(srcpos[0], srcpos[1]), KongjianSleep()
-                MouseLeftDown(), KongjianSleep()
-                MouseMoveR(10, 10), KongjianSleep()
-                MouseMoveTo(destpos[0], destpos[1]), KongjianSleep()
-                MouseLeftUp(), KongjianSleep()
+                aj().MouseMoveTo(srcpos[0], srcpos[1]), KongjianSleep()
+                aj().MouseLeftDown(), KongjianSleep()
+                aj().MouseMoveR(10, 10), KongjianSleep()
+                aj().MouseMoveTo(destpos[0], destpos[1]), KongjianSleep()
+                aj().MouseLeftUp(), KongjianSleep()
 
 
 def main():
@@ -653,7 +652,7 @@ def main():
     if not GameApiInit():
         sys.exit()
     FlushPid()
-    if not YijianshuInit():
+    if not aj().Init():
         sys.exit()
     GameWindowToTop()
 

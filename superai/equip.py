@@ -7,11 +7,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from superai.common import InitLog, GameWindowToTop
+from superai.common import InitLog, GameWindowToTop, LanSleep, KongjianSleep, RanSleep
 from superai.flannfind import Picture, GetImgDir
 from superai.vkcode import VK_CODE
-from superai.yijianshu import PressKey, RanSleep, MouseMoveTo, MouseLeftDown, MouseLeftUp, YijianshuInit, \
-    MouseLeftClick, MouseRightClick, KongjianSleep, LanSleep
+from superai.anjian import aj
 from superai.gameapi import GetMenInfo, GetEquipObj, GetBagEquipObj, GameApiInit, FlushPid, BODYPOS, WUQIPOS, \
     SHIPINPOS, GetXingyunxing, Clear, ChengHaoRequire, Openesc
 
@@ -89,7 +88,7 @@ def OpenBagScene():
     Clear()
     if not bagScene.Match():
         logger.info("打开装备栏")
-        PressKey(VK_CODE["i"]), LanSleep()
+        aj().PressKey(VK_CODE["i"]), LanSleep()
     return bagScene.Match()
 
 
@@ -97,7 +96,7 @@ def OpenBagScene():
 def CloseBagScene():
     while bagScene.Match():
         logger.info("关闭装备栏")
-        PressKey(VK_CODE["esc"]), KongjianSleep()
+        aj().PressKey(VK_CODE["esc"]), KongjianSleep()
 
 
 class Equips:
@@ -315,8 +314,8 @@ class Equips:
 
         bagpos = bagScene.Pos()
 
-        MouseMoveTo(bagpos[0] - 91, bagpos[1] + 192), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(bagpos[0] - 91, bagpos[1] + 192), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
         def EquipBetter():
             for v in CheckReplices:
@@ -324,11 +323,11 @@ class Equips:
                 if betterEquip is not None:
                     logger.info("更换装备: %s", betterEquip)
                     pos = self.BagIdxToPos(betterEquip.idx - 9, bagpos)
-                    MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                    MouseLeftDown(), KongjianSleep()
-                    MouseMoveTo(bagpos[0], bagpos[1] + 100), KongjianSleep()
-                    MouseLeftUp(), KongjianSleep()
-                    MouseLeftClick(), KongjianSleep()
+                    aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                    aj().MouseLeftDown(), KongjianSleep()
+                    aj().MouseMoveTo(bagpos[0], bagpos[1] + 100), KongjianSleep()
+                    aj().MouseLeftUp(), KongjianSleep()
+                    aj().MouseLeftClick(), KongjianSleep()
 
         # 两次调用. 防止魔法封印
         EquipBetter()
@@ -380,13 +379,13 @@ class Equips:
             return
 
         pos = zupinScene.Pos()
-        MouseMoveTo(pos[0] + self.xingyunwuqipos[0], pos[1] + self.xingyunwuqipos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
-        MouseMoveTo(pos[0] + 9, pos[1] + 143), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0] + self.xingyunwuqipos[0], pos[1] + self.xingyunwuqipos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0] + 9, pos[1] + 143), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
         pos = zupinconfirm2.Pos()
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
     # 是否足够的幸运星
     def HaveEnoughXingyunxing(self):
@@ -406,8 +405,8 @@ class Equips:
                 return False
 
             pos = xingyunxing.Pos()
-            MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-            MouseLeftClick(), LanSleep()
+            aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+            aj().MouseLeftClick(), LanSleep()
 
         return zupinScene.Match()
 
@@ -416,7 +415,7 @@ class Equips:
 
         while zupinScene.Match():
             logger.info("关闭幸运星租聘界面")
-            PressKey(VK_CODE["esc"]), KongjianSleep()
+            aj().PressKey(VK_CODE["esc"]), KongjianSleep()
 
     # 是否可以领称号(基础达标者)
     def NeedGetChenghao(self):
@@ -448,10 +447,10 @@ class Equips:
 
             logger.info("要打开称号栏")
             pos = chenghaobubtn.Pos()
-            MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-            MouseLeftClick(), LanSleep()
+            aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+            aj().MouseLeftClick(), LanSleep()
 
-            MouseMoveTo(0, 0)
+            aj().MouseMoveTo(0, 0)
 
         return chenghaobu.Match()
 
@@ -462,12 +461,12 @@ class Equips:
             return
 
         pos = zhuangbeizhanshi.Pos()
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
         pos = jichudabiao.Pos()
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseRightClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseRightClick(), KongjianSleep()
 
 
 def main():
@@ -475,7 +474,7 @@ def main():
     if not GameApiInit():
         sys.exit()
     FlushPid()
-    if not YijianshuInit():
+    if not aj().Init():
         sys.exit()
     GameWindowToTop()
 

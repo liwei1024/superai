@@ -14,10 +14,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 logger = logging.getLogger(__name__)
 
 from superai.pathsetting import GetHelpdllLib, GetDriverStartFile
-from superai.common import InitLog
-from superai.yijianshu import PressSkill, PressKey, DownZUO, DownYOU, DownSHANG, DownXIA, DownZUOSHANG, DownZUOXIA, \
-    DownYOUSHANG, DownYOUXIA, UpZUO, UpYOU, UpSHANG, UpXIA, UpZUOSHANG, UpZUOXIA, UpYOUSHANG, UpYOUXIA, RanSleep, \
-    MouseMoveTo, KongjianSleep, MouseLeftClick
+from superai.common import InitLog, KongjianSleep
+from superai.anjian import aj
 from superai.vkcode import VK_CODE
 from superai.defer import defer
 
@@ -591,25 +589,25 @@ ATTACK_H_WIDTH = 40 / 2
 ATTACK_TOO_CLOSE_V_WIDTH = 1.0 / 2
 
 QuadKeyDownMap = {
-    Quardant.ZUO: DownZUO,
-    Quardant.YOU: DownYOU,
-    Quardant.SHANG: DownSHANG,
-    Quardant.XIA: DownXIA,
-    Quardant.ZUOSHANG: DownZUOSHANG,
-    Quardant.ZUOXIA: DownZUOXIA,
-    Quardant.YOUSHANG: DownYOUSHANG,
-    Quardant.YOUXIA: DownYOUXIA
+    Quardant.ZUO: aj().DownZUO,
+    Quardant.YOU:  aj().DownYOU,
+    Quardant.SHANG:  aj().DownSHANG,
+    Quardant.XIA:  aj().DownXIA,
+    Quardant.ZUOSHANG: aj().DownZUOSHANG,
+    Quardant.ZUOXIA: aj().DownZUOXIA,
+    Quardant.YOUSHANG: aj().DownYOUSHANG,
+    Quardant.YOUXIA: aj().DownYOUXIA
 }
 
 QuadKeyUpMap = {
-    Quardant.ZUO: UpZUO,
-    Quardant.YOU: UpYOU,
-    Quardant.SHANG: UpSHANG,
-    Quardant.XIA: UpXIA,
-    Quardant.ZUOSHANG: UpZUOSHANG,
-    Quardant.ZUOXIA: UpZUOXIA,
-    Quardant.YOUSHANG: UpYOUSHANG,
-    Quardant.YOUXIA: UpYOUXIA
+    Quardant.ZUO: aj().UpZUO,
+    Quardant.YOU: aj().UpYOU,
+    Quardant.SHANG: aj().UpSHANG,
+    Quardant.XIA: aj().UpXIA,
+    Quardant.ZUOSHANG: aj().UpZUOSHANG,
+    Quardant.ZUOXIA: aj().UpZUOXIA,
+    Quardant.YOUSHANG: aj().UpYOUSHANG,
+    Quardant.YOUXIA: aj().UpYOUXIA
 }
 
 
@@ -1560,7 +1558,7 @@ def IsWindowTop():
         mapinfo = GetMapInfo()
         for ele in WindowTopFilter:
             if ele[0] in mapinfo.name and mapinfo.curx == ele[1] and mapinfo.cury == ele[2]:
-                PressKey(VK_CODE["spacebar"])  # 假装按下
+                aj().PressKey(VK_CODE["spacebar"])  # 假装按下
                 return False
     return meninfo.tanchu
 
@@ -1822,7 +1820,7 @@ class Skill:
         logger.info(" %s delay %f afterdelay %f doublepress %d" % (
             self.name, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.doublepress))
 
-        PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.thenpress,
+        aj().PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.thenpress,
                    self.skilldata.doublepress, self.issimpleattack)
 
         if self.skilldata.lockhp:
@@ -1987,12 +1985,12 @@ simpleAttackSkill.skilldata.delaytime = 1.0
 
 # 清空当前
 def Clear():
-    PressKey(VK_CODE["esc"]), KongjianSleep()
+    aj().PressKey(VK_CODE["esc"]), KongjianSleep()
     if GetMenInfo().esc:
         logger.info("关闭esc")
-        PressKey(VK_CODE["esc"]), KongjianSleep()
+        aj().PressKey(VK_CODE["esc"]), KongjianSleep()
 
-    MouseMoveTo(0, 0), KongjianSleep()
+    aj().MouseMoveTo(0, 0), KongjianSleep()
 
 
 # 不要频繁的clear
@@ -2006,11 +2004,11 @@ def SafeClear(player, t=10):
 
 # 打开esc
 def Openesc():
-    PressKey(VK_CODE["esc"]), KongjianSleep()
+    aj().PressKey(VK_CODE["esc"]), KongjianSleep()
 
     if not IsEscTop():
         logger.info("打开esc")
-        PressKey(VK_CODE["esc"]), KongjianSleep()
+        aj().PressKey(VK_CODE["esc"]), KongjianSleep()
     return IsEscTop()
 
 

@@ -12,7 +12,6 @@ import numpy as np
 from superai.pathsetting import GetImgDir
 
 from superai.common import InitLog
-from superai.yijianshu import YijianshuInit
 from superai.screenshots import WindowCaptureToMem
 
 logger = logging.getLogger(__name__)
@@ -288,8 +287,6 @@ class FlushImgThread(threading.Thread):
 
 def main():
     InitLog()
-    if not YijianshuInit():
-        sys.exit()
 
 
 if __name__ == "__main__":

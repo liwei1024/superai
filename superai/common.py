@@ -1,6 +1,8 @@
 import ctypes
 import logging
 import os
+import random
+import time
 
 import coloredlogs
 import win32con
@@ -94,6 +96,24 @@ def checkIfProcessRunning(processName):
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
     return False
+
+
+# 随机时间sleep
+def RanSleep(t):
+    t = random.uniform(t - 0.005, t + 0.005)
+    if t < 0:
+        t = 0
+    time.sleep(t)
+
+
+# 操作控件后的sleep
+def KongjianSleep():
+    RanSleep(0.2)
+
+
+# 打开某个栏的sleep
+def LanSleep():
+    RanSleep(0.3)
 
 
 def main():

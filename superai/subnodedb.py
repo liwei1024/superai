@@ -7,8 +7,8 @@ import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
+from superai.config import GetConfig
 from superai.gameapi import IsDestSupport, GetMenInfo, BagWuseNum, GetRemaindPilao
-
 from superai.pathsetting import getDbFile, GetDbDir, GetCfgPath
 from superai.common import InitLog
 
@@ -231,9 +231,7 @@ def IsTodayHavePilao(account, region):
                 if obj["curpilao"] is not None and obj["curpilao"] == 0:
                     pilaoShuawan += 1
 
-                cfgfile = os.path.join(GetCfgPath(), "superai.cfg")
-                config = configparser.RawConfigParser()
-                config.read(cfgfile)
+                config = GetConfig()
                 juesenum = int(config.get("superai", "单账号刷角色数量"))
 
                 if pilaoShuawan >= juesenum:

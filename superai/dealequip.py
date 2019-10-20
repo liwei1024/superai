@@ -7,12 +7,12 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from superai.common import InitLog, GameWindowToTop
-from superai.gameapi import GameApiInit, FlushPid, GetBagEquipObj, GetMenInfo, BODYPOS, Clear, GetEquipObj
+from superai.vkcode import VK_CODE
+from superai.common import InitLog, GameWindowToTop, KongjianSleep, RanSleep
+from superai.gameapi import GameApiInit, FlushPid, GetBagEquipObj, BODYPOS, Clear, GetEquipObj
 from superai.flannfind import Picture, GetImgDir
 from superai.location import Location
-from superai.yijianshu import MouseMoveTo, RanSleep, MouseLeftClick, MouseMoveR, PressKey, VK_CODE, YijianshuInit, \
-    KongjianSleep
+from superai.anjian import aj
 
 fenjieGelanzhisen = Picture(GetImgDir() + "fenjie_gelanzhisen.png")
 fenjieTiankongzhicheng = Picture(GetImgDir() + "fenjie_tiankonghzicheng.png")
@@ -84,14 +84,14 @@ class DealEquip:
         if pos is None or pos == (0, 0):
             return
 
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
-        MouseMoveR(56, 54), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveR(56, 54), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
         # 分解按钮
         fenjiebt = fenjieButton.Pos()
-        MouseMoveTo(fenjiebt[0], fenjiebt[1]), KongjianSleep()
+        aj().MouseMoveTo(fenjiebt[0], fenjiebt[1]), KongjianSleep()
 
         # 检查 "稀有" "勇者" "包含我的职业装备" 是否勾选
         xiyoucheck = (Picture(GetImgDir() + "checked.png", fenjiebt[0] + 67, fenjiebt[1] + 47, 12, 12),
@@ -106,18 +106,18 @@ class DealEquip:
         checks = [xiyoucheck, yongzhecheck, zhiyecheck]
         for v in checks:
             if not v[0].Match():
-                MouseMoveTo((v[1])[0], (v[1])[1]), KongjianSleep()
-                MouseLeftClick(), KongjianSleep()
-                MouseMoveTo(fenjiebt[0], fenjiebt[1]), KongjianSleep()
+                aj().MouseMoveTo((v[1])[0], (v[1])[1]), KongjianSleep()
+                aj().MouseLeftClick(), KongjianSleep()
+                aj().MouseMoveTo(fenjiebt[0], fenjiebt[1]), KongjianSleep()
 
         # 分解按钮
-        MouseMoveTo(fenjiebt[0], fenjiebt[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(fenjiebt[0], fenjiebt[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
         # 确认
         pos = fenjieConfirm.Pos()
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), RanSleep(3.0)
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), RanSleep(3.0)
 
     # 卖所有装备
     def SellAll(self):
@@ -129,24 +129,24 @@ class DealEquip:
         if pos is None or pos == (0, 0):
             return
 
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
-        MouseMoveR(56, 32), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveR(56, 32), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
         # 出售按钮
         sellbtn = sellButton.Pos()
-        MouseMoveTo(sellbtn[0], sellbtn[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(sellbtn[0], sellbtn[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
         bagpos = bagScene.Pos()
 
         equips = GetBagEquipObj()
         for v in equips:
             pos = self.BagIdxToPos(v.idx - 9, bagpos)
-            MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-            MouseLeftClick(), KongjianSleep()
-            MouseLeftClick(), KongjianSleep()
+            aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+            aj().MouseLeftClick(), KongjianSleep()
+            aj().MouseLeftClick(), KongjianSleep()
 
         self.CloseSell()
 
@@ -160,16 +160,16 @@ class DealEquip:
         if pos is None or pos == (0, 0):
             return
 
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
-        MouseMoveR(56, 32), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveR(56, 32), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
         # 修理按钮
         repairbtn = repairButton.Pos()
-        MouseMoveTo(repairbtn[0], repairbtn[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(repairbtn[0], repairbtn[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
     # 是否需要被修理
     def NeedRepair(self):
@@ -185,13 +185,13 @@ class DealEquip:
     def CloseFenjie(self):
         while fenjiexiulijiScene.Match():
             logger.info("关闭分解机")
-            PressKey(VK_CODE["esc"]), KongjianSleep()
+            aj().PressKey(VK_CODE["esc"]), KongjianSleep()
 
     # 关闭卖物
     def CloseSell(self):
         while sellButton.Match():
             logger.info("关闭分解机")
-            PressKey(VK_CODE["esc"]), KongjianSleep()
+            aj().PressKey(VK_CODE["esc"]), KongjianSleep()
 
 
 def main():
@@ -199,7 +199,7 @@ def main():
     if not GameApiInit():
         sys.exit()
     FlushPid()
-    if not YijianshuInit():
+    if not aj().Init():
         sys.exit()
     GameWindowToTop()
 

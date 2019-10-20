@@ -1,15 +1,14 @@
-import configparser
-import ctypes
+import logging
 import os
 import sys
-import threading
 import time
-import logging
+
 import win32api
-from win32con import SW_MINIMIZE
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 logger = logging.getLogger(__name__)
+
+from superai.config import GetConfig, SaveConfig
 
 from PyQt5.QtCore import QTimer, QThread, pyqtSignal
 from superai.vkcode import VK_CODE
@@ -90,9 +89,7 @@ def main():
     jueseSettingLayout.addWidget(QLabel("刷角色数量: "))
     jueseSettingLayout.addWidget(juesenumedit)
 
-    cfgfile = os.path.join(GetCfgPath(), "superai.cfg")
-    config = configparser.RawConfigParser()
-    config.read(cfgfile)
+    config = GetConfig()
     num = config.get("superai", "单账号刷角色数量")
     juesenumedit.setText(num)
 
@@ -101,13 +98,9 @@ def main():
     confirmbtn = QPushButton("保存配置")
 
     def confirm():
-        cfgfile = os.path.join(GetCfgPath(), "superai.cfg")
-        config = configparser.RawConfigParser()
-        config.read(cfgfile)
+        config = GetConfig()
         config.set("superai", "单账号刷角色数量", juesenumedit.text())
-        f = open(cfgfile, "w")
-        config.write(f)
-        f.close()
+        SaveConfig(config)
 
         msgBox = QMessageBox()
         msgBox.setText("成功修改配置")

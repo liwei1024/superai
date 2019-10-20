@@ -4,12 +4,16 @@ import random
 import sys
 import time
 
+
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
 
 logger = logging.getLogger(__name__)
 
+from superai.vkcode import VK_CODE
+from superai.common import KongjianSleep, LanSleep, RanSleep
 from superai.equip import OpenBagScene, ZhunangbeiPos, XiaohaoPos, bagScene, CloseBagScene
 from superai.location import IsinAierwenfnagxian, IsinHedunmaer, IsinAerfayingdi, Location, IsinSailiya, \
     IsInJingxiangalade
@@ -17,8 +21,7 @@ from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
     CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc, SafeClear, \
     GetQuadrant, QuardantMap
-from superai.yijianshu import PressKey, VK_CODE, RanSleep, MouseMoveTo, MouseLeftClick, MouseLeftDown, MouseMoveR, \
-    MouseLeftUp, KongjianSleep, LanSleep, ReleaseAllKey, DownZUO, UpZUO, DownYOU, UpYOU
+from superai.anjian import aj
 
 shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
 selectmen = Picture(GetImgDir() + "selectmen.png")
@@ -391,8 +394,8 @@ def OpenSelect():
     if not gamebegin.Match():
         logger.info("寻找游戏开始按钮")
         pos = selectmen.Pos()
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), RanSleep(1.5)
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), RanSleep(1.5)
 
     return gamebegin.Match()
 
@@ -406,7 +409,7 @@ def BackAndEnter():
     if not OpenSelect():
         logger.warning("返回选择角色失败")
 
-    PressKey(VK_CODE["spacebar"]), KongjianSleep()
+    aj().PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
     return True
 
@@ -417,7 +420,7 @@ def OpenTaskScene():
 
     if not taskScene.Match():
         logger.info("F1打开任务列表")
-        PressKey(VK_CODE["F1"]), LanSleep()
+        aj().PressKey(VK_CODE["F1"]), LanSleep()
     return taskScene.Match()
 
 
@@ -427,7 +430,7 @@ def OpenShijieDitu():
 
     if not shijiedituScene.Match():
         logger.info("打开世界地图")
-        PressKey(VK_CODE["n"]), LanSleep()
+        aj().PressKey(VK_CODE["n"]), LanSleep()
 
     return shijiedituScene.Match()
 
@@ -436,7 +439,7 @@ def OpenShijieDitu():
 def CloseShijieDitu():
     if shijiedituScene.Match():
         logger.info("关闭世界地图")
-        PressKey(VK_CODE["n"]), KongjianSleep()
+        aj().PressKey(VK_CODE["n"]), KongjianSleep()
 
 
 # 获取移动到位置的信息
@@ -535,7 +538,7 @@ def IsMoveToChengzhenPos(destpic, destcoord, desc):
 
                 RanSleep(0.02)
 
-            ReleaseAllKey()
+            aj().ReleaseAllKey()
 
             meninfo = GetMenInfo()
             return IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, destcoord[0], destcoord[1], 10)
@@ -555,8 +558,8 @@ def CoordMoveTo(shijitpic, mousecoord):
             logger.warning("当前世界地图对不上")
             return
 
-        MouseMoveTo(mousecoord[0], mousecoord[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(mousecoord[0], mousecoord[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
         CloseShijieDitu()
         return True
     else:
@@ -571,11 +574,11 @@ def MoveTo(destname, player):
     if player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 10.0:
         # 移动下 防止卡死!!!
         if random.uniform(0, 1) < 0.5:
-            DownZUO(), RanSleep(0.5)
-            UpZUO()
+            aj().DownZUO(), RanSleep(0.5)
+            aj().UpZUO()
         else:
-            DownYOU(), RanSleep(0.5)
-            UpYOU()
+            aj().DownYOU(), RanSleep(0.5)
+            aj().UpYOU()
 
         # 没有移动过或者超时
         logger.info("目标: %s 城镇位置: (%d,%d)  没有到达, 开始移动. 鼠标指向到 (%d, %d)" % (
@@ -607,7 +610,7 @@ def GoToSelect(quad: Quardant):
 def SelectMap(idx):
     while CurSelectId() != idx and IsManInSelectMap():
         logger.info("↑ 切换地图")
-        PressKey(VK_CODE["up_arrow"]), KongjianSleep()
+        aj().PressKey(VK_CODE["up_arrow"]), KongjianSleep()
 
     return CurSelectId() == idx and IsManInSelectMap()
 
@@ -615,7 +618,7 @@ def SelectMap(idx):
 # 进图
 def EnterMap(idx, player):
     if SelectMap(idx):
-        PressKey(VK_CODE["spacebar"]), KongjianSleep()
+        aj().PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
         for i in range(10):
             if IsManInMap():
@@ -691,12 +694,12 @@ def AcceptMain(player):
             return
 
         pos = taskkzhuxian.Pos()
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
         player.taskctx.latestacceptpoint = time.time()
     else:
-        PressKey(VK_CODE["esc"]), KongjianSleep()
+        aj().PressKey(VK_CODE["esc"]), KongjianSleep()
         logger.warning("接受任务不能多次点击,本次啥都不做")
 
 
@@ -717,13 +720,13 @@ def SubmitTask(player):
             return
 
         pos = taskok.Pos()
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep(), RanSleep(1.0)
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep(), RanSleep(1.0)
 
         player.taskctx.latestsubmitpoint = time.time()
     else:
-        PressKey(VK_CODE["esc"]), KongjianSleep()
-        PressKey(VK_CODE["spacebar"]), KongjianSleep()
+        aj().PressKey(VK_CODE["esc"]), KongjianSleep()
+        aj().PressKey(VK_CODE["spacebar"]), KongjianSleep()
         logger.warning("完成任务不能多次点击,本次啥都不做")
 
 
@@ -863,9 +866,9 @@ def MeetNpcFoo(destname):
 
                     if lingqingnewbtn.Match():
                         pos = lingqingnewbtn.Pos()
-                        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                        MouseLeftClick(), KongjianSleep()
-                        PressKey(VK_CODE['esc']), KongjianSleep()
+                        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                        aj().MouseLeftClick(), KongjianSleep()
+                        aj().PressKey(VK_CODE['esc']), KongjianSleep()
 
                         if not lingqingnewbtn.Match():
                             break
@@ -882,7 +885,7 @@ def MeetNpcFoo(destname):
 
                         RanSleep(0.3)
 
-                PressKey(VK_CODE["spacebar"]), KongjianSleep()
+                aj().PressKey(VK_CODE["spacebar"]), KongjianSleep()
         else:
 
             if HasMoveTo(destname):
@@ -904,7 +907,7 @@ def MeetNpcFoo(destname):
                     QuadKeyDownMap[quad](), RanSleep(0.05)
                     QuadKeyUpMap[quad](), RanSleep(0.05)
 
-                PressKey(VK_CODE["spacebar"]), KongjianSleep()
+                aj().PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
                 if destname == "巴尔雷娜":
                     if HasSpecifyAccept(3286):
@@ -954,7 +957,6 @@ def MeetNpcFoo(destname):
                 else:
                     MoveTo(destname, player)
 
-
     return foo
 
 
@@ -974,11 +976,11 @@ def 守护森林的战斗(player):
             return
 
         pos = taskShouhusenlin.Pos()
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), RanSleep(1)
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), RanSleep(1)
 
         while IsWindowTop():
-            PressKey(VK_CODE["spacebar"]), KongjianSleep()
+            aj().PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
         # TODO  目前写死职业 . 要添加配置
         pic = None
@@ -1008,11 +1010,11 @@ def 守护森林的战斗(player):
             return
 
         pos = pic.Pos()
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), RanSleep(1)
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), RanSleep(1)
 
         while IsWindowTop():
-            PressKey(VK_CODE["spacebar"]), KongjianSleep()
+            aj().PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
         if not zhuanzhiConfirm.Match():
             logger.warning("没有到寻找转职确认按钮")
@@ -1020,8 +1022,8 @@ def 守护森林的战斗(player):
 
         # 确认
         pos = zhuanzhiConfirm.Pos()
-        MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
     else:
         AttacktaskFoo("暗黑雷鸣废墟")(player)
 
@@ -1143,23 +1145,23 @@ def 寻找阿甘左(player):
             return
 
         pos = bagScene.Pos()
-        MouseMoveTo(pos[0] + XiaohaoPos[0], pos[1] + XiaohaoPos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0] + XiaohaoPos[0], pos[1] + XiaohaoPos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
         if not aganzuowupin2.Match():
             logger.warning("找不到艾丽丝的香料")
             return
 
         anganzuopos = aganzuowupin2.Pos()
-        MouseMoveTo(anganzuopos[0], anganzuopos[1]), KongjianSleep()
-        MouseLeftDown(), KongjianSleep()
-        MouseMoveR(10, 10), KongjianSleep()
-        MouseMoveTo(Wupin6Pos[0], Wupin6Pos[1]), KongjianSleep()
-        MouseLeftUp(), KongjianSleep()
-        MouseMoveR(30, 30), KongjianSleep()
+        aj().MouseMoveTo(anganzuopos[0], anganzuopos[1]), KongjianSleep()
+        aj().MouseLeftDown(), KongjianSleep()
+        aj().MouseMoveR(10, 10), KongjianSleep()
+        aj().MouseMoveTo(Wupin6Pos[0], Wupin6Pos[1]), KongjianSleep()
+        aj().MouseLeftUp(), KongjianSleep()
+        aj().MouseMoveR(30, 30), KongjianSleep()
 
-        MouseMoveTo(pos[0] + ZhunangbeiPos[0], pos[1] + ZhunangbeiPos[1]), KongjianSleep()
-        MouseLeftClick(), KongjianSleep()
+        aj().MouseMoveTo(pos[0] + ZhunangbeiPos[0], pos[1] + ZhunangbeiPos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
         if not aganzuowupin.Match():
             logger.warning("拖动艾丽丝香料失败")
