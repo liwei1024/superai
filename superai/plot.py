@@ -4,8 +4,6 @@ import random
 import sys
 import time
 
-
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
@@ -16,9 +14,9 @@ from superai.vkcode import VK_CODE
 from superai.common import KongjianSleep, LanSleep, RanSleep
 from superai.equip import OpenBagScene, ZhunangbeiPos, XiaohaoPos, bagScene, CloseBagScene
 from superai.location import IsinAierwenfnagxian, IsinHedunmaer, IsinAerfayingdi, Location, IsinSailiya, \
-    IsInJingxiangalade
+    IsInJingxiangalade, IsIngente, IsInSunan, IsInFadianzhan, IsInJijingchen, IsInDiguizhongxin
 from superai.flannfind import Picture, GetImgDir
-from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, QuadKeyDownMap, QuadKeyUpMap, \
+from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, GetQuadKeyDownMap, GetQuadKeyUpMap, \
     CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc, SafeClear, \
     GetQuadrant, QuardantMap
 from superai.anjian import aj
@@ -47,6 +45,7 @@ dituAfaliya = Picture(GetImgDir() + "ditu_afaliya.png")
 taskdone = Picture(GetImgDir() + "task_done.png")
 aganzuowupin = Picture(GetImgDir() + "aganzuo_wupin.png", 243, 560, 28, 28)
 aganzuowupin2 = Picture(GetImgDir() + "aganzuo_wupin2.png")
+matou = Picture(GetImgDir() + "matou.png")
 
 Wupin6Pos = (255, 577)
 
@@ -118,6 +117,7 @@ NpcInfos = {
             "歌兰蒂斯·格拉西亚": MoveInfo(destcoord=("ditu_gelandisi2.png", 2415, 176), mousecoord=(396, 333)),
             "麦瑟·莫纳亨": MoveInfo(destcoord=("ditu_maise.png", 291, 223), mousecoord=(200, 291)),
             "赫顿玛尔-镜像": MoveInfo(destcoord=("ditu_hedunmaer_jingxiang.png", 169, 239), mousecoord=(191, 298)),
+            "赫顿玛尔-码头": MoveInfo(destcoord=("ditu_hedunmaer_gente.png", 1248, 207), mousecoord=(551, 375)),
         }
     },
     "阿法利亚": {
@@ -157,6 +157,50 @@ NpcInfos = {
             "伊沙杜拉": MoveInfo(destcoord=("ditu_yishadula2.png", 1191, 219), mousecoord=(523, 469)),
             "逆流瀑布": MoveInfo(destcoord=("ditu_niliupubu.png", 718, 261), mousecoord=(636, 490)),
             "阿甘左3": MoveInfo(destcoord=("ditu_aganzuo3.png", 1432, 217), mousecoord=(537, 468)),
+        }
+    },
+    "根特": {
+        "check": IsIngente,
+        "pic": Picture(GetImgDir() + "shijie_gente.png"),
+        "npcs": {
+            "马琳2": MoveInfo(destcoord=("ditu_malin2.png", 1364, 221), mousecoord=(267, 92)),
+            "泽丁": MoveInfo(destcoord=("ditu_zeding2.png", 508, 214), mousecoord=(272, 164)),
+            "根特": MoveInfo(destcoord=("ditu_gente.png", 212, 279), mousecoord=(158, 195)),
+            "梅尔文": MoveInfo(destcoord=("ditu_meierwen.png", 1983, 214), mousecoord=(355, 164)),
+            "纳维罗": MoveInfo(destcoord=("ditu_meierwen.png", 166, 210), mousecoord=(253, 163)),
+            "巴恩2": MoveInfo(destcoord=("ditu_baen2.png", 1660, 214), mousecoord=(337, 164)),
+            "沙影": MoveInfo(destcoord=("ditu_shaying.png", 2137, 221), mousecoord=(308, 92)),
+            "根特-码头": MoveInfo(destcoord=("ditu_gente_hedunmaer.png", 1703, 237), mousecoord=(285, 96)),
+            "根特-发电站": MoveInfo(destcoord=("ditu_gente_fadianzhan.png", 1538, 229), mousecoord=(471, 374)),
+        }
+    },
+    "素喃": {
+        "check": IsInSunan,
+        "pic": Picture(GetImgDir() + "shijie_sunan.png"),
+        "npcs": {
+            "素喃-码头": MoveInfo(destcoord=("ditu_sunan_matou.png", 318, 212), mousecoord=(326, 398)),
+        }
+    },
+    "发电站": {
+        "check": IsInFadianzhan,
+        "pic": Picture(GetImgDir() + "shijie_fadianzhan.png"),
+        "npcs": {
+            "发电站-根特": MoveInfo(destcoord=("ditu_fadianzhangente.png", 128, 271), mousecoord=(344, 500)),
+        }
+    },
+    "寂静城": {
+        "check": IsInJijingchen,
+        "pic": Picture(GetImgDir() + "shijie_jijingcheng.png"),
+        "npcs": {
+            "寂静城-码头": MoveInfo(destcoord=("ditu_jijingchengmatou.png", 111, 259), mousecoord=(134, 434)),
+            "寂静城-地轨中心":  MoveInfo(destcoord=("ditu_jichengchengdiguizhongxin.png", 958, 259), mousecoord=(205, 434)),
+        }
+    },
+    "地轨中心": {
+        "check": IsInDiguizhongxin,
+        "pic": Picture(GetImgDir() + "shijie_diguizhongxin.png"),
+        "npcs": {
+            "地轨中心-寂静城": MoveInfo(destcoord=("ditu_diguizhongxinjijingcheng.png", 161, 337), mousecoord=(36, 122)),
         }
     }
 }
@@ -198,6 +242,11 @@ Mapid = {
     "赫顿玛尔": 1,
     "阿法利亚": 2,
     "镜像阿拉德": 3,
+    "根特": 4,
+    "素喃": 5,
+    "发电站": 6,
+    "寂静城": 7,
+    "地轨中心": 8,
 }
 
 
@@ -215,8 +264,8 @@ def InitGraph():
                         Clear()
                         player.taskctx.latestmovepoint = None
                         break
-                    QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
-                    QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
+                    GetQuadKeyDownMap()[Quardant.XIA](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.XIA](), RanSleep(0.3)
         else:
             logger.warning("我在哪儿?")
 
@@ -231,8 +280,8 @@ def InitGraph():
                         Clear()
                         player.taskctx.latestmovepoint = None
                         break
-                    QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
-                    QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
+                    GetQuadKeyDownMap()[Quardant.SHANG](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.SHANG](), RanSleep(0.3)
         else:
             logger.warning("我在哪儿?")
 
@@ -247,8 +296,8 @@ def InitGraph():
                         Clear()
                         player.taskctx.latestmovepoint = None
                         break
-                    QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
-                    QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
+                    GetQuadKeyDownMap()[Quardant.XIA](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.XIA](), RanSleep(0.3)
         else:
             logger.warning("我在哪儿?")
 
@@ -263,8 +312,8 @@ def InitGraph():
                         Clear()
                         player.taskctx.latestmovepoint = None
                         break
-                    QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
-                    QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
+                    GetQuadKeyDownMap()[Quardant.SHANG](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.SHANG](), RanSleep(0.3)
         else:
             logger.warning("我在哪儿?")
 
@@ -279,8 +328,8 @@ def InitGraph():
                         Clear()
                         player.taskctx.latestmovepoint = None
                         break
-                    QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)
-                    QuadKeyUpMap[Quardant.SHANG](), RanSleep(0.3)
+                    GetQuadKeyDownMap()[Quardant.SHANG](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.SHANG](), RanSleep(0.3)
         else:
             logger.warning("我在哪儿?")
 
@@ -295,8 +344,209 @@ def InitGraph():
                         Clear()
                         player.taskctx.latestmovepoint = None
                         break
-                    QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
-                    QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
+                    GetQuadKeyDownMap()[Quardant.XIA](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.XIA](), RanSleep(0.3)
+        else:
+            logger.warning("我在哪儿?")
+
+    def 赫顿玛尔_根特(player):
+        if IsinHedunmaer():
+            if not HasMoveTo("赫顿玛尔-码头"):
+                MoveTo("赫顿玛尔-码头", player)
+                return
+            else:
+                for i in range(10):
+                    if matou.Match():
+                        logger.info("选中根特")
+                        aj().MouseMoveTo(420, 210), KongjianSleep()
+                        aj().MouseLeftClick(), RanSleep(0.3)
+                        aj().MouseLeftClick(), RanSleep(1)
+
+                    if IsIngente():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
+                        break
+
+                    GetQuadKeyDownMap()[Quardant.SHANG](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.SHANG](), RanSleep(0.3)
+        else:
+            logger.warning("我在哪儿?")
+
+    def 根特_赫顿玛尔(player):
+        if IsIngente():
+            if not HasMoveTo("根特-码头"):
+                MoveTo("根特-码头", player)
+                return
+            else:
+                for i in range(10):
+                    if matou.Match():
+                        logger.info("选中西海岸")
+                        aj().MouseMoveTo(264, 469), KongjianSleep()
+                        aj().MouseLeftClick(), RanSleep(0.3)
+                        aj().MouseLeftClick(), RanSleep(1)
+
+                    if IsinHedunmaer():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
+                        break
+                    GetQuadKeyDownMap()[Quardant.SHANG](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.SHANG](), RanSleep(0.3)
+        else:
+            logger.warning("我在哪儿?")
+
+    def 赫顿玛尔_素喃(player):
+        if IsinHedunmaer():
+            if not HasMoveTo("赫顿玛尔-码头"):
+                MoveTo("赫顿玛尔-码头", player)
+                return
+            else:
+                for i in range(10):
+                    if matou.Match():
+                        logger.info("选中素喃")
+                        aj().MouseMoveTo(237, 412), KongjianSleep()
+                        aj().MouseLeftClick(), RanSleep(0.3)
+                        aj().MouseLeftClick(), RanSleep(1)
+
+                    if IsInSunan():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
+                        break
+
+                    GetQuadKeyDownMap()[Quardant.SHANG](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.SHANG](), RanSleep(0.3)
+        else:
+            logger.warning("我在哪儿?")
+
+    def 素喃_赫顿玛尔(player):
+        if IsInSunan():
+            if not HasMoveTo("素喃-码头"):
+                MoveTo("素喃-码头", player)
+                return
+            else:
+                for i in range(10):
+                    if matou.Match():
+                        logger.info("选中西海岸")
+                        aj().MouseMoveTo(264, 469), KongjianSleep()
+                        aj().MouseLeftClick(), RanSleep(0.3)
+                        aj().MouseLeftClick(), RanSleep(1)
+
+                    if IsinHedunmaer():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
+                        break
+                    GetQuadKeyDownMap()[Quardant.SHANG](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.SHANG](), RanSleep(0.3)
+        else:
+            logger.warning("我在哪儿?")
+
+    def 根特_发电站(player):
+        if IsIngente():
+            if not HasMoveTo("根特-发电站"):
+                MoveTo("根特-发电站", player)
+                return
+            else:
+                for i in range(10):
+                    if IsInFadianzhan():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
+                        break
+
+                    GetQuadKeyDownMap()[Quardant.SHANG](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.SHANG](), RanSleep(0.3)
+        else:
+            logger.warning("我在哪儿?")
+
+    def 发电站_根特(player):
+        if IsInFadianzhan():
+            if not HasMoveTo("发电站-根特"):
+                MoveTo("发电站-根特", player)
+                return
+            else:
+                for i in range(10):
+                    if IsIngente():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
+                        break
+                    GetQuadKeyDownMap()[Quardant.ZUO](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.ZUO](), RanSleep(0.3)
+        else:
+            logger.warning("我在哪儿?")
+
+    def 赫顿玛尔_寂静城(player):
+        if IsinHedunmaer():
+            if not HasMoveTo("赫顿玛尔-码头"):
+                MoveTo("赫顿玛尔-码头", player)
+                return
+            else:
+                for i in range(10):
+                    if matou.Match():
+                        logger.info("选中寂静城")
+                        aj().MouseMoveTo(695, 208), KongjianSleep()
+                        aj().MouseLeftClick(), RanSleep(0.3)
+                        aj().MouseLeftClick(), RanSleep(1)
+
+                    if IsInJijingchen():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
+                        break
+
+                    GetQuadKeyDownMap()[Quardant.SHANG](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.SHANG](), RanSleep(0.3)
+        else:
+            logger.warning("我在哪儿?")
+
+    def 寂静城_赫顿玛尔(player):
+        if IsInJijingchen():
+            if not HasMoveTo("寂静城-码头"):
+                MoveTo("寂静城-码头", player)
+                return
+            else:
+                for i in range(10):
+                    if matou.Match():
+                        logger.info("选中西海岸")
+                        aj().MouseMoveTo(264, 469), KongjianSleep()
+                        aj().MouseLeftClick(), RanSleep(0.3)
+                        aj().MouseLeftClick(), RanSleep(1)
+
+                    if IsinHedunmaer():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
+                        break
+                    GetQuadKeyDownMap()[Quardant.SHANG](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.SHANG](), RanSleep(0.3)
+        else:
+            logger.warning("我在哪儿?")
+
+    def 寂静城_地轨中心(player):
+        if IsInJijingchen():
+            if not HasMoveTo("寂静城-地轨中心"):
+                MoveTo("寂静城-地轨中心", player)
+                return
+            else:
+                for i in range(10):
+                    if IsInDiguizhongxin():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
+                        break
+
+                    GetQuadKeyDownMap()[Quardant.SHANG](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.SHANG](), RanSleep(0.3)
+        else:
+            logger.warning("我在哪儿?")
+
+    def 地轨中心_寂静城(player):
+        if IsInDiguizhongxin():
+            if not HasMoveTo("地轨中心-寂静城"):
+                MoveTo("地轨中心-寂静城", player)
+                return
+            else:
+                for i in range(10):
+                    if IsInJijingchen():
+                        Clear()
+                        player.taskctx.latestmovepoint = None
+                        break
+                    GetQuadKeyDownMap()[Quardant.ZUO](), RanSleep(1)
+                    GetQuadKeyUpMap()[Quardant.ZUO](), RanSleep(0.3)
         else:
             logger.warning("我在哪儿?")
 
@@ -308,6 +558,21 @@ def InitGraph():
 
     graph.AddEdge(Mapid["赫顿玛尔"], Mapid["镜像阿拉德"], 赫顿玛尔_镜像)
     graph.AddEdge(Mapid["镜像阿拉德"], Mapid["赫顿玛尔"], 镜像_赫顿玛尔)
+
+    graph.AddEdge(Mapid["赫顿玛尔"], Mapid["根特"], 赫顿玛尔_根特)
+    graph.AddEdge(Mapid["根特"], Mapid["赫顿玛尔"], 根特_赫顿玛尔)
+
+    graph.AddEdge(Mapid["赫顿玛尔"], Mapid["素喃"], 赫顿玛尔_素喃)
+    graph.AddEdge(Mapid["素喃"], Mapid["赫顿玛尔"], 素喃_赫顿玛尔)
+
+    graph.AddEdge(Mapid["根特"], Mapid["发电站"], 根特_发电站)
+    graph.AddEdge(Mapid["发电站"], Mapid["根特"], 发电站_根特)
+
+    graph.AddEdge(Mapid["赫顿玛尔"], Mapid["寂静城"], 赫顿玛尔_寂静城)
+    graph.AddEdge(Mapid["寂静城"], Mapid["赫顿玛尔"], 寂静城_赫顿玛尔)
+
+    graph.AddEdge(Mapid["寂静城"], Mapid["地轨中心"], 寂静城_地轨中心)
+    graph.AddEdge(Mapid["地轨中心"], Mapid["寂静城"], 地轨中心_寂静城)
 
     return graph
 
@@ -528,12 +793,12 @@ def IsMoveToChengzhenPos(destpic, destcoord, desc):
                     # 上次的按键在本次方向中没找到就弹起
                     for keydown in latestDecompose:
                         if keydown not in currentDecompose:
-                            QuadKeyUpMap[keydown]()
+                            GetQuadKeyUpMap()[keydown]()
 
-                    QuadKeyDownMap[quad]()
+                    GetQuadKeyDownMap()[quad]()
                     latestdown = quad
                 else:
-                    QuadKeyDownMap[quad]()
+                    GetQuadKeyDownMap()[quad]()
                     latestdown = quad
 
                 RanSleep(0.02)
@@ -598,8 +863,8 @@ def GoToSelect(quad: Quardant):
     for i in range(3):
         if not IsManInSelectMap():
             logger.info("微调选择地图")
-            QuadKeyDownMap[quad](), RanSleep(1)
-            QuadKeyUpMap[quad](), KongjianSleep()
+            GetQuadKeyDownMap()[quad](), RanSleep(1)
+            GetQuadKeyUpMap()[quad](), KongjianSleep()
         else:
             break
 
@@ -765,8 +1030,8 @@ def DoneSailiya(mapname):
             # 在宽度内才向下哦
             if 440 < meninfo.chengzhenx < 460:
                 logger.info("人物坐标在440 和 460 中间, 向下走出赛丽亚房间")
-                QuadKeyDownMap[Quardant.XIA](), RanSleep(1)
-                QuadKeyUpMap[Quardant.XIA](), RanSleep(0.3)
+                GetQuadKeyDownMap()[Quardant.XIA](), RanSleep(1)
+                GetQuadKeyUpMap()[Quardant.XIA](), RanSleep(0.3)
                 return True
             else:
                 logger.warning("人物坐标向下不能移动出去赛丽亚房间, 直接小地图移动过去")
@@ -775,19 +1040,21 @@ def DoneSailiya(mapname):
 
 
 # 返回一个打指定地图的函数
-def AttacktaskFoo(fubenname):
-    def foo(player, fubenname=fubenname):
+def AttacktaskFoo(fubenname, acceptorsubmit=True):
+    def foo(player, fubenname=fubenname, acceptorsubmit=acceptorsubmit):
         # 获取副本相关的信息 1. 地图名称 2. 方向
         mapname, quad, idx = GetMapInfo(fubenname)
-        if not IsTaskaccept():
-            logger.info("没有主线任务被接受")
-            AcceptMain(player)
-            return
 
-        if TaskOk():
-            logger.info("任务直接可完成")
-            SubmitTask(player)
-            return
+        if acceptorsubmit:
+            if not IsTaskaccept():
+                logger.info("没有主线任务被接受")
+                AcceptMain(player)
+                return
+
+            if TaskOk():
+                logger.info("任务直接可完成")
+                SubmitTask(player)
+                return
 
         if HasMoveTo(mapname):
             Clear()
@@ -880,8 +1147,8 @@ def MeetNpcFoo(destname):
                         meninfo = GetMenInfo()
 
                         if not IsClosedTo(meninfo.chengzhenx, meninfo.chengzheny, 447, 163, 20):
-                            QuadKeyDownMap[Quardant.SHANG](), RanSleep(1)  # TODO 写死了
-                            QuadKeyUpMap[Quardant.SHANG](), KongjianSleep()
+                            GetQuadKeyDownMap()[Quardant.SHANG](), RanSleep(1)  # TODO 写死了
+                            GetQuadKeyUpMap()[Quardant.SHANG](), KongjianSleep()
 
                         RanSleep(0.3)
 
@@ -894,8 +1161,8 @@ def MeetNpcFoo(destname):
                 logger.info("到达了指定位置,按space键")
 
                 if destname == "马琳·基希卡":
-                    QuadKeyDownMap[Quardant.ZUO](), RanSleep(0.5)
-                    QuadKeyUpMap[Quardant.ZUO](), RanSleep(0.5)
+                    GetQuadKeyDownMap()[Quardant.ZUO](), RanSleep(0.5)
+                    GetQuadKeyUpMap()[Quardant.ZUO](), RanSleep(0.5)
 
                 meninfo = GetMenInfo()
                 destinfo = GetDestinfo(destname)
@@ -904,8 +1171,8 @@ def MeetNpcFoo(destname):
                     # 对话角色 微调整
                     quad, _ = GetQuadrant(meninfo.chengzhenx, meninfo.chengzheny, destinfo.destcoord[0],
                                           destinfo.destcoord[1])
-                    QuadKeyDownMap[quad](), RanSleep(0.05)
-                    QuadKeyUpMap[quad](), RanSleep(0.05)
+                    GetQuadKeyDownMap()[quad](), RanSleep(0.05)
+                    GetQuadKeyUpMap()[quad](), RanSleep(0.05)
 
                 aj().PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
@@ -921,6 +1188,35 @@ def MeetNpcFoo(destname):
                     if HasSpecifyAccept(3492):
                         global meetaganzuo
                         meetaganzuo = True
+                elif destname == "梅尔文":
+                    if HasSpecifyAccept(3521):
+                        global meetaierwen
+                        meetaierwen = True
+                    elif HasSpecifyAccept(3525):
+                        global meetmererwenBingqi
+                        meetmererwenBingqi = True
+                    elif HasSpecifyAccept(3547):
+                        global meetmeierwenGuaiwu
+                        meetmeierwenGuaiwu = True
+                elif destname == "泽丁":
+                    if HasSpecifyAccept(3521):
+                        global meetzeding
+                        meetzeding = True
+                    elif HasSpecifyAccept(3525):
+                        global meetzedingBingqi
+                        meetzedingBingqi = True
+                elif destname == "马琳2":
+                    if HasSpecifyAccept(3532):
+                        global meetmalinJingtan
+                        meetmalinJingtan = True
+                elif destname == "巴恩2":
+                    if HasSpecifyAccept(3532):
+                        global meetbaenJingtan
+                        meetbaenJingtan = True
+                elif destname == "沙影":
+                    if HasSpecifyAccept(3540):
+                        global meetshaying
+                        meetshaying = True
             else:
 
                 # 赛丽亚房间就退出来
@@ -1044,15 +1340,32 @@ meetbaerleina = False
 meetaerbote = False
 attackqiju = False
 meetaganzuo = False
+meetaierwen = False
+meetzeding = False
+meetmererwenBingqi = False
+meetzedingBingqi = False
+meetmalinJingtan = False
+meetbaenJingtan = False
+meetshaying = False
+meetmeierwenGuaiwu = False
 
 
 # 切换角色后要置空
 def ResetAllChongming():
-    global meetbaerleina, meetaerbote, attackqiju, meetaganzuo
+    global meetbaerleina, meetaerbote, attackqiju, meetaganzuo, meetaierwen, meetzeding, meetmererwenBingqi, meetzedingBingqi, \
+        meetmalinJingtan, meetbaenJingtan, meetshaying, meetmeierwenGuaiwu
     meetbaerleina = False
     meetaerbote = False
     attackqiju = False
     meetaganzuo = False
+    meetaierwen = False
+    meetzeding = False
+    meetmererwenBingqi = False
+    meetzedingBingqi = False
+    meetmalinJingtan = False
+    meetbaenJingtan = False
+    meetshaying = False
+    meetmeierwenGuaiwu = False
 
 
 # 同名任务
@@ -1131,6 +1444,76 @@ def 罗特斯所在之地():
             AttacktaskFoo("第二脊椎")(player)
         else:
             AttacktaskFoo("罗特斯的宫殿")(player)
+
+    return foo
+
+
+# 同名任务
+def 根特的守护神():
+    def foo(player):
+        if not meetaierwen:
+            logger.info("去见梅尔文")
+            MeetNpcFoo("梅尔文")(player)
+        elif not meetzeding:
+            logger.info("泽丁")
+            MeetNpcFoo("泽丁")(player)
+        else:
+            AttacktaskFoo("根特东门")(player)
+
+    return foo
+
+
+# 同名任务
+def 奇怪的兵器():
+    def foo(player):
+        if not meetmererwenBingqi:
+            logger.info("去见梅尔文")
+            MeetNpcFoo("梅尔文")(player)
+        elif not meetzedingBingqi:
+            logger.info("泽丁")
+            MeetNpcFoo("泽丁")(player)
+        else:
+            AttacktaskFoo("根特南门")(player)
+
+    return foo
+
+
+# 同名任务
+def 让人惊叹不已的料理():
+    def foo(player):
+        if not meetmalinJingtan:
+            logger.info("去见马琳")
+            MeetNpcFoo("马琳2")(player)
+        elif not meetbaenJingtan:
+            logger.info("去见巴恩")
+            MeetNpcFoo("巴恩2")(player)
+        else:
+            logger.info("去见泽丁")
+            MeetNpcFoo("泽丁")(player)
+
+    return foo
+
+
+# 同名任务
+def 午夜行动():
+    def foo(player):
+        if not meetshaying:
+            logger.info("去见沙影")
+            MeetNpcFoo("沙影")(player)
+        else:
+            AttacktaskFoo("夜间袭击战")(player)
+
+    return foo
+
+
+# 同名任务
+def 怪物实验体():
+    def foo(player):
+        if not meetmeierwenGuaiwu:
+            logger.info("去见梅尔文")
+            MeetNpcFoo("梅尔文")(player)
+        else:
+            AttacktaskFoo("补给线阻断战")(player)
 
     return foo
 
@@ -1285,6 +1668,76 @@ FubenInfos = {
             "GBL女神殿": 2,
             "树精繁殖地": 3,
             "罗特斯的宫殿": 4,
+            "天空岛": 4,
+        }
+    },
+    "根特": {
+        "quad": Quardant.ZUO,
+        "fubens": {
+            "根特外围": 0,
+            "根特东门": 1,
+            "根特南门": 2,
+            "根特北门": 3,
+            "根特防御战": 4,
+            "夜间袭击战": 5,
+            "补给线阻断战": 6,
+            "追击歼灭战": 7,
+            "哈尔特山": 8,
+            "峡谷深处": 4
+        }
+    },
+    "悬空海港": {
+        "quad": Quardant.YOU,
+        "fubens": {
+            "列车上的海贼": 0,
+            "夺回西部线": 1,
+            "雾都赫伊斯": 2,
+            "阿登高地": 3,
+            "海上航线": 4,
+        }
+    },
+    "素喃": {
+        "quad": Quardant.ZUO,
+        "fubens": {
+            "格兰之火": 0,
+            "瘟疫之源": 1,
+            "卡勒特之刃": 2,
+            "绝密区域": 3,
+            "昔日悲鸣": 4,
+            "凛冬": 5,
+            "谜之觉悟": 6,
+            "时间界限": 8,
+        }
+    },
+    "发电站": {
+        "quad": Quardant.YOU,
+        "fubens": {
+            "克雷发电站": 0,
+            "普鲁兹发电站": 1,
+            "特伦斯发电站": 2,
+            "格蓝迪发电站": 3,
+            "控制塔": 4,
+        }
+    },
+    "寂静城": {
+        "quad": Quardant.YOU,
+        "fubens": {
+            "倒悬的瞭望台": 0,
+            "卢克的聚光镜": 1,
+            "钢铁之臂": 2,
+            "能源熔炉": 3,
+            "光之舞会": 4,
+            "不灭回廊": 6,
+        }
+    },
+    "卢克的实验室": {
+        "quad": Quardant.YOU,
+        "fubens": {
+        }
+    },
+    "地轨中心": {
+        "quad": Quardant.YOU,
+        "fubens": {
         }
     }
 }
@@ -1574,49 +2027,55 @@ plotMap = {
     "再遇长脚罗特斯": AttacktaskFoo("罗特斯的宫殿"),
     "返回赫顿玛尔": MeetNpcFoo("麦瑟·莫纳亨"),
     # 63-74 天界
-    "洛巴赫的委托": MeetNpcFoo("斯卡迪女王"),
-    "前往天界": MeetNpcFoo("巴恩·巴休特"),
+    "洛巴赫的委托": MeetNpcFoo("斯卡迪"),
+    "前往天界": MeetNpcFoo("巴恩"),
     "邪龙之角": MeetNpcFoo("梅娅女王"),
     "准备就绪": MeetNpcFoo("马琳·基希卡"),
-    "终于开启的天界之门": MeetNpcFoo("马琳·基希卡"),
-    "天界的守备队长": MeetNpcFoo("泽丁·施奈德"),
+    "终于开启的天界之门": MeetNpcFoo("马琳2"),
+    "天界的守备队长": MeetNpcFoo("泽丁"),
     "侦查根特外围": AttacktaskFoo("根特外围"),
     "冒险家被抓": AttacktaskFoo("根特外围"),
     "阻止纵火兵": AttacktaskFoo("根特外围"),
-    "根特的守护神": MeetNpcFoo("梅尔文·里克特"),
+    "根特的守护神": 根特的守护神(),
+    # "根特的守护神": MeetNpcFoo("梅尔文"),
     # "根特的守护神": MeetNpcFoo("泽丁·施奈德"),
     # "根特的守护神": AttacktaskFoo("根特东门"),
     "救出我军": AttacktaskFoo("根特东门"),
     "疾风之苏雷德": AttacktaskFoo("根特东门"),
     "夺取弹药": AttacktaskFoo("根特南门"),
-    "奇怪的兵器": MeetNpcFoo("梅尔文·里克特"),
+    "奇怪的兵器": 奇怪的兵器(),
+    # "奇怪的兵器": MeetNpcFoo("梅尔文"),
     # "奇怪的兵器": MeetNpcFoo("泽丁·施奈德"),
     # "奇怪的兵器": AttacktaskFoo("根特南门"),
     "机动兵器 GT-9600": AttacktaskFoo("根特南门"),
-    "持续的战争": MeetNpcFoo("泽丁·施奈德"),
-    "遗失的AT5T 步行者": AttacktaskFoo("根特北门"),
-    "回收AT5T 步行者": AttacktaskFoo("根特北门"),
-    "拥有机械臂的男人": AttacktaskFoo("根特北门"),
-    "天界的摄政王": MeetNpcFoo("纳维罗·尤尔根"),
-    "让人惊叹不已的料理": MeetNpcFoo("马琳·基希卡"),
+    "持续的战争": MeetNpcFoo("泽丁"),
+    "遗失的AT-5T 步行者": AttacktaskFoo("根特北门"),  # 坦克在boss房间 AT-5T 步行者
+    "回收AT-5T 步行者": AttacktaskFoo("根特北门"),  # 按F 进入坦克
+    "拥有机械臂的男人": AttacktaskFoo("根特北门"),  # 按F 进入坦克
+    "天界的摄政王": MeetNpcFoo("纳维罗"),
+    "让人惊叹不已的料理": 让人惊叹不已的料理(),
+    # "让人惊叹不已的料理": MeetNpcFoo("马琳2"),
     # "让人惊叹不已的料理": MeetNpcFoo("巴恩·巴休特"),
     # "让人惊叹不已的料理": MeetNpcFoo("泽丁·施奈德"),
-    "卡勒特突袭": AttacktaskFoo("根特北门"),
+    "卡勒特突袭": AttacktaskFoo("根特北门"),  # 按F 进入坦克
     "遇见革命军": AttacktaskFoo("峡谷深处"),
-    "向泽丁报告": MeetNpcFoo("泽丁·施奈德"),
+    "向泽丁报告": MeetNpcFoo("泽丁"),
     "躲在峡谷的敌人": AttacktaskFoo("根特防御战"),
     "突破包围": AttacktaskFoo("根特防御战"),
     "夜战司令官巴比伦": AttacktaskFoo("根特防御战"),
     "侦查敌军营地": AttacktaskFoo("夜间袭击战"),
-    "午夜行动": MeetNpcFoo("沙影贝利特"),
+
+    "午夜行动": 午夜行动(),
+    # "午夜行动": MeetNpcFoo("沙影"),
     # "午夜行动": MeetNpcFoo("夜间袭击战"),
-    "银勺团杂技团": MeetNpcFoo("泽丁·施奈德"),
+    "银勺团杂技团": MeetNpcFoo("泽丁"),
     "打败小丑人": AttacktaskFoo("夜间袭击战"),
     "击退杂技团": AttacktaskFoo("夜间袭击战"),
     "探索补给基地": AttacktaskFoo("补给线阻断战"),
     "保证粮食供应": AttacktaskFoo("补给线阻断战"),
     "奇特的生物": AttacktaskFoo("补给线阻断战"),
-    "怪物实验体": MeetNpcFoo("梅尔文·里克特"),
+    "怪物实验体": 怪物实验体(),
+    # "怪物实验体": MeetNpcFoo("梅尔文"),
     # "怪物实验体": AttacktaskFoo("补给线阻断战"),
     "终极实验体": AttacktaskFoo("补给线阻断战"),
     "准备总攻": AttacktaskFoo("追击歼灭战"),
@@ -1624,9 +2083,9 @@ plotMap = {
     "无名女士": AttacktaskFoo("追击歼灭战"),
     "终极作战": AttacktaskFoo("追击歼灭战"),
     "大决战": AttacktaskFoo("追击歼灭战"),
-    "马琳的问候": MeetNpcFoo("马琳·基希卡"),
+    "马琳的问候": MeetNpcFoo("马琳2"),
 
-    "悬空的海港": MeetNpcFoo("贝伦·博内哥特"),
+    "悬空的海港": MeetNpcFoo("贝伦"),
     "免费搭乘海上列车": AttacktaskFoo("列车上的海贼"),
     "可疑的美人鱼空空伊": AttacktaskFoo("列车上的海贼"),
     "海盗船长": AttacktaskFoo("列车上的海贼"),
@@ -1636,7 +2095,7 @@ plotMap = {
     "破坏武器": AttacktaskFoo("夺回西部线"),
     "夺回海上列车": AttacktaskFoo("夺回西部线"),
     "小灯笼的礼物": MeetNpcFoo("小灯笼"),
-    "挡路的列车": AttacktaskFoo("幽灵列车"),
+    "挡路x的列车": AttacktaskFoo("幽灵列车"),
     "雾都赫伊斯": AttacktaskFoo("雾都赫伊斯"),
     "敌人袭来": AttacktaskFoo("雾都赫伊斯"),
     "狙击手": AttacktaskFoo("雾都赫伊斯"),
@@ -1747,7 +2206,7 @@ plotMap = {
     "下一个发电站": AttacktaskFoo("普鲁兹发电站"),
     "神秘的魔刹石": MeetNpcFoo("米亚·里克特     需要点击远程通话"),
     "收集魔刹石": AttacktaskFoo("普鲁兹发电站"),
-    "转交魔法石": MeetNpcFoo("贝伦·博内哥特"),
+    "转交魔法石": MeetNpcFoo("贝伦"),
     # "转交魔法石": MeetNpcFoo("中将尼贝尔"),
     "寻找掉队的队员": AttacktaskFoo("普鲁兹发电站"),
     "阻止能量传导": AttacktaskFoo("普鲁兹发电站"),

@@ -147,22 +147,24 @@ class Occupationkills:
             self.DelSkill("擒拿掌")
             self.learnstrategy.append(OccupationSkill("nanmofa", "朔风牵引", "fengfa_sufengqianying.png"))
             self.learnstrategy.append(OccupationSkill("nanmofa", "流风诀", "fengfa_liufengjue.png"))
-
         if meninfo.level >= 25:
             self.DelSkill("魔法冰球")
             self.DelSkill("旋火盾")
             self.learnstrategy.append(OccupationSkill("nanmofa", "风鸣冲击", "fengfa_fnegmingchongji.png"))
             self.learnstrategy.append(OccupationSkill("nanmofa", "游离之风", "fengfa_youlingzhifen.png"))
-
         if meninfo.level >= 30:
             self.learnstrategy.append(OccupationSkill("nanmofa", "双翼风刃", "fengfa_shuangyifengren.png"))
-
         if meninfo.level >= 35:
             self.learnstrategy.append(OccupationSkill("nanmofa", "刃风", "fengfa_renfeng.png"))
             self.learnstrategy.append(OccupationSkill("nanmofa", "风暴之眼", "fengfa_fengbaozhiyan.png"))
-
         if meninfo.level >= 40:
             self.learnstrategy.append(OccupationSkill("nanmofa", "真空旋风破", "fengfa_zhenkongxuanfengpo.png"))
+        if meninfo.level >= 45:
+            self.learnstrategy.append(OccupationSkill("nanmofa", "风暴之拳", "fengfa_fengbaozhiquan.png"))
+        if meninfo.level >= 50:
+            self.DelSkill("回风斩")
+            self.learnstrategy.append(OccupationSkill("nanmofa", "万象风龙阵", "fengfa_wanxiang.png"))
+            self.learnstrategy.append(OccupationSkill("nanmofa", "御风之力", "fengfa_yufengzhili.png", beidong=True))
 
     # 枪剑士
     def qiangjianshiInit(self):
@@ -205,6 +207,7 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "光裂斩", "yuanneng_guangliezhan.png"))
         if meninfo.level >= 45:
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "光导裂地斩", "yuanneng_guangdaoliedizhan.png"))
+
 
     # 男鬼剑士
     def guijianshiInit(self):
@@ -252,6 +255,12 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("guijianshi", "幻鬼 : 回天", "jianying_huitian.png"))
         if meninfo.level >= 45:
             self.learnstrategy.append(OccupationSkill("guijianshi", "冥灵断魂斩", "jianying_minlingdunhunzhan.png"))
+        if meninfo.level >= 50:
+            # self.DelSkill("鬼连牙")
+            self.DelSkill("鬼连斩")
+            self.DelSkill("鬼连斩 : 极")
+            self.learnstrategy.append(OccupationSkill("guijianshi", "冥夜鬼天杀", "jianying_minguitianyesha.png"))
+            self.learnstrategy.append(OccupationSkill("guijianshi", "鬼夜", "jianying_guiye.png", beidong=True))
 
     # 女格斗家
     def gedouInit(self):
@@ -283,6 +292,11 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("gedoujia", "念兽 : 龙虎啸", "qigong__longhuxiao.png"))
         if meninfo.level >= 45:
             self.learnstrategy.append(OccupationSkill("gedoujia", "螺旋念气场", "qigong_luoxuannianqi.png"))
+        if meninfo.level >= 50:
+            self.learnstrategy.append(OccupationSkill("gedoujia", "千莲怒放", "qigong_qianliannufang.png"))
+            self.learnstrategy.append(OccupationSkill("gedoujia", "乱舞 千叶花", "qigong_luanwu.png", beidong=True))
+        if meninfo.level >= 60:
+            self.learnstrategy.append(OccupationSkill("gedoujia", "奔雷掌", "qigong_benleizhang.png"))
 
     # 守护者
     def shouhuInit(self):
@@ -324,6 +338,14 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "神罚之锤", "palading_shenfazhichui.png"))
         if meninfo.level >= 45:
             self.learnstrategy.append(OccupationSkill("shouhuzhe", "神光之跃", "palading_shenzhiguangyue.png"))
+        if meninfo.level >= 50:
+            self.DelSkill("圣盾突击")
+            self.DelSkill("神光连斩")
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "信仰聚合 : 神光惩戒", "palading_xinyangjuhe.png"))
+            self.learnstrategy.append(
+                OccupationSkill("shouhuzhe", "荣耀之光", "palading_rongyaozhiguang.png", beidong=True))
+        if meninfo.level >= 60:
+            self.learnstrategy.append(OccupationSkill("shouhuzhe", "圣盾裁决", "palading_shengduncaijue.png"))
 
     # 圣职
     def shengzhiInit(self):

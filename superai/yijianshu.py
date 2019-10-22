@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import threading
+import time
 from ctypes import *
 
 import win32gui
@@ -12,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 logger = logging.getLogger(__name__)
 
 from superai.pathsetting import GetYiLib
-from superai.common import InitLog, GetCursorInfo, RanSleep, KongjianSleep
+from superai.common import InitLog, GetCursorInfo, RanSleep, KongjianSleep, GameWindowToTop
 from superai.vkcode import *
 
 lib = GetYiLib()
@@ -392,10 +393,13 @@ def main():
 
     anjian = Yijianshu()
 
-    if not anjian.YijianshuInit():
+    if not anjian.Init():
+        logger.warning("易键鼠初始化失败")
         sys.exit()
 
-    anjian.KeyInputGBK("你好啊")
+    GameWindowToTop()
+
+    anjian.MouseMoveTo(205, 434)
 
 
 if __name__ == '__main__':

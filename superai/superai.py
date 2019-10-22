@@ -15,6 +15,7 @@ import win32gui
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 logger = logging.getLogger(__name__)
 
+from superai.banzhuan import GetBanzhuanDItu
 from superai.config import GetConfig, SaveConfig
 from superai.accountsetup import AccountSetting
 from superai.vercode import verifyfile
@@ -27,7 +28,7 @@ from superai.subnodedb import DbStateUpdate, IsTodayHavePilao, GetToSelectIdx, U
 from superai.pathsetting import GetImgDir, GameFileDir, GetvercodeDir, GetCfgPath
 from superai.dealequip import DealEquip
 from superai.equip import Equips
-from superai.plot import TaskCtx, HasPlot, plotMap, OpenSelect, ResetAllChongming
+from superai.plot import TaskCtx, HasPlot, plotMap, OpenSelect, ResetAllChongming, AttacktaskFoo
 from superai.learnskill import Occupationkills
 from superai.common import InitLog, GameWindowToTop, ClientWindowToTop, checkIfProcessRunning, killall, KongjianSleep, \
     RanSleep
@@ -42,10 +43,11 @@ from superai.gameapi import GameApiInit, FlushPid, \
     CanbePickup, WithInManzou, GetFangxiang, ClosestMonsterIsToofar, simpleAttackSkill, IsClosedTo, \
     NearestBuf, HaveBuffs, CanbeGetBuff, SpecifyMonsterIsToofar, IsManInMap, IsManInChengzhen, QuardantMap, IsManJipao, \
     NearestMonsterWrap, IsWindowTop, IsEscTop, IsFuBenPass, IsJiZhouSpecifyState, GetouliuObj, GetNextDoorWrap, \
-    GetObstacle, QuadKeyDownMap, QuadKeyUpMap, GetTaskObj, Clear, IsMenDead, IsFuzhongGou, \
+    GetObstacle, GetQuadKeyDownMap, GetQuadKeyUpMap, GetTaskObj, Clear, IsMenDead, IsFuzhongGou, \
     Zuobiaoyidong, Autoshuntu, GetCurmapXy, HavePilao, GetMapInfo, IsShitmoGu, GetSelectObj, \
     GetCurSelectIdx, IsFirstSelect, IsLastSelect, IsCurrentSupport, Openesc, IsCurrentInTrain, \
-    GetRemaindPilao, IsZhicai, UnLockHp, IsLockedHp, IsSettingSkip, IsSettingYinyingSkip
+    GetRemaindPilao, IsZhicai, UnLockHp, IsLockedHp, IsSettingSkip, IsSettingYinyingSkip, IsInTk, IsIngentebeimen, \
+    GetTkXy, at5tAttackSkill, at5t_S, at5t_F, BagWuseNum
 
 gamebegin = Picture(GetImgDir() + "gamebegin2.png")
 selectregion = Picture(GetImgDir() + "select_region.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
@@ -239,7 +241,7 @@ class Player:
 
     # 按下键
     def DownKey(self, quad):
-        QuadKeyDownMap[quad]()
+        GetQuadKeyDownMap()[quad]()
         self.latestDown = quad
 
     # 恢复之前按的键
@@ -250,12 +252,24 @@ class Player:
     # 随机选择一种技能
     def SelectSkill(self):
         self.skills.Update()
-        if random.uniform(0, 1) < 0.05:
-            self.curskill = simpleAttackSkill
+
+        if IsIngentebeimen():
+
+            t = random.uniform(0, 1)
+            if t < 0.33:
+                self.curskill = at5tAttackSkill
+            elif 0.33 < t < 0.66:
+                self.curskill = at5t_S
+            elif 0.66 < t <= 1.0:
+                self.curskill = at5t_F
+
         else:
-            self.curskill = self.skills.GetMaxLevelAttackSkill()
-            if self.curskill is None:
+            if random.uniform(0, 1) < 0.05:
                 self.curskill = simpleAttackSkill
+            else:
+                self.curskill = self.skills.GetMaxLevelAttackSkill()
+                if self.curskill is None:
+                    self.curskill = simpleAttackSkill
 
     # 使用掉随机选择的技能
     def UseSkill(self):
@@ -318,10 +332,12 @@ class Player:
         jizoustr = "" if not jizou else "疾走"
 
         if self.KeyDowned():
+
             if jizou and not IsManJipao():
-                logger.info("不在疾跑退出状态,重新来过")
-                self.UpLatestKey()
-                return
+                if not IsIngentebeimen():
+                    logger.info("不在疾跑退出状态,重新来过")
+                    self.UpLatestKey()
+                    return
 
             latestDecompose = QuardantMap[self.latestDown]
             currentDecompose = QuardantMap[quad]
@@ -329,7 +345,7 @@ class Player:
             # 上次的按键在本次方向中没找到就弹起
             for keydown in latestDecompose:
                 if keydown not in currentDecompose:
-                    QuadKeyUpMap[keydown]()
+                    GetQuadKeyUpMap()[keydown]()
             self.DownKey(quad), RanSleep(0.02)
             logger.info("seek: 本人(%.f, %.f) 目标%s (%.f, %.f)在%s, 保持部分移动方向 %s" % (
                 menx, meny, objname, destx, desty, quad.name, jizoustr))
@@ -474,7 +490,7 @@ class Player:
         if self.latestlevel == 0:
             # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
-            return False
+            return True
         elif self.latestlevel != meninfo.level:
             # 变化了等级
             self.latestlevel = meninfo.level
@@ -898,11 +914,11 @@ class InChengzhen(State):
         eq = Equips()
 
         # 频道选择界面 (让你选频道说明网络不好呀)
-        if pindaoxuanze.Match():
-            logger.warning("频道切换?")
-            killall(), RanSleep(5)
-            player.ChangeState(OpenGame())
-            return
+        # if pindaoxuanze.Match():
+        #     logger.warning("频道切换?")
+        #     killall(), RanSleep(5)
+        #     player.ChangeState(OpenGame())
+        #     return
 
         # 关闭弹窗
         if closebtn.Match():
@@ -969,19 +985,14 @@ class InChengzhen(State):
                 player.ChangeState(FenjieEquip())
                 return
 
-        # 疲劳没有了清空下背包
-        # if not HavePilao() and meninfo.fuzhongcur / meninfo.fuzhongmax > 0.3:
-        #     pos = deal.GetFenjieJiPos()
-        #     if pos is not None and pos != (0, 0):
-        #         player.ChangeState(FenjieEquip())
-        #         return
-
         # 耐久小于25%,修理 (需要先到副本外)
         if deal.NeedRepair():
             pos = deal.GetFenjieJiPos()
             if pos is not None and pos != (0, 0):
                 player.ChangeState(RepairEquip())
                 return
+
+        # 虚弱 TODO
 
         # 疲劳没了
         if not HavePilao():
@@ -993,7 +1004,11 @@ class InChengzhen(State):
             player.ChangeState(TaskState())
             return
 
-        logger.info("城镇内,没有切换至其他状态"), RanSleep(0.1)
+        # 没有剧情任务做,切换到搬砖状态
+        player.ChangeState(BanzhuanState())
+        return
+
+        # logger.info("城镇内,没有切换至其他状态"), RanSleep(0.1)
 
 
 # 技能加点,移除不需要的技能,放入需要的技能
@@ -1161,6 +1176,9 @@ class StandState(State):
         if IsManInChengzhen():
             player.ChangeState(InChengzhen())
             return
+        elif IsIngentebeimen() and not IsInTk():
+            player.ChangeState(PressFInTk())
+            return
         elif IsFuBenPass():
             # 打死boss后判断下物品
             RanSleep(0.2)
@@ -1241,12 +1259,17 @@ class SeekAndAttackMonster(State):
                          player.curskill.skilldata.too_close_v_w, player.curskill.skilldata.h_w))
 
             # 后跳解决问题
+            # player.UpLatestKey()
+            # player.ClearPathfindingLst()
+            # if random.uniform(0, 1) < 0.8:
+            #     aj().PressHouTiao(), RanSleep(0.05)
+            # else:
+            #     player.SeekWithPathfinding(seekx, seeky, dummy="合适攻击位置"), RanSleep(0.05)
+
+            # 直接走过去,稳妥点
             player.UpLatestKey()
             player.ClearPathfindingLst()
-            if random.uniform(0, 1) < 0.8:
-                aj().PressHouTiao(), RanSleep(0.05)
-            else:
-                player.SeekWithPathfinding(seekx, seeky, dummy="合适攻击位置"), RanSleep(0.05)
+            player.SeekWithPathfinding(seekx, seeky, dummy="合适攻击位置"), RanSleep(0.05)
             return
 
         # 在攻击的水平宽度和垂直宽度之内,攻击
@@ -1915,12 +1938,14 @@ class OpenGame(State):
         aj().MouseMoveToLogin(1125, 324), KongjianSleep()
         aj().MouseLeftClick(), RanSleep(1.0)
         aj().DeleteAll()
+        logger.info("输入账号 %s" % selectAccount.account)
         aj().KeyInputGBK(selectAccount.account), RanSleep(0.3)
 
         # 输入密码
         aj().MouseMoveToLogin(1136, 370), KongjianSleep()
         aj().MouseLeftClick(), RanSleep(1.0)
         # aj().DeleteAll()
+        logger.info("输入密码 %s" % selectAccount.password)
         aj().KeyInputGBK(selectAccount.password), RanSleep(0.3)
 
         # ”我已详细阅读并同意“
@@ -2067,6 +2092,39 @@ class GetEmail(State):
         player.ChangeState(InChengzhen())
 
 
+class BanzhuanState(State):
+    def Execute(self, player):
+        # 如果在图内,切换到图内
+        if IsManInMap():
+            player.ChangeState(FirstInMap())
+            return
+
+        fubenname = GetBanzhuanDItu()
+        AttacktaskFoo(fubenname)(player, acceptorsubmit=False)
+
+        logger.info("板砖状态"), RanSleep(0.1)
+
+
+# 按F进入坦克
+class PressFInTk(State):
+    def Execute(self, player):
+        if IsInTk():
+            logger.info("坐在了坦克上了")
+            player.ChangeState(StandState())
+            return
+
+        (tkx, tky) = GetTkXy()
+        meinfo = GetMenInfo()
+        if IsClosedTo(meinfo.x, meinfo.y, tkx, tky):
+            player.UpLatestKey()
+            player.ClearPathfindingLst()
+            logger.info("按z进入坦克")
+            aj().PressKey(VK_CODE["z"]), time.sleep(0.8)
+            return
+
+        player.SeekWithPathfinding(tkx, tky, dummy="AT-5T 步行者")
+
+
 # 热键监视线程
 class HotKeyThread(threading.Thread):
     def __init__(self):
@@ -2122,12 +2180,10 @@ class GameTopThread(threading.Thread):
 
 defaultvalue = {
     "游戏路径": GameFileDir(),
-    "wegame路径": "",
     "单账号刷角色数量": "3",
     "按键": "易键鼠",
     "创建角色": "男魔法师,守护者,男鬼剑士,女格斗家",
 }
-
 
 def InitSetting():
     accountsfile = os.path.join(GetCfgPath(), "accounts")
@@ -2172,8 +2228,8 @@ class SuperAiThread(threading.Thread):
 
     def run(self) -> None:
         pythoncom.CoInitialize()
-        InitLog()
         InitSetting()
+        InitLog()
         InitDb()
 
         if not GameApiInit() or not aj().Init():

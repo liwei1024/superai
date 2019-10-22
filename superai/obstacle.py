@@ -46,8 +46,8 @@ def GetGameObstacleData():
             dixingextra = []
             obstacles = []
 
-    # wh.w += 100
-    # wh.h += 100
+    wh.w += 20
+    wh.h += 20
 
     return GameObstacleData(wh.w, wh.h, dixingtree, dixingvec, dixingextra, obstacles)
 

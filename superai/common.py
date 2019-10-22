@@ -105,7 +105,6 @@ def RanSleep(t):
         t = 0
     time.sleep(t)
 
-
 # 操作控件后的sleep
 def KongjianSleep():
     RanSleep(0.2)

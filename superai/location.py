@@ -1,7 +1,6 @@
 import os
 import sys
 
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
@@ -23,6 +22,7 @@ locationNuosimaer = Picture(GetImgDir() + "ditu_nuosimaer.png")
 locationYanuofasenlin = Picture(GetImgDir() + "ditu_yanuofasenlin.png")
 locationEyunzhichen = Picture(GetImgDir() + "ditu_eyun.png")
 locationNiliupubu = Picture(GetImgDir() + "ditu_niliupubu.png")
+locationGente = Picture(GetImgDir() + "ditu_gente.png")
 
 wenziaierwenfangxian = Picture(GetImgDir() + "wenzi_aierwenfangxian.png", 610, 22, 182, 25)
 wenzihedunmaer = Picture(GetImgDir() + "wenzi_hedunmaer.png", 610, 22, 182, 25)
@@ -31,11 +31,14 @@ wenzianheicheng = Picture(GetImgDir() + "wenzi_anheicheng.png", 610, 22, 182, 25
 wenzixihaian = Picture(GetImgDir() + "wenzi_xihaian.png", 610, 22, 182, 25)
 wenzisidunxueyu = Picture(GetImgDir() + "wenzi_sidunxueyu.png", 610, 22, 182, 25)
 wenzijingxiang = Picture(GetImgDir() + "wenzi_jingxiangalade.png", 610, 22, 182, 25)
+wenzigente = Picture(GetImgDir() + "wenzi_gente.png", 610, 22, 182, 25)
+wenzisunan = Picture(GetImgDir() + "wenzi_sunan.png", 610, 22, 182, 25)
+wenzifadianzhan = Picture(GetImgDir() + "wenzi_fadianzhan.png", 610, 22, 182, 25)
+wenzijijingcheng = Picture(GetImgDir() + "wenzi_jijingcheng.png", 610, 22, 182, 25)
+wenzidiguizhongxin = Picture(GetImgDir() + "wenzi_diguizhongxin.png", 610, 22, 182, 25)
 
 sailiya = Picture(GetImgDir() + "ditu_sailiya.png")
-
 fuckgame = Picture(GetImgDir() + "fuckgame.png")
-
 maptip = Picture(GetImgDir() + "maptip.png", 742, 43, 12, 13)
 
 
@@ -93,6 +96,41 @@ def IsInJingxiangalade():
         return True
 
 
+# 是否在根特
+def IsIngente():
+    if wenzigente.Match():
+        logger.info("在根特")
+        return True
+
+
+# 是否在素喃
+def IsInSunan():
+    if wenzisunan.Match():
+        logger.info("在素喃")
+        return True
+
+
+# 是否在发电站
+def IsInFadianzhan():
+    if wenzifadianzhan.Match():
+        logger.info("在发电站")
+        return True
+
+
+# 是否在寂静城
+def IsInJijingchen():
+    if wenzijijingcheng.Match():
+        logger.info("在寂静城")
+        return True
+
+
+# 是否在地轨中心
+def IsInDiguizhongxin():
+    if wenzidiguizhongxin.Match():
+        logger.info("地轨中心")
+        return True
+
+
 # 分解,出售,修理 单独使用吧
 class Location:
     def __init__(self):
@@ -119,7 +157,8 @@ class Location:
             return "厄运之城"
         elif IsInJingxiangalade() and locationNiliupubu.Match():
             return "逆流瀑布"
-
+        elif IsIngente() and locationGente.Match():
+            return "根特"
         return ""
 
     def GetLocation(self):
@@ -133,6 +172,8 @@ class Location:
             return "镜像阿拉德"
         elif fuckgame.Match():  # TODO 这里没有用
             return "艾尔文防线"
+        elif IsIngente():
+            return "根特"
         else:
             logger.warning("无法判断在哪里所以按一下.")
             aj().PressKey(VK_CODE['.']), KongjianSleep()

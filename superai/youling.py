@@ -283,10 +283,15 @@ class Youling:
     # 滚轮
     def MouseWheel(self, v):
         if v > 0:
-            socketrpc("whellup %d" % v)
-        else:
+            for i in range(v):
+                socketrpc("whellup 1")
+                time.sleep(0.005)
 
-            socketrpc("whelldown %d" % -v)
+        else:
+            v = -v
+            for i in range(v):
+                socketrpc("whelldown 1")
+                time.sleep(0.005)
 
     # 输入gbk
     def KeyInputGBK(self, s):
@@ -297,11 +302,14 @@ class Youling:
         socketrpc("keydown Backspace"), RanSleep(2)
         socketrpc("keyup Backspace"), RanSleep(0.05)
 
-def main():
-    time.sleep(0.5)
-    anjian = Youling()
-    anjian.KeyInputGBK("你是大傻逼")
 
+def main():
+    time.sleep(1.0)
+
+    anjian = Youling()
+    anjian.MouseWheel(-3)
+
+    anjian.KeyInputGBK("GGC88zyj")
 
 if __name__ == '__main__':
     main()

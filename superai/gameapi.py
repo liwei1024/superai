@@ -588,27 +588,33 @@ ATTACK_H_WIDTH = 40 / 2
 # 攻击太靠近的垂直宽度
 ATTACK_TOO_CLOSE_V_WIDTH = 1.0 / 2
 
-QuadKeyDownMap = {
-    Quardant.ZUO: aj().DownZUO,
-    Quardant.YOU:  aj().DownYOU,
-    Quardant.SHANG:  aj().DownSHANG,
-    Quardant.XIA:  aj().DownXIA,
-    Quardant.ZUOSHANG: aj().DownZUOSHANG,
-    Quardant.ZUOXIA: aj().DownZUOXIA,
-    Quardant.YOUSHANG: aj().DownYOUSHANG,
-    Quardant.YOUXIA: aj().DownYOUXIA
-}
 
-QuadKeyUpMap = {
-    Quardant.ZUO: aj().UpZUO,
-    Quardant.YOU: aj().UpYOU,
-    Quardant.SHANG: aj().UpSHANG,
-    Quardant.XIA: aj().UpXIA,
-    Quardant.ZUOSHANG: aj().UpZUOSHANG,
-    Quardant.ZUOXIA: aj().UpZUOXIA,
-    Quardant.YOUSHANG: aj().UpYOUSHANG,
-    Quardant.YOUXIA: aj().UpYOUXIA
-}
+def GetQuadKeyDownMap():
+    QuadKeyDownMap = {
+        Quardant.ZUO: aj().DownZUO,
+        Quardant.YOU: aj().DownYOU,
+        Quardant.SHANG: aj().DownSHANG,
+        Quardant.XIA: aj().DownXIA,
+        Quardant.ZUOSHANG: aj().DownZUOSHANG,
+        Quardant.ZUOXIA: aj().DownZUOXIA,
+        Quardant.YOUSHANG: aj().DownYOUSHANG,
+        Quardant.YOUXIA: aj().DownYOUXIA
+    }
+    return QuadKeyDownMap
+
+
+def GetQuadKeyUpMap():
+    QuadKeyUpMap = {
+        Quardant.ZUO: aj().UpZUO,
+        Quardant.YOU: aj().UpYOU,
+        Quardant.SHANG: aj().UpSHANG,
+        Quardant.XIA: aj().UpXIA,
+        Quardant.ZUOSHANG: aj().UpZUOSHANG,
+        Quardant.ZUOXIA: aj().UpZUOXIA,
+        Quardant.YOUSHANG: aj().UpYOUSHANG,
+        Quardant.YOUXIA: aj().UpYOUXIA
+    }
+    return QuadKeyUpMap
 
 
 # 坐标位置
@@ -1202,12 +1208,6 @@ def NearestMonster():
                 monsters = list(monsters)
     elif "暗黑雷鸣废墟" in mapinfo.name:
         pass
-    elif "利库天井" in mapinfo.name:
-        obstacles = GetMapObstacle()
-        obstacles = filter(lambda ob: "哥布林投石车" in ob.name, obstacles)
-        obstacles = list(obstacles)
-        if len(obstacles) > 0:
-            monsters = obstacles
 
     return min(monsters, key=lambda mon: distance(mon.x, mon.y, menInfo.x, menInfo.y))
 
@@ -1295,6 +1295,19 @@ def GetMonstersWrap():
         monsters = filter(lambda mon: mon.hp > 1, monsters)
         monsters = list(monsters)
 
+    mapinfo = GetMapInfo()
+    if "根特外围" in mapinfo.name:
+        obstacles = GetMapObstacle()
+        obstacles = filter(lambda ob: "解救冒险家" in ob.name, obstacles)
+        obstacles = list(obstacles)
+        if len(obstacles) > 0:
+            monsters = monsters + obstacles
+    elif "利库天井" in mapinfo.name:
+        obstacles = GetMapObstacle()
+        obstacles = filter(lambda ob: "哥布林投石车" in ob.name, obstacles)
+        obstacles = list(obstacles)
+        if len(obstacles) > 0:
+            monsters = monsters + obstacles
     return monsters
 
 
@@ -1649,7 +1662,7 @@ def IsDestSupport(zhiye):
                  "帕拉丁", "曙光", "破晓女神",
                  "气功师", "百花缭乱", "念帝",
                  "剑影", "夜刀神", "夜见罗刹",
-                 "逐风者", "御风者", "风神",   # "召唤师", "月之女皇", "月蚀"
+                 "逐风者", "御风者", "风神",  # "召唤师", "月之女皇", "月蚀"
                  "征战者", "战魂", "不灭战神"]:
         return True
     return False
@@ -1696,6 +1709,36 @@ def LockHp():
 def UnLockHp():
     global gHplocked
     gHplocked = False
+
+
+# 是否在根特北门开坦克地图
+def IsIngentebeimen():
+    mapinfo = GetMapInfo()
+    if "根特北门" in mapinfo.name:
+        monsters = GetMapObj()
+        tks = filter(lambda ob: "AT-5T 步行者" in ob.name, monsters)
+        tks = list(tks)
+        if len(tks) > 0:
+            return True
+
+    return False
+
+
+# 是否坐上了坦克
+def IsInTk():
+    meninfo = GetMenInfo()
+    return meninfo.z > 50
+
+
+# 获取坦克的坐标
+def GetTkXy():
+    objs = GetMapObj()
+    for obj in objs:
+        if "AT-5T 步行者" in obj.name:
+            return obj.x, obj.y
+
+    logger.warning("没有获取到AT-5T 步行者的坐标")
+    return 0, 0
 
 
 # 技能对应的按键
@@ -1821,7 +1864,7 @@ class Skill:
             self.name, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.doublepress))
 
         aj().PressSkill(self.key, self.skilldata.delaytime, self.skilldata.afterdelay, self.skilldata.thenpress,
-                   self.skilldata.doublepress, self.issimpleattack)
+                        self.skilldata.doublepress, self.issimpleattack)
 
         if self.skilldata.lockhp:
             LockHp()
@@ -1982,6 +2025,18 @@ skillSettingMap = {
 simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击", issimpleattack=True)
 simpleAttackSkill.skilldata.delaytime = 1.0
 
+# AT-5T 步行者 攻击
+at5tAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击", issimpleattack=True)
+at5tAttackSkill.skilldata.v_w = 400
+at5tAttackSkill.too_close_v_w = 100
+
+# A 子弹, S 撞击, D 喷火, F 火箭
+at5t_S = Skill(exit=True, key=VK_CODE['s'], name="坦克S")
+at5t_S.skilldata.v_w = 300
+
+at5t_F = Skill(exit=True, key=VK_CODE['f'], name="坦克F")
+at5t_F.skilldata.v_w = 300
+
 
 # 清空当前
 def Clear():
@@ -2046,22 +2101,22 @@ def main():
     #     PrintMenInfo()
 
     PrintMenInfo()
-    PrintMapInfo()
+    # PrintMapInfo()
     PrintMapObj()
-    PrintBagObj()
-    PrintBagEquipObj()
-    # print("无色: " + str(BagWuseNum()))
-    PrintEquipObj()
+    # PrintBagObj()
+    # PrintBagEquipObj()
+    # PrintEquipObj()
     PrintSkillObj()
-    # PrintAllSkillObj()
     PrintTaskObj()
     PrintAccpetedTaskObj()
-    PrintNextMen()
-    PrintWH()
-    # PrintSelectObj()
+    # PrintNextMen()
+    # PrintWH()
+    # PrintXingyunxing()
     PrintSelectIdx()
-    PrintXingyunxing()
 
+    # print("无色: " + str(BagWuseNum()))
+    # PrintAllSkillObj()
+    # PrintSelectObj()
     # PrintSceneInfo() # 数据太多
     # SpeedTest() # 速度还可以
 
