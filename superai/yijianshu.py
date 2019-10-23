@@ -3,15 +3,11 @@ import logging
 import os
 import sys
 import threading
-import time
 from ctypes import *
-
 import win32gui
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
-
 logger = logging.getLogger(__name__)
-
 from superai.pathsetting import GetYiLib
 from superai.common import InitLog, GetCursorInfo, RanSleep, KongjianSleep, GameWindowToTop
 from superai.vkcode import *

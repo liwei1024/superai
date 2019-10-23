@@ -1,15 +1,10 @@
-import configparser
 import os
-from ctypes import CDLL, RTLD_GLOBAL
-
 import sys
-
-
+from ctypes import CDLL, RTLD_GLOBAL
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
-
 
 logger = logging.getLogger(__name__)
 

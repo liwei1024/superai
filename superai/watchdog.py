@@ -1,19 +1,16 @@
 import logging
 import os
 import sys
-
 import subprocess
 import time
-
 from flask import Flask
 from flask_cors import CORS
 from flask_jsonrpc import JSONRPC
 
 logger = logging.getLogger(__name__)
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.common import checkIfProcessRunning
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 app = Flask(__name__)
 CORS(app)

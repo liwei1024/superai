@@ -1,21 +1,19 @@
 import json
+import logging
 import os
 import sys
 import threading
-
-import logging
 
 logger = logging.getLogger(__name__)
 
 from flask import Flask
 from flask_jsonrpc import JSONRPC
 from flask_cors import CORS
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.common import InitLog
-
 from superai.sysmonitor import sysFlushThread, cpuFlushStop, \
     getCpuResult, getSysversionResult, getMemResult, getDiskResult, getNetworkResult
 from superai.subnodedb import DbEventSelect, DbStateSelect, DbItemSelect, DbStateGetNearestTimepoint

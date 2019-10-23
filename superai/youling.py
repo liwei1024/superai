@@ -4,7 +4,6 @@ import socket
 import sys
 import threading
 import time
-
 import win32gui
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
@@ -325,11 +324,8 @@ class Youling:
 
 def main():
     time.sleep(1.0)
-
     anjian = Youling()
-    anjian.MouseWheel(-3)
 
-    anjian.KeyInputGBK("GGC88zyj")
 
 if __name__ == '__main__':
     main()

@@ -1,15 +1,14 @@
-import configparser
 import contextlib
+import datetime
 import os
 import sys
 import time
-import datetime
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.config import GetConfig
 from superai.gameapi import IsDestSupport, GetMenInfo, BagWuseNum, GetRemaindPilao
-from superai.pathsetting import getDbFile, GetDbDir, GetCfgPath
+from superai.pathsetting import getDbFile, GetDbDir
 from superai.common import InitLog
 
 import logging

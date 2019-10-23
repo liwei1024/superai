@@ -1,7 +1,5 @@
-import sys
 import os
-import time
-import pyautogui
+import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -189,13 +187,32 @@ def main():
     # cv2.waitKey()
     # cv2.destroyAllWindows()
 
-    time.sleep(1)
-    pic = pyautogui.screenshot()
+    # time.sleep(2)
 
-    # Save the image
-    pic.save('Screenshot1.png')
+    import win32gui
+    hwnd_title = dict()
 
-    
+    def get_all_hwnd(hwnd, mouse):
+        if win32gui.IsWindow(hwnd) and win32gui.IsWindowEnabled(hwnd) and win32gui.IsWindowVisible(hwnd):
+            hwnd_title.update({hwnd: win32gui.GetWindowText(hwnd)})
+
+    win32gui.EnumWindows(get_all_hwnd, 0)
+
+    for h, t in hwnd_title.items():
+        if t is not "":
+            print(h, t)
+
+    from PyQt5.QtWidgets import QApplication
+
+    import win32gui
+    import sys
+
+    hwnd = win32gui.FindWindow("TWINCONTROL", "WeGame")
+    app = QApplication(sys.argv)
+    screen = QApplication.primaryScreen()
+    img = screen.grabWindow(2690140).toImage()
+    img.save("screenshot1.jpg")
+
 
 
 if __name__ == "__main__":

@@ -6,7 +6,6 @@ import random
 import sys
 import threading
 import time
-
 import names
 import pythoncom
 import win32api
@@ -2183,7 +2182,7 @@ class OpenGame(State):
         aj().MouseMoveToTgp(pos[0], pos[1])
         aj().MouseLeftClick(), KongjianSleep()
 
-        # 选择其他大区
+        # 选择其他大区 (截图显示不到,但是直接移动过去就ok了)
         aj().MouseMoveR(-104, -44), KongjianSleep()
         aj().MouseLeftClick(), KongjianSleep()
 
@@ -2200,6 +2199,8 @@ class OpenGame(State):
             aj().MouseMoveToLogin(463, 324), RanSleep(1.0)
         aj().MouseLeftClick(), RanSleep(1.0)
 
+
+        # 现在这个新的窗口截图不到, 要全局截屏了
 
 
     def Execute(self, player):
