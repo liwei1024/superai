@@ -2115,6 +2115,7 @@ plotMap = {
     "战争结束": AttacktaskFoo("卡勒特指挥部"),
     "皇女的问候": AttacktaskFoo("皇女艾丽婕"),
     "吉赛尔的行踪": MeetNpcFoo("梅尔文·里克特"),
+
     # 75-80 时空之门
     "斯卡迪女王2": MeetNpcFoo("斯卡迪女王"),
     "天界的冒险故事": MeetNpcFoo("巨剑阿甘左"),
@@ -2188,6 +2189,7 @@ plotMap = {
     "艾丽丝的觉悟 (2 / 3)": MeetNpcFoo("魔法师公会"),
     "艾丽丝的觉悟 (3 / 3)": AttacktaskFoo("艾丽丝的觉悟"),
     "以后的事": MeetNpcFoo("艾丽丝"),
+
     # 81-83 能源中心
     "艾丽丝的挽留": MeetNpcFoo("艾丽丝"),
     "再次前往天界": MeetNpcFoo("马琳·基希卡"),
@@ -2243,6 +2245,7 @@ plotMap = {
     "第七使徒安徒恩": AttacktaskFoo("黑色火山内部"),
     "破坏心脏": AttacktaskFoo("安徒恩的心脏"),
     "胜利之后": AttacktaskFoo("鹰眼杰克特"),
+
     # 85-86 寂静城
     "为了前往寂静城": MeetNpcFoo("皇女艾丽婕"),
     # "为了前往寂静城": MeetNpcFoo("纳维罗·尤尔根"),
@@ -2304,6 +2307,7 @@ plotMap = {
     "艾泽拉的警戒": MeetNpcFoo("伊莎贝拉公主"),
     "准备": AttacktaskFoo("湮灭之圣所"),
     "被遗弃的贝奇": AttacktaskFoo("湮灭之圣所"),
+
     # 87-95 地轨中心
     "终于抵达魔界": MeetNpcFoo("伊莎贝拉公主"),
     "杂乱的开始": AttacktaskFoo("时间广场"),

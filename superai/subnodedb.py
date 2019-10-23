@@ -205,7 +205,11 @@ def AccountXingyunxingRule(account, region):
 def TodaySixTimestamp():
     t = datetime.datetime.today()
     sixt = datetime.datetime(t.year, t.month, t.day, hour=6)
-    return sixt.timestamp()
+    s = sixt.timestamp()
+
+    if 0 <= t.hour < 6:
+        s -= 60 * 60 * 24
+    return s
 
 
 # 是否今日的疲劳刷完了
@@ -426,7 +430,9 @@ def main():
     # jsonstr = json.dumps(rows, ensure_ascii=False)
     # print(jsonstr)
 
-    print(IsTodayHavePilao(account='3115907573', region='北京3区'))
+    # print(IsTodayHavePilao(account='3115907573', region='北京3区'))
+
+    print(TodaySixTimestamp())
 
 
 if __name__ == '__main__':

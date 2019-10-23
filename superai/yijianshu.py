@@ -325,6 +325,27 @@ class Yijianshu:
                 flag = True
             lib.M_MoveR(h, int(relativex), int(relativey)), RanSleep(0.3)
 
+
+    # 鼠标移动到 (tgp界面)
+    def MouseMoveToTgp(self, x, y):
+        hwnd = win32gui.FindWindow("TWINCONTROL", "WeGame")
+
+        try:
+            centrex, centrey = win32gui.ClientToScreen(hwnd, (int(x), int(y)))
+        except:
+            return
+
+        flag = False
+        # 修正
+        while not self.IsMovedTo(centrex, centrey):
+            (curx, cury) = GetCursorInfo()
+            relativex, relativey = centrex - curx, centrey - cury
+            if flag:
+                logger.warning("当前鼠标坐标: (%d, %d) != (%d, %d)" % (curx, cury, centrex, centrey))
+            else:
+                flag = True
+            lib.M_MoveR(h, int(relativex), int(relativey)), RanSleep(0.3)
+
     # 相对移动
     def MouseMoveR(self, x, y):
         (curx, cury) = GetCursorInfo()

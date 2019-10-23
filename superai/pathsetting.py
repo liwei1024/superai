@@ -4,9 +4,12 @@ from ctypes import CDLL, RTLD_GLOBAL
 
 import sys
 
+
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
+
 
 logger = logging.getLogger(__name__)
 
@@ -115,10 +118,26 @@ def GameFileDir():
             return gamedir
 
     if os.path.exists(os.path.join(GetCfgPath(), "superai.cfg")):
-        config = configparser.RawConfigParser()
-        config.read(os.path.join(GetCfgPath(), "superai.cfg"))
+        from superai.config import GetConfig
+        config = GetConfig()
         gamedir = config.get('superai', '游戏路径')
     else:
         gamedir = ""
 
     return gamedir
+
+
+# tgp路径
+def TgpDir():
+    if os.path.exists("d:/Program Files (x86)/WeGame"):
+        tgpdir = "d:/Program Files (x86)/WeGame/tgp_daemon.exe"
+        if os.path.exists(tgpdir):
+            return tgpdir
+
+    if os.path.exists(os.path.join(GetCfgPath(), "superai.cfg")):
+        config = GetConfig()
+        tgpdir = config.get("superai", 'wegame路径')
+    else:
+        tgpdir = ""
+
+    return tgpdir

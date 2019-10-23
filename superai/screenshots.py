@@ -1,5 +1,7 @@
 import sys
 import os
+import time
+import pyautogui
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
@@ -179,12 +181,21 @@ def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defe
 def main():
     # DesktopCaptureToFile("E:/win/tmp/capture")
 
-    WindowCaptureToFile("地下城与勇士", "地下城与勇士", "E:/win/tmp/capture")
+    # time.sleep(1)
+    # WindowCaptureToFile("地下城与勇士", "地下城与勇士", "E:/win/tmp/capture")
 
     # img = WindowCaptureToMem("地下城与勇士", "地下城与勇士")
     # cv2.imshow('my img', img)
     # cv2.waitKey()
     # cv2.destroyAllWindows()
+
+    time.sleep(1)
+    pic = pyautogui.screenshot()
+
+    # Save the image
+    pic.save('Screenshot1.png')
+
+    
 
 
 if __name__ == "__main__":

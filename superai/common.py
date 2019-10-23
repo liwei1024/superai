@@ -30,6 +30,9 @@ def killall():
     os.system("taskkill /F /im qbclient.exe")
     os.system("taskkill /F /im GameAssistant.exe")
 
+    # tgp
+    os.system("taskkill /F /im tgp_daemon.exe")
+
 
 def InitLog():
     coloredlogs.DEFAULT_FIELD_STYLES['filename'] = {'color': 'blue'}
@@ -61,6 +64,19 @@ def ClientWindowToTop():
     hwnd = win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序")
     # win32gui.SetWindowPos(hwnd, win32con.HWND_TOP, 0, 0, 800, 600,
     #                       win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+
+    if hwnd != 0:
+        shell = win32com.client.Dispatch("WScript.Shell")
+        shell.SendKeys('%')
+
+        try:
+            win32gui.SetForegroundWindow(hwnd)
+        except:
+            pass
+
+# 置顶tgp界面
+def TgpWindowToTop():
+    hwnd = win32gui.FindWindow("TWINCONTROL", "WeGame")
 
     if hwnd != 0:
         shell = win32com.client.Dispatch("WScript.Shell")

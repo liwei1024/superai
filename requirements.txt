@@ -19,3 +19,4 @@ names
 requests
 PyQt5
 screeninfo
+pyautogui
