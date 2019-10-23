@@ -1,6 +1,10 @@
 import os
 import sys
 
+import numpy as np
+import win32gui
+from cv2 import cv2
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
@@ -13,34 +17,37 @@ def WindowCaptureToFile(windowClassName, windowName, captureDir, dx=0, dy=0, dw=
 
 
 def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defer=None):
-    pass
+    hwnd = win32gui.FindWindow(windowClassName, windowName)
+
+    if hwnd == 0:
+        return None
+
+    left, top, right, bot = win32gui.GetWindowRect(hwnd)
+    w, h = right - left, bot - top
+    if dw != 0:
+        w = dw
+    if dh != 0:
+        h = dh
+
 
 
 def main():
 
+    # img = WindowCaptureToMem("TWINCONTROL", "WeGame")
+    #
+    # cv2.imshow('1', img)
+    # cv2.waitKey()
+    # cv2.destroyAllWindows()
+
+    from PIL import ImageGrab
     import win32gui
-    hwnd_title = dict()
-
-    def get_all_hwnd(hwnd, mouse):
-        if win32gui.IsWindow(hwnd) and win32gui.IsWindowEnabled(hwnd) and win32gui.IsWindowVisible(hwnd):
-            hwnd_title.update({hwnd: win32gui.GetWindowText(hwnd)})
-
-    win32gui.EnumWindows(get_all_hwnd, 0)
-
-    for h, t in hwnd_title.items():
-        if t is not "":
-            print(h, t)
-
-    from PyQt5.QtWidgets import QApplication
-
-    import win32gui
-    import sys
 
     hwnd = win32gui.FindWindow("TWINCONTROL", "WeGame")
-    app = QApplication(sys.argv)
-    screen = QApplication.primaryScreen()
-    img = screen.grabWindow(2690140).toImage()
-    img.save("screenshot1.jpg")
+
+    win32gui.SetForegroundWindow(hwnd)
+    bbox = win32gui.GetWindowRect(hwnd)
+    img = ImageGrab.grab(bbox)
+    img.show()
 
 
 if __name__ == "__main__":

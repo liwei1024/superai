@@ -2365,6 +2365,7 @@ class GameTopThread(threading.Thread):
 defaultvalue = {
     "游戏路径": GameFileDir(),
     "wegame路径": "",
+    "登录方式": "游戏",
     "单账号刷角色数量": "3",
     "创建角色数量": "10",
     "创建角色": "男魔法师,守护者,男鬼剑士,女格斗家",
