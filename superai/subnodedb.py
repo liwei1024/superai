@@ -231,8 +231,11 @@ def IsTodayHavePilao(account, region):
                     logger.info("上次时间戳在今天6点之前")
                     return True
 
-                if obj["curpilao"] is not None and obj["curpilao"] == 0:
-                    pilaoShuawan += 1
+                if obj["curpilao"] is not None:
+                    config = GetConfig()
+                    remainpilao = obj["curpilao"] - int(config.get("superai", "剩余疲劳数量"))
+                    if remainpilao <= 0:
+                        pilaoShuawan += 1
 
                 config = GetConfig()
                 juesenum = int(config.get("superai", "单账号刷角色数量"))
@@ -241,9 +244,10 @@ def IsTodayHavePilao(account, region):
                     logger.warning("最多刷%d个角色!" % juesenum)
                     return False
 
+                remainpilao = obj["curpilao"] - int(config.get("superai", "剩余疲劳数量"))
                 # 还有疲劳呢!!
-                if obj["curpilao"] > 0:
-                    logger.warning("还有疲劳")
+                if remainpilao > 0:
+                    logger.warning("还有疲劳 剩余 %d " % obj["curpilao"])
                     return True
 
     if len(objs) == 0:
@@ -294,7 +298,9 @@ def GetToSelectIdx(account, region):
             return i
 
         # 还有疲劳呢!!
-        if obj["curpilao"] > 0:
+        config = GetConfig()
+        remainpilao = obj["curpilao"] - int(config.get("superai", "剩余疲劳数量"))
+        if remainpilao > 0:
             logger.warning("还有疲劳[GetToSelectIdx]")
             return i
 

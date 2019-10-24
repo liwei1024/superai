@@ -2,8 +2,6 @@ import os
 import sys
 from ctypes import CDLL, RTLD_GLOBAL
 
-
-
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
@@ -49,13 +47,13 @@ def GetYiLib():
     return lib
 
 
-# 幽灵dll
-def GetYoulingLib():
-    if os.path.exists(os.path.join(runPath, "superai/dll/")):
-        lib = CDLL(os.path.join(runPath, "superai/dll/kmllib64.dll"), RTLD_GLOBAL)
+# 幽灵exe
+def GetYoulingExe():
+    if os.path.exists(os.path.join(runPath, "superai/help/")):
+        path = os.path.join(runPath, "superai/help/start.cmd")
     else:
-        lib = CDLL(os.path.join(superaiPath, "dll/kmllib64.dll"), RTLD_GLOBAL)
-    return lib
+        path = os.path.join(superaiPath, "help/start.cmd")
+    return path
 
 
 # 图片资源

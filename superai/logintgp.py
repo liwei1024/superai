@@ -4,23 +4,244 @@ import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from superai.superai import tgpselectdaqu
-from superai.anjian import aj
-from superai.common import KongjianSleep, RanSleep
-from superai.pathsetting import GetvercodeDir
-from superai.screenshots import WindowCaptureToFile
-
 
 # tgp 固定大区坐标
 firstposes = [
-    ()
+    (82, 254), (254, 254), (429, 254), (604, 254),
+    (82, 307), (254, 307), (429, 307), (604, 307),
+    (82, 365), (254, 365), (429, 365), (604, 365),
+    (82, 421), (254, 421), (429, 421), (604, 421),
+    (82, 477), (254, 477), (429, 477), (604, 477),
 ]
+
+# 距离 "选择服务器" 的相对坐标
+secondposes = [
+    (48, 57), (205, 57), (375, 57), (551, 57),
+    (48, 113), (205, 113), (375, 113), (551, 113),
+    (48, 170), (205, 170), (375, 170), (551, 170),
+    (48, 225), (205, 225), (375, 225), (551, 225),
+]
+
+daqus = {
+    "电信": [
+        ("广东区", [
+            "广东1区",
+            "广东2区",
+            "广东3区",
+            "广东4区",
+            "广东5区",
+            "广东6区",
+            "广东7区",
+            "广东8区",
+            "广东9区",
+            "广东10区",
+            "广东11区",
+            "广东12区",
+            "广东13区",
+            "广东1/2区"
+        ]),
+        ("广西区", [
+            "广西1区",
+            "广西2/4区",
+            "广西3区",
+            "广西5区"
+        ]),
+        ("湖南区", [
+            "湖南1区",
+            "湖南2区",
+            "湖南3区",
+            "湖南4区",
+            "湖南5区",
+            "湖南6区",
+            "湖南7区",
+        ]),
+        ("湖北区", [
+            "湖北1区",
+            "湖北2区",
+            "湖北3区",
+            "湖北4区",
+            "湖北5区",
+            "湖北6区",
+            "湖北7区",
+            "湖北8区",
+        ]),
+        ("上海区", [
+            "上海1区",
+            "上海2区",
+            "上海3区",
+            "上海4/5区",
+        ]),
+        ("江苏区", [
+            "江苏1区",
+            "江苏2区",
+            "江苏3区",
+            "江苏4区",
+            "江苏5/7区",
+            "江苏6区",
+            "江苏8区",
+        ]),
+        ("浙江区", [
+            "浙江1区",
+            "浙江2区",
+            "浙江3区",
+            "浙江4/5区",
+            "浙江6区",
+            "浙江7区",
+        ]),
+        ("安徽区", [
+            "安徽1区",
+            "安徽2区",
+            "安徽3区",
+        ]),
+        ("福建区", [
+            "福建1区",
+            "福建2区",
+            "福建3/4区",
+        ]),
+        ("江西区", [
+            "江西1区",
+            "江西2区",
+            "江西3区"
+        ]),
+        ("西北区", [
+            "西北1区",
+            "西北2/3区"
+        ]),
+        ("西南区", [
+            "西南1区",
+            "西南2区",
+            "西南3区"
+        ]),
+        ("陕西区", [
+            "陕西1区",
+            "陕西2/3区"
+        ]),
+        ("云贵区", [
+            "云贵1区"
+            "云南1区",
+            "贵州1区",
+        ]),
+        ("四川区", [
+            "四川1区",
+            "四川2区",
+            "四川3区",
+            "四川4区",
+            "四川5区",
+            "四川6区",
+        ]),
+        ("重庆区", [
+            "重庆1区",
+            "重庆2区"
+        ]),
+        ("新疆区", [
+            "新疆1区"
+        ]),
+    ],
+    "联通": [
+        ("华北区", [
+            "华北1区",
+            "华北2区",
+            "华北3区",
+            "华北4区",
+        ]),
+        ("河北区", [
+            "河北1区",
+            "河北2/3区",
+            "河北4区",
+            "河北5区",
+        ]),
+        ("天津区", [
+            "天津1区"
+        ]),
+        ("东北区", [
+            "东北1区",
+            "东北2区",
+            "东北3/7区",
+            "东北4/5/6区",
+        ]),
+        ("北京区", [
+            "北京1区",
+            "北京2/4区",
+            "北京3区",
+        ]),
+        ("内蒙古区", [
+            "内蒙古1区"
+        ]),
+        ("辽宁区", [
+            "辽宁1区",
+            "辽宁2区",
+            "辽宁3区"
+        ]),
+        ("吉林区", [
+            "吉林1/2区"
+        ]),
+        ("黑龙江区", [
+            "黑龙江1区",
+            "黑龙江1/2区"
+        ]),
+        ("河南区", [
+            "河南1区",
+            "河南2区",
+            "河南3区",
+            "河南4区",
+            "河南5区",
+            "河南6区",
+            "河南7区",
+        ]),
+        ("山东区", [
+            "山东1区",
+            "山东2/7区",
+            "山东3区",
+            "山东4区",
+            "山东5区",
+            "山东6区",
+        ]),
+        ("山西区", [
+            "山西1区",
+            "山西2区"
+        ])
+    ]
+}
+
+
+# 联通还是电信
+def GetDaquTgp(region):
+    mainregions = daqus["电信"]
+    for mainregion in mainregions:
+        if region in mainregion[1]:
+            return "电信"
+
+    mainregions = daqus["联通"]
+    for mainregion in mainregions:
+        if region in mainregion[1]:
+            return "联通"
+
+    return ""
+
+
+# 获取主服务器位置
+def GetMainregionPosTgp(region):
+    for k, v in daqus.items():
+        for i, mainregion in enumerate(v):
+            if region in mainregion[1]:
+                return firstposes[i]
+    raise Exception("找不到主服务器地址")
+
+
+# 获取服务器位置
+def GetRegionPosTgp(r):
+    for k, v in daqus.items():
+        for i, mainregion in enumerate(v):
+            for k, region in enumerate(mainregion[1]):
+                if r == region:
+                    return secondposes[k]
+    raise Exception("找不到服务器地址")
 
 
 def main():
-    time.sleep(5)
-    imgfile = WindowCaptureToFile("TWINCONTROL", "WeGame", GetvercodeDir())
-
+    from superai.superai import tgpunselect1
+    from superai.superai import tgpstart
+    print(tgpunselect1.Match())
 
 
 if __name__ == '__main__':

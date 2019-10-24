@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 logger = logging.getLogger(__name__)
 
+from superai.config import GetConfig
 from superai.pathsetting import GetHelpdllLib, GetDriverStartFile
 from superai.common import InitLog, KongjianSleep
 from superai.anjian import aj
@@ -1595,7 +1596,9 @@ def GetRemaindPilao():
 
 # 疲劳是否有
 def HavePilao():
-    return GetRemaindPilao() > 0
+    config = GetConfig()
+    remainpilao = GetRemaindPilao() - int(config.get("superai", "剩余疲劳数量"))
+    return remainpilao > 0
 
 
 # 蘑菇庄园这个奇葩地图
@@ -1720,6 +1723,14 @@ def IsIngentebeimen():
         if len(tks) > 0:
             return True
 
+    return False
+
+
+# 是否是远程攻击职业
+def IsYuancheng():
+    meninfo = GetMenInfo()
+    if "男魔法师" in meninfo.zhuanzhihou:
+        return True
     return False
 
 
@@ -2018,16 +2029,25 @@ skillSettingMap = {
 
     # 风法
     "流风诀": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
+
+    "魔法冰球": SkillData(type=SkillType.Gongji, v_w=600 / 2, h_w=40 / 2, too_close_v_w=80 / 2),
+    "旋火盾": SkillData(type=SkillType.Gongji, v_w=600 / 2, h_w=40 / 2, too_close_v_w=80 / 2),
 }
 
 # 普通攻击
 simpleAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击", issimpleattack=True)
 simpleAttackSkill.skilldata.delaytime = 1.0
 
+# 远程普通攻击
+simpleYuanchengAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击", issimpleattack=True)
+simpleYuanchengAttackSkill.skilldata.delaytime = 1.0
+simpleYuanchengAttackSkill.skilldata.v_w = 600 / 2
+simpleYuanchengAttackSkill.skilldata.too_close_v_w = 80 / 2
+
 # AT-5T 步行者 攻击
 at5tAttackSkill = Skill(exit=True, key=VK_CODE['x'], name="普通攻击", issimpleattack=True)
 at5tAttackSkill.skilldata.v_w = 400
-at5tAttackSkill.too_close_v_w = 100
+at5tAttackSkill.skilldata.too_close_v_w = 100
 
 # A 子弹, S 撞击, D 喷火, F 火箭
 at5t_S = Skill(exit=True, key=VK_CODE['s'], name="坦克S")
@@ -2125,7 +2145,7 @@ def main():
     # Zuobiaoyidong(300, 200, 0)
     # Autoshuntu()
 
-    print(IsCurrentInTrain())
+    # print(IsCurrentInTrain())
 
 
 if __name__ == "__main__":

@@ -477,6 +477,7 @@ class Occupationkills:
                         if self.FindedPic(v.picutre):
                             break
                         aj().MouseMoveTo(536, 360), KongjianSleep()
+                        aj().MouseLeftClick(), KongjianSleep()
                         aj().MouseWheel(-3), KongjianSleep()
 
                     if not self.FindedPic(v.picutre):
@@ -528,6 +529,7 @@ class Occupationkills:
                 if self.FindedPic(v.picutre):
                     break
                 aj().MouseMoveTo(536, 360), KongjianSleep()
+                aj().MouseLeftClick(), KongjianSleep()
                 aj().MouseWheel(-3), KongjianSleep()
 
             if not self.FindedPic(v.picutre):

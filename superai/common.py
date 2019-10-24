@@ -74,6 +74,7 @@ def ClientWindowToTop():
         except:
             pass
 
+
 # 置顶tgp界面
 def TgpWindowToTop():
     hwnd = win32gui.FindWindow("TWINCONTROL", "WeGame")
@@ -120,6 +121,7 @@ def RanSleep(t):
     if t < 0:
         t = 0
     time.sleep(t)
+
 
 # 操作控件后的sleep
 def KongjianSleep():

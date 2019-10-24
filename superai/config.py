@@ -4,10 +4,10 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from superai.pathsetting import GetCfgPath
 
 
 def GetConfig():
+    from superai.pathsetting import GetCfgPath
     cfgfile = os.path.join(GetCfgPath(), "superai.cfg")
     config = configparser.RawConfigParser()
     config.read(cfgfile)
@@ -15,6 +15,7 @@ def GetConfig():
 
 
 def SaveConfig(cfg):
+    from superai.pathsetting import GetCfgPath
     cfgfile = os.path.join(GetCfgPath(), "superai.cfg")
     f = open(cfgfile, "w")
     cfg.write(f)

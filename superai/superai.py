@@ -14,6 +14,7 @@ import win32gui
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 logger = logging.getLogger(__name__)
 
+from superai.logintgp import GetDaquTgp, GetMainregionPosTgp, GetRegionPosTgp
 from superai.tuodongyanzheng import GetRightPos
 from superai.banzhuan import GetBanzhuanDItu
 from superai.config import GetConfig, SaveConfig
@@ -47,7 +48,7 @@ from superai.gameapi import GameApiInit, FlushPid, \
     Zuobiaoyidong, Autoshuntu, GetCurmapXy, HavePilao, GetMapInfo, IsShitmoGu, GetSelectObj, \
     GetCurSelectIdx, IsFirstSelect, IsLastSelect, IsCurrentSupport, Openesc, IsCurrentInTrain, \
     GetRemaindPilao, IsZhicai, UnLockHp, IsLockedHp, IsSettingSkip, IsSettingYinyingSkip, IsInTk, IsIngentebeimen, \
-    GetTkXy, at5tAttackSkill, at5t_S, at5t_F, BagWuseNum
+    GetTkXy, at5tAttackSkill, at5t_S, at5t_F, BagWuseNum, IsYuancheng, simpleYuanchengAttackSkill
 
 gamebegin = Picture(GetImgDir() + "gamebegin2.png")
 selectregion = Picture(GetImgDir() + "select_region.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
@@ -58,13 +59,21 @@ checkbtn = Picture(GetImgDir() + "checkbtn.png", classname="TWINCONTROL", window
                    dw=20, dh=18)
 
 tgpdenglubtn = Picture(GetImgDir() + "tgp_denglu.png", classname="TWINCONTROL", windowname="WeGame")
-zhanghaomimadenglubtn = Picture(GetImgDir() + "tgp_zhanghaomimadenglu", classname="TWINCONTROL", windowname="WeGame")
-tgpyanzheng = Picture(GetImgDir() + "tgp_yanzheng", classname="TWINCONTROL", windowname="WeGame")
+zhanghaomimadenglubtn = Picture(GetImgDir() + "tgp_zhanghaomimadenglu.png", classname="TWINCONTROL",
+                                windowname="WeGame")
+tgpyanzheng = Picture(GetImgDir() + "tgp_yanzheng.png", classname="TWINCONTROL", windowname="WeGame")
 huadonganniu = Picture(GetImgDir() + "tgp_huadonganniu.png", classname="TWINCONTROL", windowname="WeGame")
 tgphome = Picture(GetImgDir() + "tgp_home.png", classname="TWINCONTROL", windowname="WeGame")
 tgpdnf = Picture(GetImgDir() + "tgp_dnf.png", classname="TWINCONTROL", windowname="WeGame")
 tgpselectdaqu = Picture(GetImgDir() + "tgp_selectdaqu.png", classname="TWINCONTROL", windowname="WeGame")
 tgpxuanzedaqu = Picture(GetImgDir() + "tgp_xuanzedaqu.png", classname="TWINCONTROL", windowname="WeGame")
+tgpxuanzefuwuqi = Picture(GetImgDir() + "tgp_xuanzefuwuqi.png", classname="TWINCONTROL", windowname="WeGame")
+tgpunselect1 = Picture(GetImgDir() + "tgp_unselect.png", classname="TWINCONTROL", windowname="WeGame", dx=1039, dy=745,
+                       dw=18, dh=15)
+tgpunselect2 = Picture(GetImgDir() + "tgp_unselect.png", classname="TWINCONTROL", windowname="WeGame", dx=1039, dy=724,
+                       dw=18, dh=15)
+tgpstart = Picture(GetImgDir() + "tgp_start.png", classname="TWINCONTROL", windowname="WeGame")
+tgptiaoguo = Picture(GetImgDir() + "tgp_tiaoguo.png", classname="TWINCONTROL", windowname="WeGame")
 
 maoxiantuanshezhi = Picture(GetImgDir() + "mao'xuan'tuanshezhi.png")
 closebtn = Picture(GetImgDir() + "closebtn.png")
@@ -274,7 +283,10 @@ class Player:
 
         else:
             if random.uniform(0, 1) < 0.05:
-                self.curskill = simpleAttackSkill
+                if IsYuancheng():
+                    self.curskill = simpleYuanchengAttackSkill
+                else:
+                    self.curskill = simpleAttackSkill
             else:
                 self.curskill = self.skills.GetMaxLevelAttackSkill()
                 if self.curskill is None:
@@ -649,7 +661,7 @@ class GlobalState(State):
             if player.latestcheckpilaopoint is None or (time.time() - player.latestcheckpilaopoint) > 10 * 60:
                 if player.latestcheckpilao is not None:
                     meninfo = GetMenInfo()
-                    nowcheckpilao = (meninfo.name, meninfo.maxpilao - meninfo.curpilao)
+                    nowcheckpilao = (meninfo.name, GetRemaindPilao())
                     if player.latestcheckpilao == nowcheckpilao:
                         logger.warning("10分钟内疲劳没有产生变化: ", nowcheckpilao, " 退出")
                         killall(), RanSleep(5)
@@ -664,7 +676,7 @@ class GlobalState(State):
                 else:
                     player.latestcheckpilaopoint = time.time()
                     meninfo = GetMenInfo()
-                    player.latestcheckpilao = (meninfo.name, meninfo.maxpilao - meninfo.curpilao)
+                    player.latestcheckpilao = (meninfo.name, GetRemaindPilao())
 
         # 锁血处理
         if IsLockedHp():
@@ -767,9 +779,9 @@ class GlobalState(State):
             if player.latestfucktime is None:
                 player.latestfucktime = time.time()
                 player.latestpilao = GetRemaindPilao()
-            elif time.time() - player.latestfucktime > 90:
+            elif time.time() - player.latestfucktime > 30:
                 if player.latestpilao == GetRemaindPilao():
-                    logger.warning("90s了疲劳还没有变,纠正一下")
+                    logger.warning("30s了疲劳还没有变,纠正一下")
                     player.ChangeState(StuckShit())
                 player.ResetStuckInfo()
 
@@ -1268,17 +1280,13 @@ class SeekAndAttackMonster(State):
                          player.curskill.skilldata.too_close_v_w, player.curskill.skilldata.h_w))
 
             # 后跳解决问题
-            # player.UpLatestKey()
-            # player.ClearPathfindingLst()
-            # if random.uniform(0, 1) < 0.8:
-            #     aj().PressHouTiao(), RanSleep(0.05)
-            # else:
-            #     player.SeekWithPathfinding(seekx, seeky, dummy="合适攻击位置"), RanSleep(0.05)
-
-            # 直接走过去,稳妥点
             player.UpLatestKey()
             player.ClearPathfindingLst()
+            # if random.uniform(0, 1) < 0.8 and not IsIngentebeimen():
+            #     aj().PressHouTiao(), RanSleep(0.05)
+            # else:
             player.SeekWithPathfinding(seekx, seeky, dummy="合适攻击位置"), RanSleep(0.05)
+
             return
 
         # 在攻击的水平宽度和垂直宽度之内,攻击
@@ -1811,6 +1819,78 @@ class CreateRole(State):
 # 打开游戏
 class OpenGame(State):
 
+    # 等待进入游戏
+    def WaitToGame(self, player):
+        for i in range(360):
+
+            # 直接进入创建角色了
+            if fanhuibtn.Match():
+                pos = fanhuibtn.Pos()
+                aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+                aj().MouseLeftClick(), KongjianSleep()
+            # 验证码
+            elif loginqueding.Match():
+                vercodepic = WindowCaptureToFile("TWINCONTROL", "地下城与勇士登录程序", GetvercodeDir(), 531, 341, 121, 43)
+
+                if vercodepic == "":
+                    logger.warning("截取验证码发生异常!!!!!")
+                    continue
+
+                t = verifyfile(vercodepic)
+                t = json.loads(t)
+
+                if not t["result"]:
+                    logger.warning("接口验证码识别错误")
+                    continue
+
+                vercode = t["data"]["val"]
+
+                # 输入验证码
+                aj().MouseMoveToLogin(514, 365), KongjianSleep()
+                aj().MouseLeftClick(), KongjianSleep()
+                aj().KeyInputGBK(vercode), KongjianSleep()
+
+                # 确认验证码
+                aj().MouseMoveToLogin(538, 466), KongjianSleep()
+                aj().MouseLeftClick(), KongjianSleep()
+
+            # 冒险团 没有设置过!!
+            elif maoxiantuanshezhi.Match():
+                time.sleep(1)
+
+                aj().MouseMoveTo(398, 289), KongjianSleep()
+                aj().MouseLeftClick(), KongjianSleep()
+                toinput = names.get_full_name().replace(' ', random.choice(
+                    ['=', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']))
+                aj().KeyInputGBK(toinput), RanSleep(0.3)
+
+                # 设置
+                aj().MouseMoveTo(347, 425), KongjianSleep()
+                aj().MouseLeftClick(), RanSleep(1)
+
+                # 确认
+                aj().MouseMoveTo(371, 364), KongjianSleep()
+                aj().MouseLeftClick(), RanSleep(1)
+
+                # 确认
+                aj().MouseMoveTo(301, 322), KongjianSleep()
+                aj().MouseLeftClick(), RanSleep(1)
+
+                # 返回
+                aj().MouseMoveTo(767, 21), KongjianSleep()
+                aj().MouseLeftClick(), RanSleep(1)
+
+            elif gamebegin.Match():
+                break
+            logger.info("等待进入游戏 %d" % i), time.sleep(1)
+
+        if gamebegin.Match():
+            FlushPid()
+            player.ChangeState(SelectJuese())
+            return True
+        else:
+            return False
+
     # 保证游戏/ 登陆器 关闭状态
     def MakeGameClose(self):
         # 游戏/登陆器关闭, 幂等
@@ -1888,7 +1968,7 @@ class OpenGame(State):
         hwnd = win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序")
         if hwnd == 0:
             gamedir = GameFileDir()
-            os.system("start \"%s\"" % gamedir)
+            os.system("start \"\" \"%s\"" % gamedir)
 
         for i in range(100):
             ClientWindowToTop()
@@ -1986,73 +2066,10 @@ class OpenGame(State):
         player.accountSetting.SetCurrentAccount(selectAccount.account, selectAccount.region)
 
         # 等待6分钟
-        for i in range(360):
-
-            # 直接进入创建角色了
-            if fanhuibtn.Match():
-                pos = fanhuibtn.Pos()
-                aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-                aj().MouseLeftClick(), KongjianSleep()
-            # 验证码
-            elif loginqueding.Match():
-                vercodepic = WindowCaptureToFile("TWINCONTROL", "地下城与勇士登录程序", GetvercodeDir(), 531, 341, 121, 43)
-
-                if vercodepic == "":
-                    logger.warning("截取验证码发生异常!!!!!")
-                    continue
-
-                t = verifyfile(vercodepic)
-                t = json.loads(t)
-
-                if not t["result"]:
-                    logger.warning("接口验证码识别错误")
-                    continue
-
-                vercode = t["data"]["val"]
-
-                # 输入验证码
-                aj().MouseMoveToLogin(514, 365), KongjianSleep()
-                aj().MouseLeftClick(), KongjianSleep()
-                aj().KeyInputGBK(vercode), KongjianSleep()
-
-                # 确认验证码
-                aj().MouseMoveToLogin(538, 466), KongjianSleep()
-                aj().MouseLeftClick(), KongjianSleep()
-
-            # 冒险团 没有设置过!!
-            elif maoxiantuanshezhi.Match():
-                time.sleep(1)
-
-                aj().MouseMoveTo(398, 289), KongjianSleep()
-                aj().MouseLeftClick(), KongjianSleep()
-                toinput = names.get_full_name().replace(' ', random.choice(
-                    ['=', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']))
-                aj().KeyInputGBK(toinput), RanSleep(0.3)
-
-                # 设置
-                aj().MouseMoveTo(347, 425), KongjianSleep()
-                aj().MouseLeftClick(), RanSleep(1)
-
-                # 确认
-                aj().MouseMoveTo(371, 364), KongjianSleep()
-                aj().MouseLeftClick(), RanSleep(1)
-
-                # 确认
-                aj().MouseMoveTo(301, 322), KongjianSleep()
-                aj().MouseLeftClick(), RanSleep(1)
-
-                # 返回
-                aj().MouseMoveTo(767, 21), KongjianSleep()
-                aj().MouseLeftClick(), RanSleep(1)
-
-            elif gamebegin.Match():
-                break
-            logger.info("等待进入游戏 %d" % i), time.sleep(1)
-
-        if gamebegin.Match():
-            FlushPid()
-            player.ChangeState(SelectJuese())
-            return
+        if self.WaitToGame(player):
+            logger.info("进入游戏成功")
+        else:
+            logger.warning("进入游戏失败")
 
     # 处理tgp的拖动验证码
     def DealTgpVercode(self):
@@ -2099,7 +2116,7 @@ class OpenGame(State):
         selectAccount = self.GetAccount(player)
         if selectAccount is None:
             return
-        daqu = GetDaqu(selectAccount.region)
+        daqu = GetDaquTgp(selectAccount.region)
         if daqu == "":
             raise Exception("配置错了, 不支持的大区: %s" % selectAccount.region)
 
@@ -2107,9 +2124,9 @@ class OpenGame(State):
         hwnd = win32gui.FindWindow("TWINCONTROL", "WeGame")
         if hwnd == 0:
             tgpdir = TgpDir()
-            os.system("start \"%s\"" % tgpdir)
+            os.system("start \"\" \"%s\"" % tgpdir)
 
-        for i in range(100):
+        for i in range(60):
             TgpWindowToTop()
 
             if tgpdenglubtn.Match():
@@ -2126,14 +2143,14 @@ class OpenGame(State):
 
         # 输入账号
         aj().MouseMoveToTgp(801, 216)
-        aj().MouseLeftClick(), RanSleep(1.0)
+        aj().MouseLeftClick(), KongjianSleep()
         aj().DeleteAll()
         logger.info("输入账号 %s" % selectAccount.account)
         aj().KeyInputGBK(selectAccount.account), RanSleep(0.3)
 
         # 输入密码
         aj().MouseMoveToTgp(821, 244)
-        aj().MouseLeftClick(), RanSleep(1.0)
+        aj().MouseLeftClick(), KongjianSleep()
         aj().DeleteAll()
         logger.info("输入密码 %s" % selectAccount.password)
         aj().KeyInputGBK(selectAccount.password), RanSleep(0.3)
@@ -2165,6 +2182,12 @@ class OpenGame(State):
         aj().MouseLeftClick(), KongjianSleep()
 
         # dnf应用
+        for i in range(10):
+            if tgpdnf.Match():
+                break
+
+            logger.info("等待出现dnf应用"), RanSleep(1)
+
         if not tgpdnf.Match():
             logger.warning("没有DNF应用")
             return
@@ -2173,6 +2196,12 @@ class OpenGame(State):
         aj().MouseMoveToTgp(pos[0], pos[1])
         aj().MouseLeftClick(), KongjianSleep()
 
+        for i in range(10):
+            if tgpselectdaqu.Match():
+                break
+
+            logger.info("等待选择大区按钮"), RanSleep(1.0)
+
         # 选择大区
         if not tgpselectdaqu.Match():
             logger.warning("没有选择大区按钮")
@@ -2180,9 +2209,9 @@ class OpenGame(State):
 
         pos = tgpselectdaqu.Pos()
         aj().MouseMoveToTgp(pos[0], pos[1])
-        aj().MouseLeftClick(), KongjianSleep()
+        aj().MouseLeftClick(), RanSleep(1)
 
-        # 选择其他大区 (截图显示不到,但是直接移动过去就ok了)
+        # 选择其他大区  (相对位移过去就行了)
         aj().MouseMoveR(-104, -44), KongjianSleep()
         aj().MouseLeftClick(), KongjianSleep()
 
@@ -2194,23 +2223,89 @@ class OpenGame(State):
 
         # 选择 "电信/联通"
         if daqu == "电信":
-            aj().MouseMoveToTgp(421, 326), RanSleep(1.0)
+            aj().MouseMoveToTgp(141, 201), RanSleep(1.0)
         if daqu == "联通":
-            aj().MouseMoveToLogin(463, 324), RanSleep(1.0)
+            aj().MouseMoveToTgp(183, 201), RanSleep(1.0)
         aj().MouseLeftClick(), RanSleep(1.0)
 
+        # 选择主服务器
+        pos = GetMainregionPosTgp(selectAccount.region)
+        aj().MouseMoveToTgp(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
 
-        # 现在这个新的窗口截图不到, 要全局截屏了
+        for i in range(10):
+            time.sleep(1), logger.info("等待刷新出服务器")
+            aj().MouseMoveToTgp(100, 100), KongjianSleep()
+            aj().MouseWheel(-30), KongjianSleep()
 
+            if tgpxuanzefuwuqi.Match():
+                break
+
+        if not tgpxuanzefuwuqi.Match():
+            logger.warning("选择服务器标签没有找到")
+            return
+
+        pos = GetRegionPosTgp(selectAccount.region)
+        xuanzefuwuqipos = tgpxuanzefuwuqi.Pos()
+        newpos = (pos[0] + xuanzefuwuqipos[0], pos[1] + xuanzefuwuqipos[1])
+        logger.info("选择服务器 位置: (%d, %d)" % (newpos[0], newpos[1]))
+        aj().MouseMoveToTgp(newpos[0], newpos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
+
+        # "确定"
+        aj().MouseMoveToTgp(602, 502), RanSleep(1)
+        aj().MouseLeftClick(), KongjianSleep()
+
+        # 我已经阅读xxxxx
+        for i in range(10):
+            checks = [tgpunselect1, tgpunselect2]
+            for c in checks:
+                if c.Match():
+                    pos = c.Pos()
+                    aj().MouseMoveToTgp(pos[0] + c.dx, pos[1] + c.dy), KongjianSleep()
+                    aj().MouseLeftClick()
+                    aj().MouseMoveR(-30, -30)
+
+            # 拖动到一边,以免影响截图
+            aj().MouseMoveToTgp(934, 582), KongjianSleep()
+
+            # 启动
+            if tgpstart.Match():
+                break
+            logger.info("等待启动游戏按钮"), RanSleep(1)
+
+        if not tgpstart.Match():
+            logger.warning("游戏启动按钮没找到")
+            return
+
+        pos = tgpstart.Pos()
+        aj().MouseMoveToTgp(pos[0], pos[1]), KongjianSleep()
+        aj().MouseLeftClick(), KongjianSleep()
+
+        for i in range(10):
+            if tgptiaoguo.Match():
+                aj().MouseMoveToTgp(18, 199), KongjianSleep()
+                aj().MouseLeftClick(), RanSleep(0.5)
+
+                aj().MouseMoveToTgp(416, 203), KongjianSleep()
+                aj().MouseLeftClick(), RanSleep(0.5)
+                break
+
+            time.sleep(1), logger.info("等待深度优化启动速度 %d" % i)
+
+        # 等待6分钟
+        if self.WaitToGame(player):
+            logger.info("进入游戏成功")
+        else:
+            logger.warning("进入游戏失败")
 
     def Execute(self, player):
         config = GetConfig()
-        wegamepath = config.get("superai", "wegame路径").strip()
-
-        if wegamepath == "":
-            self.OpenGameOrigin(player)
-        else:
+        loginway = config.get("superai", "登录方式").strip()
+        if loginway == "wegame":
             self.OpenGameTgp(player)
+        else:
+            self.OpenGameOrigin(player)
 
 
 class Train(State):
@@ -2368,6 +2463,7 @@ defaultvalue = {
     "登录方式": "游戏",
     "单账号刷角色数量": "3",
     "创建角色数量": "10",
+    "剩余疲劳数量" : "25",
     "创建角色": "男魔法师,守护者,男鬼剑士,女格斗家",
     "按键": "易键鼠",
 }

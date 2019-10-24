@@ -338,7 +338,7 @@ kuaqus = [
 ]
 
 
-# 联通还是电信.
+# 联通还是电信
 def GetDaqu(region):
     mainregions = daqus["电信"]
     for mainregion in mainregions:
@@ -353,7 +353,7 @@ def GetDaqu(region):
     return ""
 
 
-# 获取主服务器地址
+# 获取主服务器位置
 def GetMainregionPos(region):
     for k, v in daqus.items():
         for i, mainregion in enumerate(v):
@@ -363,7 +363,7 @@ def GetMainregionPos(region):
     raise Exception("找不到主服务器地址")
 
 
-# 服务器地址
+# 获取服务器位置
 def GetRegionPos(r):
     for k, v in daqus.items():
         for i, mainregion in enumerate(v):
