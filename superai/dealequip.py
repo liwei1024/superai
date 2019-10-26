@@ -1,12 +1,15 @@
 import os
 import sys
 
+
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
 
 logger = logging.getLogger(__name__)
 
+from superai.equip import OpenBagScene, CloseBagScene
 from superai.vkcode import VK_CODE
 from superai.common import InitLog, GameWindowToTop, KongjianSleep, RanSleep
 from superai.gameapi import GameApiInit, FlushPid, GetBagEquipObj, BODYPOS, Clear, GetEquipObj
@@ -33,7 +36,7 @@ fenjiexuankonghaigang = Picture(GetImgDir() + "fenjie_xuankonghaigang.png")
 sellButton = Picture(GetImgDir() + "sellbt.png")
 bagScene = Picture(GetImgDir() + "bagscene.png")
 repairButton = Picture(GetImgDir() + "repair.png")
-
+querenbtn = Picture(GetImgDir() + "querenbtn.png")
 
 class DealEquip:
     def __init__(self):
@@ -155,6 +158,28 @@ class DealEquip:
             aj().MouseLeftClick(), KongjianSleep()
 
         self.CloseSell()
+
+    # 丢弃所有物品
+    def DiscardAll(self):
+        Clear()
+        logger.info("丢弃所有")
+        OpenBagScene()
+        bagpos = bagScene.Pos()
+
+        equips = GetBagEquipObj()
+        for v in equips:
+            pos = self.BagIdxToPos(v.idx - 9, bagpos)
+            aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+            aj().MouseLeftDown(), KongjianSleep()
+            aj().MouseMoveTo(83, 129), KongjianSleep()
+            aj().MouseLeftUp(), KongjianSleep()
+            aj().MouseMoveR(100, 100), KongjianSleep()
+            pos = querenbtn.Pos()
+            aj().MouseMoveTo(pos[0], pos[1])
+            aj().MouseLeftClick(), KongjianSleep()
+
+
+        CloseBagScene()
 
     # 修理 (身上5件 + 武器)
     def RepairAll(self):

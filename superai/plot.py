@@ -194,7 +194,7 @@ NpcInfos = {
         "pic": Picture(GetImgDir() + "shijie_jijingcheng.png"),
         "npcs": {
             "寂静城-码头": MoveInfo(destcoord=("ditu_jijingchengmatou.png", 111, 259), mousecoord=(134, 434)),
-            "寂静城-地轨中心":  MoveInfo(destcoord=("ditu_jichengchengdiguizhongxin.png", 958, 259), mousecoord=(205, 434)),
+            "寂静城-地轨中心": MoveInfo(destcoord=("ditu_jichengchengdiguizhongxin.png", 958, 259), mousecoord=(205, 434)),
         }
     },
     "地轨中心": {
@@ -837,8 +837,8 @@ def CoordMoveTo(shijitpic, mousecoord):
 def MoveTo(destname, player):
     destinfo = GetDestinfo(destname)
 
-    # if player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 10.0:
-    if not IsMenChengzhenYidong():
+    if not IsMenChengzhenYidong() or (
+            player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 30.0):
         # 移动下 防止卡死!!!
         if random.uniform(0, 1) < 0.5:
             aj().DownZUO(), RanSleep(0.5)
@@ -1297,8 +1297,8 @@ def 守护森林的战斗(player):
             pic = zhuanzhiYuanneng
         elif meninfo.zhuanzhiqian in ["男魔法师"]:
             pic = zhuanzhiZhufengzhe
-        # elif meninfo.zhuanzhiqian in ["女魔法师"]:
-        #     pic = zhuanzhiZhaohuan
+        elif meninfo.zhuanzhiqian in ["女魔法师"]:
+            pic = zhuanzhiZhaohuan
         if pic is None:
             raise NotImplementedError("职业不支持: %s" % meninfo.zhuanzhiqian)
 

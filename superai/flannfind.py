@@ -223,11 +223,14 @@ def FindPicture(img1, img2):
 
 # img1在img2上的相对pos
 def FindPicturePos(img1, img2):
-    h, w = img1.shape[:2]
+
     try:
+        h, w = img1.shape[:2]
         res = cv2.matchTemplate(img2, img1, cv2.TM_CCOEFF_NORMED)
     except cv2.error:
         logger.warning("Find picture error")
+        return 0, 0
+    except AttributeError:
         return 0, 0
     threshold = 0.8
     loc = np.where(res >= threshold)

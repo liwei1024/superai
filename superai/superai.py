@@ -48,7 +48,8 @@ from superai.gameapi import GameApiInit, FlushPid, \
     Zuobiaoyidong, Autoshuntu, GetCurmapXy, HavePilao, GetMapInfo, IsShitmoGu, GetSelectObj, \
     GetCurSelectIdx, IsFirstSelect, IsLastSelect, IsCurrentSupport, Openesc, IsCurrentInTrain, \
     GetRemaindPilao, IsZhicai, UnLockHp, IsLockedHp, IsSettingSkip, IsSettingYinyingSkip, IsInTk, IsIngentebeimen, \
-    GetTkXy, at5tAttackSkill, at5t_S, at5t_F, BagWuseNum, IsYuancheng, simpleYuanchengAttackSkill
+    GetTkXy, at5tAttackSkill, at5t_S, at5t_F, BagWuseNum, IsYuancheng, simpleYuanchengAttackSkill, IsNvMofashi, \
+    IsZhaohuan, IsNvMofa, zhaohuanmap, IshaveZhaohuanshou
 
 gamebegin = Picture(GetImgDir() + "gamebegin2.png")
 selectregion = Picture(GetImgDir() + "select_region.png", classname="TWINCONTROL", windowname="地下城与勇士登录程序")
@@ -104,6 +105,7 @@ queren_youjian = Picture(GetImgDir() + "queren_youjian.png")
 btnpress = Picture(GetImgDir() + "btnpress.png")
 mingchengchongfu = Picture(GetImgDir() + "mingchengchongfu.png")
 xuruo = Picture(GetImgDir() + "xuruo.png", dx=226, dy=448, dw=324, dh=117)
+anquanjiehcutbtn = Picture(GetImgDir() + "anquanjiehcutbtn.png")
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -273,7 +275,6 @@ class Player:
         self.skills.Update()
 
         if IsIngentebeimen():
-
             t = random.uniform(0, 1)
             if t < 0.33:
                 self.curskill = at5tAttackSkill
@@ -286,12 +287,35 @@ class Player:
             if random.uniform(0, 1) < 0.05:
                 if IsYuancheng():
                     self.curskill = simpleYuanchengAttackSkill
+                elif IsNvMofashi():
+                    self.curskill = self.skills.GetMofaXingdan()
                 else:
                     self.curskill = simpleAttackSkill
             else:
-                self.curskill = self.skills.GetMaxLevelAttackSkill()
+                if IsNvMofashi():
+                    # 召唤
+                    zhaohuanskills = self.skills.GetCanbeUsedZhaohuanSkills()
+                    # 宝宝技能
+                    zhaohuanshouskills = self.skills.GetZhaohuanGuaiwuUsedSkills()
+                    if len(zhaohuanskills) > 0:
+                        self.curskill = zhaohuanskills[0]
+                    elif self.skills.GetKuanghua() is not None:
+                        # 狂化
+                        self.curskill = self.skills.GetKuanghua()
+                    elif len(zhaohuanshouskills) > 0 and IsZhaohuan():
+                        self.curskill = zhaohuanshouskills[0]
+                    else:
+                        self.curskill = self.skills.GetMaxLevelAttackSkill()
+                else:
+                    self.curskill = self.skills.GetMaxLevelAttackSkill()
+
                 if self.curskill is None:
                     self.curskill = simpleAttackSkill
+
+                    if self.curskill.name == "普通攻击" and IsNvMofa():
+                        self.curskill = self.skills.GetMofaXingdan()
+
+
 
     # 使用掉随机选择的技能
     def UseSkill(self):
@@ -707,6 +731,7 @@ class GlobalState(State):
 
             logger.info("对话状态")
             aj().PressKey(VK_CODE["spacebar"]), RanSleep(0.05)
+
             if not IsWindowTop():
                 player.RestoreContext()
             return
@@ -1096,8 +1121,28 @@ class FenjieEquip(State):
         logger.info("分解装备")
         deal = DealEquip()
         deal.FenjieAll()
+
+        # 安全模式
+        if anquanjiehcutbtn.Match():
+            aj().PressKey(VK_CODE["esc"]), KongjianSleep()
+            player.ChangeState(DiscardEquip())
+            return
+
         deal.CloseFenjie()
         logger.info("分解装备完毕")
+        player.ChangeState(InChengzhen())
+
+        UpdateMenState(player)
+
+
+# 丢弃物品
+class DiscardEquip(State):
+    def Execute(self, player):
+        logger.warning("安全模式, 丢弃物品!!!!")
+        deal = DealEquip()
+        deal.DiscardAll()
+
+        logger.info("丢弃物品完毕")
         player.ChangeState(InChengzhen())
 
         UpdateMenState(player)
@@ -1179,7 +1224,9 @@ class FirstInMap(State):
         player.NewMapCache()
         player.ResetStuckInfo()
 
+        # buff
         if player.skills.HaveBuffCanBeUse():
+
             if not CanbeMovTest():
                 logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机"), RanSleep(0.5)
                 return
@@ -1191,6 +1238,20 @@ class FirstInMap(State):
                 skill.Use()
         else:
             logger.info("没有buffer可以使用")
+
+        # 召唤
+        if IsNvMofa() or IsZhaohuan():
+
+            if not CanbeMovTest():
+                logger.warning("没法移动位置 可能被什么遮挡了, 临时退出状态机"), RanSleep(0.5)
+                return
+
+            player.skills.Update()
+            skills = player.skills.GetCanbeUsedZhaohuanSkills()
+            for skill in skills:
+                logger.info("使用召唤技能: %s" % skill.name)
+                skill.Use()
+                RanSleep(1)
 
         player.skills.Update()
         player.ChangeState(StandState())
@@ -1279,20 +1340,45 @@ class SeekAndAttackMonster(State):
             player.SelectSkill()
         men = GetMenInfo()
 
+        if IsNvMofa():
+            if "召唤" in player.curskill.name:
+
+                if "狂化" in player.curskill.name:
+                    player.UpLatestKey()
+                    player.ClearPathfindingLst()
+                    player.UseSkill()
+                    return
+                else:
+                    zhaohuanguaiwuname = zhaohuanmap[player.curskill.name]
+                    if not IshaveZhaohuanshou(zhaohuanguaiwuname):
+                        player.UpLatestKey()
+                        player.ClearPathfindingLst()
+                        player.UseSkill()
+                        return
+
         # 在水平宽度内并且垂直宽度太近了, 远离
         if player.curskill.IsH_WInRange(men.y, obj.y) and \
                 player.curskill.IsV_WTOOClose(men.x, obj.x):
+
             seekx, seeky = player.curskill.GetSeekXY(men.x, men.y, obj.x, obj.y)
             logger.info("目标太接近,无法攻击,选择合适位置: men:(%d,%d) obj:(%d,%d) seek(%d,%d), 技能%s 太靠近垂直水平(%d,%d)" %
                         (men.x, men.y, obj.x, obj.y, seekx, seeky, player.curskill.name,
                          player.curskill.skilldata.too_close_v_w, player.curskill.skilldata.h_w))
 
-            # 后跳解决问题
+            if player.ob.TouchedAnything([int(seekx // 10), int(seeky // 10)]):
+                seekx, seeky = player.curskill.GetSeekXY2(men.x, men.y, obj.x, obj.y)
+
+                if player.ob.TouchedAnything([int(seekx // 10), int(seeky // 10)]):
+                    # 直接攻击吧, 另一个位置也不能移动过去!
+                    player.UpLatestKey()
+                    player.ClearPathfindingLst()
+                    player.ChaoxiangFangxiang(men.x, obj.x)
+                    if player.IsChaoxiangDuifang(men.x, obj.x):
+                        player.UseSkill()
+                    return
+
             player.UpLatestKey()
             player.ClearPathfindingLst()
-            # if random.uniform(0, 1) < 0.8 and not IsIngentebeimen():
-            #     aj().PressHouTiao(), RanSleep(0.05)
-            # else:
             player.SeekWithPathfinding(seekx, seeky, dummy="合适攻击位置"), RanSleep(0.05)
 
             return
@@ -1370,7 +1456,9 @@ class SeekAndPickUp(State):
             player.UpLatestKey()
             player.ClearPathfindingLst()
             logger.info("捡取 (%d,%d)" % (obj.x, obj.y)), RanSleep(0.05)
-            aj().PressX()
+
+            if not "金币" in obj.name:
+                aj().PressX()
         else:
             player.SeekWithPathfinding(obj.x, obj.y, dummy="物品:" + obj.name)
 
@@ -1667,8 +1755,8 @@ class SelectJuese(State):
         logger.warning("在选择角色页面"), RanSleep(0.1)
 
 
-# "枪剑士" 太垃圾, 不放进去了,  "女圣职者"  "魔枪士"看不惯也不加进去 "女魔法师"
-jueselst = ["男魔法师", "男鬼剑士", "守护者", "女格斗家"]
+# "枪剑士", "女圣职者",  "魔枪士" 没有放进去
+jueselst = ["男魔法师", "男鬼剑士", "守护者", "女格斗家", "女魔法师"]
 
 jueseseall = {
     "枪剑士": (127, 487),
@@ -2448,13 +2536,14 @@ class GameTopThread(threading.Thread):
     def run(self):
         while not self.__stop:
             if checkIfProcessRunning("DNF.exe"):
+                # 关闭小鸟
                 # if checkIfProcessRunning("CrossProxy.exe"):
                 #     logger.warning("发现 CrossProxy.exe, 关闭!!!")
                 #     os.system("taskkill /F /im CrossProxy.exe"), RanSleep(1)
 
-                #     if checkIfProcessRunning("TPHelper.exe"):
-                #         logger.warning("发现 TPHelper.exe, 关闭!!!")
-                #         os.system("taskkill /F /im TPHelper.exe"), RanSleep(1)
+                # if checkIfProcessRunning("TPHelper.exe"):
+                #     logger.warning("发现 TPHelper.exe, 关闭!!!")
+                #     os.system("taskkill /F /im TPHelper.exe"), RanSleep(1)
 
                 pythoncom.CoInitialize()
                 GameWindowToTop()
@@ -2471,7 +2560,7 @@ defaultvalue = {
     "登录方式": "游戏",
     "单账号刷角色数量": "3",
     "创建角色数量": "10",
-    "剩余疲劳数量" : "0",
+    "剩余疲劳数量": "0",
     "创建角色": "男魔法师,守护者,男鬼剑士,女格斗家",
     "按键": "易键鼠",
 }

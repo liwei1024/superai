@@ -254,12 +254,13 @@ class SkillObj(Structure):
         ("sendtime", c_uint32),
         ("canbeused", c_bool),
         ("level", c_uint32),
+        ("canbeused2", c_uint32)
     ]
 
     def __str__(self):
         return (
-                "[%d] 对象: 0x%08X 名称: %s 冷却时间: %d 截止时间: %d 能否使用: %d 等级: %d" % (
-            self.idx, self.object, self.name, self.cooling, self.sendtime, self.canbeused, self.level))
+                "[%d] 对象: 0x%08X 名称: %s 冷却时间: %d 截止时间: %d 能否使用: %d 等级: %d 能否使用(召唤): %d" % (
+            self.idx, self.object, self.name, self.cooling, self.sendtime, self.canbeused, self.level, self.canbeused2))
 
 
 class TaskObj(Structure):
@@ -1666,16 +1667,19 @@ def IsLastSelect():
 
 # 目标职业是否支持
 def IsDestSupport(zhiye):
-    if zhiye in ["魔枪士", "女圣职者", "枪剑士", "守护者", "女格斗家", "男鬼剑士", "男魔法师"]:  # "女魔法师"
+    if zhiye in ["男魔法师", "守护者", "男鬼剑士", "女格斗家", "女魔法师", "枪剑士", "女圣职者", "魔枪士", ]:
         return True
-    if zhiye in ["暗枪士", "狂怒恶鬼", "幽影夜神",
-                 "诱魔者", "断罪者", "救世者",
-                 "源能专家", "源力掌控者", "未来开拓者",
-                 "帕拉丁", "曙光", "破晓女神",
-                 "气功师", "百花缭乱", "念帝",
-                 "剑影", "夜刀神", "夜见罗刹",
-                 "逐风者", "御风者", "风神",  # "召唤师", "月之女皇", "月蚀"
-                 "征战者", "战魂", "不灭战神"]:
+    if zhiye in [
+        "逐风者", "御风者", "风神",
+        "帕拉丁", "曙光", "破晓女神",
+        "剑影", "夜刀神", "夜见罗刹",
+        "气功师", "百花缭乱", "念帝",
+        "召唤师", "月之女皇", "月蚀",
+
+        "源能专家", "源力掌控者", "未来开拓者",
+        "诱魔者", "断罪者", "救世者",
+        "暗枪士", "狂怒恶鬼", "幽影夜神",
+        "征战者", "战魂", "不灭战神"]:
         return True
     return False
 
@@ -1744,6 +1748,14 @@ def IsYuancheng():
     return False
 
 
+# 是否是女魔法师
+def IsNvMofashi():
+    meninfo = GetMenInfo()
+    if "女魔法师" in meninfo.zhuanzhiqian:
+        return True
+    return False
+
+
 # 是否坐上了坦克
 def IsInTk():
     meninfo = GetMenInfo()
@@ -1765,6 +1777,31 @@ def GetTkXy():
 def IsMenChengzhenYidong():
     meninfo = GetMenInfo()
     return meninfo.yidong == 3
+
+
+# 是否是女魔法
+def IsNvMofa():
+    meninfo = GetMenInfo()
+    if meninfo.zhuanzhiqian in "女魔法师":
+        return True
+    return False
+
+
+# 是否是召唤
+def IsZhaohuan():
+    meninfo = GetMenInfo()
+    if meninfo.zhuanzhihou in ["召唤师", "月之女皇", "月蚀"]:
+        return True
+    return False
+
+
+# 召唤兽中是否存在
+def IshaveZhaohuanshou(name):
+    objs = GetMapObj()
+    for obj in objs:
+        if name in obj.name and obj.zhenying == 0:
+            return True
+    return False
 
 
 # 技能对应的按键
@@ -1866,6 +1903,16 @@ class Skill:
 
         raise NotImplementedError()
 
+    # 另一种获取远离怪物坐标的方式,一般是卡点了
+    def GetSeekXY2(self, menx, meny, objx, objy):
+        if GetFangxiang(menx, objx) == LEFT:
+            return objx - (self.skilldata.v_w - self.skilldata.too_close_v_w) / 2 - self.skilldata.too_close_v_w, objy
+
+        if GetFangxiang(menx, objx) == RIGHT:
+            return objx + (self.skilldata.v_w - self.skilldata.too_close_v_w) / 2 + self.skilldata.too_close_v_w, objy
+
+        raise NotImplementedError()
+
     # 可以使用
     def CanbeUsed(self):
         # 是否存在
@@ -1896,6 +1943,26 @@ class Skill:
             LockHp()
 
 
+# 召唤技能以及对应的召唤物
+zhaohuanmap = {"契约召唤 : 赫德尔": "机甲赫德尔",
+               "召唤下级精灵": "冰奈斯",
+               "契约召唤 : 弗利特": "弗利特",
+               "契约召唤 : 桑德尔": "桑德尔",
+               "精灵召唤 : 冰影阿奎利斯": "冰影阿奎利斯",
+               "精灵召唤 : 火焰赫瑞克": "火焰赫瑞克",
+               "精灵召唤 : 极光格雷林": "极光格雷林",
+               "精灵召唤 : 亡魂默克尔": "亡魂默克尔",
+               "契约召唤 : 袄索": "袄索"}
+
+baobaoskills = [
+    "契约召唤 : 赫德尔",
+    "契约召唤 : 弗利特",
+    "契约召唤 : 桑德尔",
+    "契约召唤 : 袄索",
+    "契约召唤 : 路易丝"
+]
+
+
 # 技能列表
 class Skills:
     def __init__(self):
@@ -1905,6 +1972,10 @@ class Skills:
 
     # 用完技能马上更新一下状态. (释放时间变化, python内部释放时间就变化)
     def Update(self):
+
+        nvmofa = IsNvMofa()
+        zhaohuan = IsZhaohuan()
+
         objs = GetSkillObj()
         for obj in objs:
             self.skilllst[obj.idx].exist = True
@@ -1913,6 +1984,27 @@ class Skills:
             self.skilllst[obj.idx].canbeused = obj.canbeused
             self.skilllst[obj.idx].Init()
 
+            # canbeuse
+            # 1. 可以召唤
+            # 2. 可以主动释放技能
+            if IsManInMap():
+
+                if nvmofa:
+                    if obj.name in zhaohuanmap:
+                        zhaohuanguaiwuname = zhaohuanmap[obj.name]
+                        if not IshaveZhaohuanshou(zhaohuanguaiwuname):
+                            self.skilllst[obj.idx].canbeused = obj.canbeused & True
+                        else:
+                            self.skilllst[obj.idx].canbeused = False
+
+                if zhaohuan:
+                    if obj.name in zhaohuanmap:
+                        zhaohuanguaiwuname = zhaohuanmap[obj.name]
+                        if not IshaveZhaohuanshou(zhaohuanguaiwuname):
+                            self.skilllst[obj.idx].canbeused = obj.canbeused & True
+                        else:
+                            self.skilllst[obj.idx].canbeused = obj.canbeused2 & True
+
         # 先强制刷新一波全部不存在
         for skillobj in self.skilllst:
             skillobj.exist = False
@@ -1920,6 +2012,30 @@ class Skills:
         # 再刷新的列表,改变为存在
         for obj in objs:
             self.skilllst[obj.idx].exist = True
+
+    # 获取召唤怪物技能列表(进入图的时候使用下)
+    def GetCanbeUsedZhaohuanSkills(self):
+        outlst = []
+        for skill in self.skilllst:
+            if skill.CanbeUsed() and skill.skilldata.type == SkillType.Gongji and "召唤" in skill.name and not "狂化" in skill.name:
+                zhaohuanguaiwuname = zhaohuanmap[skill.name]
+                if not IshaveZhaohuanshou(zhaohuanguaiwuname):
+                    logger.info("没有召唤兽: %s, 召唤一个" % zhaohuanguaiwuname)
+                    outlst.append(skill)
+        return outlst
+
+    # 获取召唤怪物可释放技能
+    def GetZhaohuanGuaiwuUsedSkills(self):
+        outlst = []
+        for skill in self.skilllst:
+            if skill.CanbeUsed() and skill.skilldata.type == SkillType.Gongji and "召唤" in skill.name and not "狂化" in skill.name and \
+                    skill.name in baobaoskills:
+                zhaohuanguaiwuname = zhaohuanmap[skill.name]
+                if IshaveZhaohuanshou(zhaohuanguaiwuname):
+                    logger.info("召唤兽技能没有释放: %s, 释放" % zhaohuanguaiwuname)
+                    outlst.append(skill)
+
+        return outlst
 
     # 获取可以使用的技能列表
     def GetCanBeUsedAttackSkills(self):
@@ -1937,6 +2053,14 @@ class Skills:
                 outlst.append(skill)
         return outlst
 
+    # 可以使用召唤兽狂化
+    def GetKuanghua(self):
+        for skill in self.skilllst:
+            if skill.CanbeUsed() and skill.name == "召唤兽狂化":
+                return skill
+        return None
+
+
     # 获得高等级的技能释放
     def GetMaxLevelAttackSkill(self):
         skills = self.GetCanBeUsedAttackSkills()
@@ -1953,6 +2077,15 @@ class Skills:
     def HaveBuffCanBeUse(self):
         skills = self.GetCanBeUseBuffSkills()
         return len(skills) > 0
+
+    # 获取魔法星弹
+    def GetMofaXingdan(self):
+        for skill in self.skilllst:
+            if skill.name == "魔法星弹":
+                return skill
+        else:
+            logger.warning("女魔法师选择了普通攻击")
+            return simpleAttackSkill
 
 
 # 初始化技能配置. 因为内存中读取不到
@@ -2037,8 +2170,12 @@ skillSettingMap = {
     # 风法
     "流风诀": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
-    "魔法冰球": SkillData(type=SkillType.Gongji, v_w=600 / 2, h_w=40 / 2, too_close_v_w=80 / 2),
-    "旋火盾": SkillData(type=SkillType.Gongji, v_w=600 / 2, h_w=40 / 2, too_close_v_w=80 / 2),
+    "魔法冰球": SkillData(type=SkillType.Gongji, v_w=600 / 2, h_w=40 / 2, too_close_v_w=40 / 2),
+    "旋火盾": SkillData(type=SkillType.Gongji, v_w=600 / 2, h_w=40 / 2, too_close_v_w=40 / 2),
+
+    # 女魔法
+    "魔法星弹": SkillData(type=SkillType.Gongji, v_w=600 / 2, h_w=40 / 2, too_close_v_w=40 / 2),
+    "杰克爆弹": SkillData(type=SkillType.Gongji, v_w=600 / 2, h_w=40 / 2, too_close_v_w=40 / 2),
 }
 
 # 普通攻击
@@ -2153,6 +2290,8 @@ def main():
     # Autoshuntu()
 
     # print(IsCurrentInTrain())
+
+    print(IshaveZhaohuanshou("冰奈斯"))
 
 
 if __name__ == "__main__":

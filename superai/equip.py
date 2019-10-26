@@ -172,15 +172,15 @@ class Equips:
                 if meninfo.level >= 20:
                     self.wuqistragy = ["棍棒"]
                     self.xingyunwuqipos = (0, 109)
-        # elif occupationbefore in ["女魔法师"]:
-        #     self.bodystragy = ANYStrategy
-        #     self.wuqistragy = ["矛", "棍棒", "魔杖", "法杖"]
-        #     self.xingyunwuqipos = (-22, 105)
-        #     if occupationafter in ["召唤师", "月之女皇", "月蚀"]:
-        #         self.bodystragy = BUJIA
-        #         if meninfo.level >= 20:
-        #             self.wuqistragy = ["法杖"]
-        #             self.xingyunwuqipos = (30, 111)
+        elif occupationbefore in ["女魔法师"]:
+            self.bodystragy = ANYStrategy
+            self.wuqistragy = ["矛", "棍棒", "魔杖", "法杖"]
+            self.xingyunwuqipos = (-22, 105)
+            if occupationafter in ["召唤师", "月之女皇", "月蚀"]:
+                self.bodystragy = BUJIA
+                if meninfo.level >= 20:
+                    self.wuqistragy = ["法杖"]
+                    self.xingyunwuqipos = (30, 111)
         else:
             logger.warning("还未支持的职业 %s" % occupationafter)
             return
@@ -344,7 +344,7 @@ class Equips:
                 return True
         return False
 
-    # 身上或者背包里是否有租的武器
+    # 身上或者背包里是否有租的武器 (如果有不死鸟,或者灵越跳过)
     def DoesHaveHireEquip(self):
         meninfo = GetMenInfo()
         suitlevel = (meninfo.level // 10) * 10
@@ -352,10 +352,18 @@ class Equips:
         for v in equips:
             if v.bodypos == WUQIPOS and v.canbeusedlevel >= suitlevel and "幸运星" in v.name and v.wuqitype in self.wuqistragy:
                 return True
+
+            if v.bodypos == WUQIPOS and ("不死鸟" in v.name or "灵跃" in v.name):
+                return True
+
         equips = GetEquipObj()
         for v in equips:
             if v.bodypos == WUQIPOS and v.canbeusedlevel >= suitlevel and "幸运星" in v.name and v.wuqitype in self.wuqistragy:
                 return True
+
+            if v.bodypos == WUQIPOS and ("不死鸟" in v.name or "灵跃" in v.name):
+                return True
+
         return False
 
     # 武器是幸运星武器且符合等级

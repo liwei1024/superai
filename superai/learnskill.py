@@ -90,10 +90,10 @@ class Occupationkills:
             self.nanmofaInit()
             if occupationafter in ["逐风者", "御风者", "风神"]:
                 self.fengfaInit()
-        # elif occupationbefore in ["女魔法师"]:
-        #     self.nvmofaInit()
-        #     if occupationafter in ["召唤师", "月之女皇", "月蚀"]:
-        #         self.zhaohuanInit()
+        elif occupationbefore in ["女魔法师"]:
+            self.nvmofaInit()
+            if occupationafter in ["召唤师", "月之女皇", "月蚀"]:
+                self.zhaohuanInit()
         else:
             logger.warning("还未支持的职业 %s" % occupationafter)
             return
@@ -110,11 +110,39 @@ class Occupationkills:
 
     # 女魔法师
     def nvmofaInit(self):
-        pass
+        self.learnstrategy = []
+        meninfo = GetMenInfo()
+        if meninfo.level >= 1:
+            self.learnstrategy.append(OccupationSkill("nvmofa", "魔法星弹", "mofashi_mofaxingdan.png"))
+        if meninfo.level >= 5:
+            self.learnstrategy.append(OccupationSkill("nvmofa", "契约召唤 : 赫德尔", "zhaohuan_hedeer.png"))
+            self.learnstrategy.append(OccupationSkill("nvmofa", "杰克爆弹", "mofashi_jiekebaodan.png"))
+            self.learnstrategy.append(OccupationSkill("nvmofa", "光电鳗", "mofashi_guangdianman.png"))
 
     # 召唤
     def zhaohuanInit(self):
-        pass
+        self.AttackType = MOFA
+        meninfo = GetMenInfo()
+
+        if meninfo.level >= 15:
+            self.learnstrategy.append(OccupationSkill("nvmofa", "召唤下级精灵", "zhaohuan_xiaji.png"))
+            self.learnstrategy.append(OccupationSkill("nvmofa", "召唤兽强化", "zhaohuan_qianghua.png", beidong=True))
+            self.learnstrategy.append(OccupationSkill("nvmofa", "心灵感应", "zhaohuan_xinlingganying.png", beidong=True))
+        if meninfo.level >= 20:
+            self.learnstrategy.append(OccupationSkill("nvmofa", "契约召唤 : 弗利特", "zhaohuan_long.png"))
+        if meninfo.level >= 25:
+            self.learnstrategy.append(OccupationSkill("nvmofa", "契约召唤 : 桑德尔", "zhaohuan_sangdeer.png"))
+        if meninfo.level >= 30:
+            self.learnstrategy.append(OccupationSkill("nvmofa", "精灵召唤 : 冰影阿奎利斯", "zhaohuan_bing.png"))
+            self.learnstrategy.append(OccupationSkill("nvmofa", "精灵召唤 : 火焰赫瑞克", "zhaohuan_huo.png"))
+            self.learnstrategy.append(OccupationSkill("nvmofa", "精灵召唤 : 极光格雷林", "zhaohuan_guang.png"))
+            self.learnstrategy.append(OccupationSkill("nvmofa", "精灵召唤 : 亡魂默克尔", "zhaohuan_an.png"))
+            self.learnstrategy.append(OccupationSkill("nvmofa", "契约召唤 : 袄索", "zhaohuan_aosuo.png"))
+            self.learnstrategy.append(OccupationSkill("nvmofa", "召唤兽狂化", "zhaohuan_kuanghua.png"))
+        if meninfo.level >= 35:
+            self.learnstrategy.append(OccupationSkill("nvmofa", "契约召唤 : 路易丝", "zhaohuan_luyisi.png"))
+        if meninfo.level >= 40:
+            self.learnstrategy.append(OccupationSkill("nvmofa", "精灵召唤 : 伊伽贝拉", "zhaohuan_ytijiabeila.png"))
 
     # 男魔法师
     def nanmofaInit(self):
@@ -207,7 +235,6 @@ class Occupationkills:
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "光裂斩", "yuanneng_guangliezhan.png"))
         if meninfo.level >= 45:
             self.learnstrategy.append(OccupationSkill("qiangjianshi", "光导裂地斩", "yuanneng_guangdaoliedizhan.png"))
-
 
     # 男鬼剑士
     def guijianshiInit(self):
