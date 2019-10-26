@@ -16,7 +16,7 @@ from superai.location import IsinAierwenfnagxian, IsinHedunmaer, IsinAerfayingdi
 from superai.flannfind import Picture, GetImgDir
 from superai.gameapi import GetMenInfo, IsClosedTo, IsManInSelectMap, Quardant, GetQuadKeyDownMap, GetQuadKeyUpMap, \
     CurSelectId, GetTaskObj, IsManInMap, IsEscTop, GetAccptedTaskObj, IsWindowTop, Clear, Openesc, SafeClear, \
-    GetQuadrant, QuardantMap
+    GetQuadrant, QuardantMap, IsMenChengzhenYidong
 from superai.anjian import aj
 
 shijiedituScene = Picture(GetImgDir() + "shijieditu.png")
@@ -170,6 +170,9 @@ NpcInfos = {
             "沙影": MoveInfo(destcoord=("ditu_shaying.png", 2137, 221), mousecoord=(308, 92)),
             "根特-码头": MoveInfo(destcoord=("ditu_gente_hedunmaer.png", 1703, 237), mousecoord=(285, 96)),
             "根特-发电站": MoveInfo(destcoord=("ditu_gente_fadianzhan.png", 1538, 229), mousecoord=(471, 374)),
+            "贝伦": MoveInfo(destcoord=("ditu_beilun.png", 250, 158), mousecoord=(491, 314)),
+            "悬空海港": MoveInfo(destcoord=("ditu_xuankonghaigang.png", 750, 221), mousecoord=(527, 327)),
+            "小灯笼": MoveInfo(destcoord=("ditu_xiaodenglong.png", 1287, 223), mousecoord=(458, 372)),
         }
     },
     "素喃": {
@@ -834,7 +837,8 @@ def CoordMoveTo(shijitpic, mousecoord):
 def MoveTo(destname, player):
     destinfo = GetDestinfo(destname)
 
-    if player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 10.0:
+    # if player.taskctx.latestmovepoint is None or time.time() > player.taskctx.latestmovepoint + 10.0:
+    if not IsMenChengzhenYidong():
         # 移动下 防止卡死!!!
         if random.uniform(0, 1) < 0.5:
             aj().DownZUO(), RanSleep(0.5)
@@ -1692,6 +1696,7 @@ FubenInfos = {
             "雾都赫伊斯": 2,
             "阿登高地": 3,
             "海上航线": 4,
+            "幽灵列车": 2,
         }
     },
     "素喃": {
@@ -2093,7 +2098,7 @@ plotMap = {
     "破坏武器": AttacktaskFoo("夺回西部线"),
     "夺回海上列车": AttacktaskFoo("夺回西部线"),
     "小灯笼的礼物": MeetNpcFoo("小灯笼"),
-    "挡路x的列车": AttacktaskFoo("幽灵列车"),
+    "挡路的列车": AttacktaskFoo("幽灵列车"),
     "雾都赫伊斯": AttacktaskFoo("雾都赫伊斯"),
     "敌人袭来": AttacktaskFoo("雾都赫伊斯"),
     "狙击手": AttacktaskFoo("雾都赫伊斯"),

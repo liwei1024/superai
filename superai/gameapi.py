@@ -54,7 +54,8 @@ class MenInfo(Structure):
         ("zhicai", c_uint32),
         ("zhiyedw", c_uint32),
         ("tiaoguo", c_uint32),
-        ("yinying", c_uint32)
+        ("yinying", c_uint32),
+        ("yidong", c_uint32)
     ]
 
     def __str__(self):
@@ -67,7 +68,7 @@ class MenInfo(Structure):
         retstr += "人物坐标 (%.f,%.f,%.f) w h %d %d\n" % (self.x, self.y, self.z, self.w, self.h)
         retstr += "负重 (%d,%d) 金币: %d\n" % (self.fuzhongcur, self.fuzhongmax, self.money)
         retstr += "弹出 %d esc %d\n" % (self.tanchu, self.esc)
-        retstr += "城镇坐标: (%d, %d)\n" % (self.chengzhenx, self.chengzheny)
+        retstr += "城镇坐标: (%d, %d) 移动: %d\n" % (self.chengzhenx, self.chengzheny, self.yidong)
         retstr += "制裁: %d 账号: %d, 大区: %s\n" % (self.zhicai, self.account, self.region)
         retstr += "跳过: %d 阴影: %d\n" % (self.tiaoguo, self.yinying)
         return retstr
@@ -1308,6 +1309,15 @@ def GetMonstersWrap():
         obstacles = list(obstacles)
         if len(obstacles) > 0:
             monsters = monsters + obstacles
+    elif "夺回西部线" in mapinfo.name:
+        obstacles = GetMapObstacle()
+        obstacles = filter(
+            lambda ob: ("破损的GT-9600" in ob.name and 155 < ob.x < 1440) or "红色摩托车" in ob.name or "银色摩托车" in ob.name,
+            obstacles)
+        obstacles = list(obstacles)
+        if len(obstacles) > 0:
+            monsters = monsters + obstacles
+
     return monsters
 
 
@@ -1751,6 +1761,12 @@ def GetTkXy():
     return 0, 0
 
 
+# 是否人物在城镇移动
+def IsMenChengzhenYidong():
+    meninfo = GetMenInfo()
+    return meninfo.yidong == 3
+
+
 # 技能对应的按键
 idxkeymap = {
     0: VK_CODE['a'], 1: VK_CODE['s'], 2: VK_CODE['d'], 3: VK_CODE['f'], 4: VK_CODE['g'], 5: VK_CODE['h'],
@@ -1941,7 +1957,6 @@ class Skills:
 
 # 初始化技能配置. 因为内存中读取不到
 skillSettingMap = {
-
     # 通用
     "远古记忆": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
 
@@ -1953,14 +1968,6 @@ skillSettingMap = {
     # buff
     "波动刻印": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
     "杀意波动": SkillData(type=SkillType.Buff, delaytime=0.2, afterdelay=0.4),
-
-    # 近
-    "上挑": SkillData(type=SkillType.Gongji),
-    "鬼斩": SkillData(type=SkillType.Gongji),
-    "裂波斩": SkillData(type=SkillType.Gongji, afterdelay=0.3),
-    "鬼连斩": SkillData(type=SkillType.Gongji),
-    "波动爆发": SkillData(type=SkillType.Gongji),
-    "无双波": SkillData(type=SkillType.Gongji),
 
     # 远
     "地裂 · 波动剑": SkillData(type=SkillType.Gongji, v_w=200 / 2, h_w=40 / 2),

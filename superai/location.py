@@ -23,6 +23,7 @@ locationYanuofasenlin = Picture(GetImgDir() + "ditu_yanuofasenlin.png")
 locationEyunzhichen = Picture(GetImgDir() + "ditu_eyun.png")
 locationNiliupubu = Picture(GetImgDir() + "ditu_niliupubu.png")
 locationGente = Picture(GetImgDir() + "ditu_gente.png")
+locationHaigang = Picture(GetImgDir() + "ditu_xuankonghaigang.png")
 
 wenziaierwenfangxian = Picture(GetImgDir() + "wenzi_aierwenfangxian.png", 610, 22, 182, 25)
 wenzihedunmaer = Picture(GetImgDir() + "wenzi_hedunmaer.png", 610, 22, 182, 25)
@@ -36,6 +37,7 @@ wenzisunan = Picture(GetImgDir() + "wenzi_sunan.png", 610, 22, 182, 25)
 wenzifadianzhan = Picture(GetImgDir() + "wenzi_fadianzhan.png", 610, 22, 182, 25)
 wenzijijingcheng = Picture(GetImgDir() + "wenzi_jijingcheng.png", 610, 22, 182, 25)
 wenzidiguizhongxin = Picture(GetImgDir() + "wenzi_diguizhongxin.png", 610, 22, 182, 25)
+wenzixuankonghaigang = Picture(GetImgDir() + "wenzi_xuankonghaigang.png", 610, 22, 182, 25)
 
 sailiya = Picture(GetImgDir() + "ditu_sailiya.png")
 fuckgame = Picture(GetImgDir() + "fuckgame.png")
@@ -98,7 +100,7 @@ def IsInJingxiangalade():
 
 # 是否在根特
 def IsIngente():
-    if wenzigente.Match():
+    if wenzigente.Match() or wenzixuankonghaigang.Match():
         logger.info("在根特")
         return True
 
@@ -159,6 +161,9 @@ class Location:
             return "逆流瀑布"
         elif IsIngente() and locationGente.Match():
             return "根特"
+        elif IsIngente() and locationHaigang.Match():
+            return "悬空海港"
+
         return ""
 
     def GetLocation(self):

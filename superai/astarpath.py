@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 from superai.common import InitLog
-from superai.astartdemo import idxTohw, hwToidx, dist_between, idxToXY
+from superai.astartdemo import idxTohw, hwToidx, dist_between, idxToXY, manhattanDistance
 from superai.gameapi import FlushPid, GameApiInit, GetMenInfo, GetNextDoorWrap, QuardantMap, Quardant
 from superai.obstacle import GetGameObstacleData, GameObstacleData, drawWithOutDoor
 
@@ -379,7 +379,6 @@ class AStartPaths:
         self.manCellnum = self.manCellHLen * self.manCellWLen
 
         # a * 核心算法
-        self.closedSet = []
         self.openSet = [start]
 
         self.start = start
@@ -394,7 +393,7 @@ class AStartPaths:
 
         # 估算到终点的距离
         self.fScore = [sys.maxsize] * self.manCellnum
-        self.fScore[start] = dist_between(idxTohw(start, self.manCellWLen), idxTohw(end, self.manCellWLen))
+        self.fScore[start] = manhattanDistance(idxTohw(start, self.manCellWLen), idxTohw(end, self.manCellWLen))
 
         self.astar()
 
@@ -424,11 +423,10 @@ class AStartPaths:
             if current == self.end:
                 return
             self.openSet.remove(current)
-            self.closedSet.append(current)
+
             adjs = self.GetAdjs(current)
             for w in adjs:
-                if w in self.closedSet:
-                    continue
+
                 # 实际距离
                 tentativeScore = self.gScore[current] + dist_between(idxTohw(current, self.manCellWLen),
                                                                      idxTohw(w, self.manCellWLen))
@@ -443,9 +441,10 @@ class AStartPaths:
 
                     self.edgeTo[w] = current
                     self.marked[w] = True
+
                     self.gScore[w] = tentativeScore
-                    self.fScore[w] = self.gScore[w] + dist_between(idxTohw(w, self.manCellWLen),
-                                                                   idxTohw(self.end, self.manCellWLen))
+                    self.fScore[w] = self.gScore[w] + manhattanDistance(idxTohw(w, self.manCellWLen),
+                                                                        idxTohw(self.end, self.manCellWLen))
                     if w not in self.openSet:
                         self.openSet.append(w)
 
@@ -638,6 +637,16 @@ def GetPaths(d, ob, beginpos, endpos):
         except IndexError:
             return [], IndexError
 
+        if img is not None:
+            lst = astar.PathTo(endcellidx)
+
+            for ele in lst:
+                # 画路径点
+                mancellwlen = d.mapw // 10
+                (cellx, celly) = idxTohw(ele, mancellwlen)
+                drawx, drawy = cellx * 10, celly * 10
+                cv2.circle(img, (drawx, drawy), 2, (0, 0, 255))
+
         try:
             lst = astar.PathToSmoothLst(endcellidx)
         except AttributeError:
@@ -730,8 +739,8 @@ def main():
         sys.exit()
     FlushPid()
 
-    DrawNextDoorPath()
-    # DrawAnyPath(1108, 306, 739, 313)
+    # DrawNextDoorPath()
+    DrawAnyPath(257, 149, 789, 297)
 
 
 if __name__ == '__main__':

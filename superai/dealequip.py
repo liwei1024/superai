@@ -28,6 +28,7 @@ fenjieyanuofasenlin = Picture(GetImgDir() + "fenjie_yanuofasenlin.png")
 fenjieeyunzhicheng = Picture(GetImgDir() + "fenjie_eyunzhicheng.png")
 fenjieniliupubu = Picture(GetImgDir() + "fenjie_niliupubu.png")
 fenjiegente = Picture(GetImgDir() + "fenjie_gente.png")
+fenjiexuankonghaigang = Picture(GetImgDir() + "fenjie_xuankonghaigang.png")
 
 sellButton = Picture(GetImgDir() + "sellbt.png")
 bagScene = Picture(GetImgDir() + "bagscene.png")
@@ -74,6 +75,8 @@ class DealEquip:
             pos = fenjieniliupubu.Pos()
         elif lo == "根特":
             pos = fenjiegente.Pos()
+        elif lo == "悬空海港":
+            pos = fenjiexuankonghaigang.Pos()
         return pos
 
     # 分解
@@ -198,17 +201,20 @@ class DealEquip:
 
 
 def main():
-    InitLog()
-    if not GameApiInit():
-        sys.exit()
-    FlushPid()
-    if not aj().Init():
-        sys.exit()
-    GameWindowToTop()
+    # InitLog()
+    # if not GameApiInit():
+    #     sys.exit()
+    # FlushPid()
+    # if not aj().Init():
+    #     sys.exit()
+    # GameWindowToTop()
+    #
+    # dq = DealEquip()
+    # print(dq.NeedRepair())
 
-    dq = DealEquip()
-    print(dq.NeedRepair())
+    pos = fenjiexuankonghaigang.Pos()
 
+    print(pos)
 
 if __name__ == '__main__':
     main()

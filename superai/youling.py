@@ -326,7 +326,7 @@ def main():
     time.sleep(1.0)
     anjian = Youling()
 
-    anjian.MouseMoveToTgp(183, 201)
+    anjian.MouseMoveTo(527, 327)
 
 
 if __name__ == '__main__':

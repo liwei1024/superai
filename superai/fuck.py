@@ -18,24 +18,23 @@ def main():
 
     meninfo = GetMenInfo()
 
-    value = DescryptF(meninfo.object + 0x1728) # 倍功
+    value = DescryptF(meninfo.object + 0x1728)  # 倍功
     print(value)
-    value = DescryptF(meninfo.object + 0x1578) # 移动速度
+    value = DescryptF(meninfo.object + 0x1578)  # 移动速度
     print(value)
-    value = DescryptF(meninfo.object + 0x15a8) # 攻击速度
+    value = DescryptF(meninfo.object + 0x15a8)  # 攻击速度
     print(value)
 
     EncryptF(meninfo.object + 0x1728, 1.0)
-    EncryptF(meninfo.object + 0x1578, 2.0)
-    EncryptF(meninfo.object + 0x15a8, 5.0)
+    # EncryptF(meninfo.object + 0x1578, 2.0)
+    # EncryptF(meninfo.object + 0x15a8, 0.0)
 
-    value = DescryptF(meninfo.object + 0x1728) # 倍功
+    value = DescryptF(meninfo.object + 0x1728)  # 倍功
     print(value)
-    value = DescryptF(meninfo.object + 0x1578) # 移动速度
+    value = DescryptF(meninfo.object + 0x1578)  # 移动速度
     print(value)
-    value = DescryptF(meninfo.object + 0x15a8) # 攻击速度
+    value = DescryptF(meninfo.object + 0x15a8)  # 攻击速度
     print(value)
-
 
 
 if __name__ == '__main__':

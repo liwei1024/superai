@@ -103,6 +103,7 @@ xuanzejieshou = Picture(GetImgDir() + "xuanzejieshou.png")
 queren_youjian = Picture(GetImgDir() + "queren_youjian.png")
 btnpress = Picture(GetImgDir() + "btnpress.png")
 mingchengchongfu = Picture(GetImgDir() + "mingchengchongfu.png")
+xuruo = Picture(GetImgDir() + "xuruo.png", dx=226, dy=448, dw=324, dh=117)
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -511,7 +512,7 @@ class Player:
         if self.latestlevel == 0:
             # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
-            return True
+            return False
         elif self.latestlevel != meninfo.level:
             # 变化了等级
             self.latestlevel = meninfo.level
@@ -917,6 +918,7 @@ def settintPingbi():
     # 进度条
     progresses = [(284, 355), (284, 373), (284, 394), (284, 414)]
     for prog in progresses:
+        RanSleep(0.3)
         aj().MouseMoveTo(prog[0], prog[1]), RanSleep(0.3)
         aj().MouseLeftClick(), KongjianSleep()
 
@@ -940,6 +942,11 @@ class InChengzhen(State):
         #     killall(), RanSleep(5)
         #     player.ChangeState(OpenGame())
         #     return
+
+        # esc弹出来了  TODO 是否别的也会出按键?
+        for i in range(2):
+            if IsEscTop():
+                aj().PressKey(VK_CODE['esc']), RanSleep(0.3)
 
         # 关闭弹窗
         if closebtn.Match():
@@ -1013,23 +1020,24 @@ class InChengzhen(State):
                 player.ChangeState(RepairEquip())
                 return
 
-        # 虚弱 TODO
-
         # 疲劳没了
         if not HavePilao():
             player.ChangeState(NoPilao())
             return
 
-        # 做剧情任务
-        if HasPlot():
-            player.ChangeState(TaskState())
+        # 虚弱
+        if xuruo.Match():
+            for i in range(10):
+                logger.warning("虚弱!! 等待"), RanSleep(1)
+        else:
+            # 做剧情任务
+            if HasPlot():
+                player.ChangeState(TaskState())
+                return
+
+            # 没有剧情任务做,切换到搬砖状态
+            player.ChangeState(BanzhuanState())
             return
-
-        # 没有剧情任务做,切换到搬砖状态
-        player.ChangeState(BanzhuanState())
-        return
-
-        # logger.info("城镇内,没有切换至其他状态"), RanSleep(0.1)
 
 
 # 技能加点,移除不需要的技能,放入需要的技能
@@ -2463,7 +2471,7 @@ defaultvalue = {
     "登录方式": "游戏",
     "单账号刷角色数量": "3",
     "创建角色数量": "10",
-    "剩余疲劳数量" : "25",
+    "剩余疲劳数量" : "0",
     "创建角色": "男魔法师,守护者,男鬼剑士,女格斗家",
     "按键": "易键鼠",
 }

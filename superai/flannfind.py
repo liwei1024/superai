@@ -154,6 +154,7 @@ class Picture:
     def Pos(self):
         self.img2 = WindowCaptureToMem(self.classname, self.windowname, self.dx, self.dy, self.dw, self.dh)
         if self.img2 is None:
+            logger.warning("图片没找到")
             return 0, 0
         return FindPicturePos(self.img1, self.img2)
 
