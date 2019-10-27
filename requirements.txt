@@ -19,3 +19,6 @@ names
 requests
 PyQt5
 screeninfo
+grpcio
+grpcio-tools
+googleapis-common-protos

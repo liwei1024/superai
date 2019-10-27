@@ -536,7 +536,7 @@ class Player:
         if self.latestlevel == 0:
             # 刚初始化 (不加) TODO
             self.latestlevel = meninfo.level
-            return False
+            return True
         elif self.latestlevel != meninfo.level:
             # 变化了等级
             self.latestlevel = meninfo.level
@@ -597,6 +597,60 @@ class GlobalState(State):
             return
 
         if isinstance(player.stateMachine.currentState, Setup):
+            return
+
+            # 视频处理
+        if player.IsEmptyFor(FOR_SHIPIN):
+            logger.info("视频状态")
+            aj().PressKey(VK_CODE["esc"]), RanSleep(0.5)
+            aj().PressKey(VK_CODE["spacebar"]), KongjianSleep()
+
+            if not IsShiPinTopWrap():
+                player.RestoreContext()
+            return
+            # 对话处理
+        elif player.IsEmptyFor(FOR_DUIHUA):
+
+            # 对话框有,但是被视频挡住了,临时切过去
+            if IsShipinTop():
+                player.ChangeState(EmptyState(FOR_SHIPIN))
+                return
+
+            logger.info("对话状态")
+            aj().PressKey(VK_CODE["spacebar"]), RanSleep(0.05)
+
+            if not IsWindowTop():
+                player.RestoreContext()
+            return
+            # 确认处理
+        elif player.IsEmptyFor(FOR_CONFIRM):
+            logger.info("确认状态")
+            if IsConfirmTop():
+                confirmPos = GetConfirmPos()
+                if confirmPos != (0, 0):
+                    aj().MouseMoveTo(confirmPos[0], confirmPos[1]), KongjianSleep()
+                    aj().MouseLeftClick(), KongjianSleep()
+                else:
+                    logger.info("没有找到确认按钮位置")
+            else:
+                logger.info("确认按钮没有置顶")
+
+            RanSleep(0.1)
+            if not IsConfirmTop():
+                player.RestoreContext()
+            return
+
+            # 视频判断
+        if not player.IsEmptyFor(FOR_SHIPIN) and IsShiPinTopWrap():
+            player.SaveAndChangeToEmpty(FOR_SHIPIN)
+            return
+            # 对话判断
+        elif not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
+            player.SaveAndChangeToEmpty(FOR_DUIHUA)
+            return
+            # 确认按钮
+        elif not player.IsEmptyFor(FOR_CONFIRM) and IsConfirmTop():
+            player.SaveAndChangeToEmpty(FOR_CONFIRM)
             return
 
         # 动画跳过
@@ -688,7 +742,7 @@ class GlobalState(State):
                     meninfo = GetMenInfo()
                     nowcheckpilao = (meninfo.name, GetRemaindPilao())
                     if player.latestcheckpilao == nowcheckpilao:
-                        logger.warning("10分钟内疲劳没有产生变化: ", nowcheckpilao, " 退出")
+                        logger.warning("10分钟内疲劳没有产生变化: %d 退出" % nowcheckpilao)
                         killall(), RanSleep(5)
                         player.ChangeState(OpenGame())
                         player.latestcheckpilaopoint = None
@@ -712,59 +766,7 @@ class GlobalState(State):
                 UnLockHp()
                 player.latestlockhp = None
 
-        # 视频处理
-        if player.IsEmptyFor(FOR_SHIPIN):
-            logger.info("视频状态")
-            aj().PressKey(VK_CODE["esc"]), RanSleep(0.5)
-            aj().PressKey(VK_CODE["spacebar"]), KongjianSleep()
 
-            if not IsShiPinTopWrap():
-                player.RestoreContext()
-            return
-        # 对话处理
-        elif player.IsEmptyFor(FOR_DUIHUA):
-
-            # 对话框有,但是被视频挡住了,临时切过去
-            if IsShipinTop():
-                player.ChangeState(EmptyState(FOR_SHIPIN))
-                return
-
-            logger.info("对话状态")
-            aj().PressKey(VK_CODE["spacebar"]), RanSleep(0.05)
-
-            if not IsWindowTop():
-                player.RestoreContext()
-            return
-        # 确认处理
-        elif player.IsEmptyFor(FOR_CONFIRM):
-            logger.info("确认状态")
-            if IsConfirmTop():
-                confirmPos = GetConfirmPos()
-                if confirmPos != (0, 0):
-                    aj().MouseMoveTo(confirmPos[0], confirmPos[1]), KongjianSleep()
-                    aj().MouseLeftClick(), KongjianSleep()
-                else:
-                    logger.info("没有找到确认按钮位置")
-            else:
-                logger.info("确认按钮没有置顶")
-
-            RanSleep(0.1)
-            if not IsConfirmTop():
-                player.RestoreContext()
-            return
-
-        # 视频判断
-        if not player.IsEmptyFor(FOR_SHIPIN) and IsShiPinTopWrap():
-            player.SaveAndChangeToEmpty(FOR_SHIPIN)
-            return
-        # 对话判断
-        elif not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
-            player.SaveAndChangeToEmpty(FOR_DUIHUA)
-            return
-        # 确认按钮
-        elif not player.IsEmptyFor(FOR_CONFIRM) and IsConfirmTop():
-            player.SaveAndChangeToEmpty(FOR_CONFIRM)
-            return
 
         # 特定状态下才进行判断卡死
         if IsManInMap() and not isinstance(player.stateMachine.currentState, FubenOver):

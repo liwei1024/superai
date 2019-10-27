@@ -2060,7 +2060,6 @@ class Skills:
                 return skill
         return None
 
-
     # 获得高等级的技能释放
     def GetMaxLevelAttackSkill(self):
         skills = self.GetCanBeUsedAttackSkills()
@@ -2253,6 +2252,24 @@ def SpeedTest():
     logger.info("GetMenInfo")
 
 
+def TestRead():
+        PrintMenInfo()
+        PrintMapInfo()
+        PrintMapObj()
+        PrintBagObj()
+        PrintBagEquipObj()
+        PrintEquipObj()
+        PrintSkillObj()
+        PrintTaskObj()
+        PrintAccpetedTaskObj()
+        PrintNextMen()
+        PrintWH()
+        PrintXingyunxing()
+        PrintSelectIdx()
+
+        time.sleep(1)
+
+
 def main():
     InitLog()
     if not GameApiInit():
@@ -2263,18 +2280,21 @@ def main():
     #     time.sleep(1.0)s
     #     PrintMenInfo()
 
+    while True:
+        TestRead()
+
     PrintMenInfo()
-    # PrintMapInfo()
+    PrintMapInfo()
     PrintMapObj()
-    # PrintBagObj()
-    # PrintBagEquipObj()
-    # PrintEquipObj()
+    PrintBagObj()
+    PrintBagEquipObj()
+    PrintEquipObj()
     PrintSkillObj()
     PrintTaskObj()
     PrintAccpetedTaskObj()
-    # PrintNextMen()
-    # PrintWH()
-    # PrintXingyunxing()
+    PrintNextMen()
+    PrintWH()
+    PrintXingyunxing()
     PrintSelectIdx()
 
     # print("无色: " + str(BagWuseNum()))

@@ -109,16 +109,19 @@ class Yijianshu:
             r = True
             self.ReleaseAllKey()
         else:
-            h = lib.M_Open_VidPid(0xC216, 0x0301)
-            x = c_void_p(h)
-
-            if self.IsInit():
-                logger.info("Init 易键鼠 ok")
-                r = True
-                self.ReleaseAllKey()
-            else:
-                logger.info("Init 易键鼠 err, 易键鼠没有加载成功")
-                r = False
+            logger.info("Init 易键鼠 err, 易键鼠没有加载成功")
+            r = False
+            x
+            # h = lib.M_Open_VidPid(0xC216, 0x0301)
+            # x = c_void_p(h)
+            #
+            # if self.IsInit():
+            #     logger.info("Init 易键鼠 ok")
+            #     r = True
+            #     self.ReleaseAllKey()
+            # else:
+            #     logger.info("Init 易键鼠 err, 易键鼠没有加载成功")
+            #     r = False
 
         return r
 

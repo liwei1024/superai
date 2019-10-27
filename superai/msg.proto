@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+service MsgService {
+    // 向主节点汇报当前的状态 复杂度是O(n^2)吧.
+    // 当每个人知道自己的任务进度后,自动归类自己为主节点,还是从节点(任务进度最慢[或者说等级最低]的作为主节点来带队,其他是从节点)
+    rpc ReportProgress(ReportProgressReq) returns (ReportProgressRes){}
+}
+
+// 报告当前进度
+message ReportProgressReq {
+    // 角色名称
+    string manname = 1;
+    // 当前任务名称
+    string taskname = 2;
+    // 当前等级
+    int32 level = 3;
+    // 局域网IP地址
+    string ip = 4;
+    // 当前要刷哪个地图(跑过去准备)
+    string map = 5;
+    // 模式  搬砖/剧情
+    string type =6;
+}
+
+message ReportProgressRes {
+
+}

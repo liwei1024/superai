@@ -4,6 +4,7 @@ import random
 import sys
 import time
 import logging
+from typing import OrderedDict
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 logger = logging.getLogger(__name__)
@@ -1745,7 +1746,7 @@ FubenInfos = {
     }
 }
 
-plotMap = {
+plotMap = OrderedDict({
     # 01-16 艾尔文防线
     "林纳斯的请求": AttacktaskFoo("幽暗密林"),
     "再访林纳斯": MeetNpcFoo("林纳斯"),
@@ -2437,11 +2438,12 @@ plotMap = {
     "亡命杀镇的魔剑士": AttacktaskFoo(""),
     "奇妙的魔剑士，瑟尔莫": AttacktaskFoo(""),
     "去找妲可儿": AttacktaskFoo(""),
-}
+})
 
 
 def main():
-    pass
+    for k, v in plotMap.items():
+        print(k)
 
 
 if __name__ == '__main__':
