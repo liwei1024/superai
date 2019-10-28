@@ -40,8 +40,8 @@ lib.M_ReleaseAllKey.argtypes = [c_void_p]
 lib.M_KeyUp2.restype = c_int
 
 # 输入支持GBK
-lib.M_KeyInputStringGBK.argtypes = [c_void_p, c_void_p, c_int]
-lib.M_KeyInputStringGBK.restype = c_int
+lib.M_KeyInputString.argtypes = [c_void_p, c_void_p, c_int]
+lib.M_KeyInputString.restype = c_int
 
 # 按下左键不弹起
 lib.M_LeftDown.argtypes = [c_void_p]
@@ -68,8 +68,8 @@ lib.M_MouseWheel.argtypes = [c_void_p, c_int]
 lib.M_MouseWheel.restype = c_int
 
 # 输入GBK
-lib.M_KeyInputStringGBK.argtypes = [c_void_p, c_char_p, c_int]
-lib.M_KeyInputStringGBK.restype = c_int
+lib.M_KeyInputString.argtypes = [c_void_p, c_char_p, c_int]
+lib.M_KeyInputString.restype = c_int
 
 # 全局变量
 h = None
@@ -111,7 +111,7 @@ class Yijianshu:
         else:
             logger.info("Init 易键鼠 err, 易键鼠没有加载成功")
             r = False
-            x
+
             # h = lib.M_Open_VidPid(0xC216, 0x0301)
             # x = c_void_p(h)
             #
@@ -400,7 +400,7 @@ class Yijianshu:
     # 输入gbk
     def KeyInputGBK(self, s):
         ins = bytes(s, "gb2312")
-        lib.M_KeyInputStringGBK(h, ins, len(ins))
+        lib.M_KeyInputString(h, ins, len(ins))
 
     # 删除所有文字
     def DeleteAll(self):

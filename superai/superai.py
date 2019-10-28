@@ -84,6 +84,7 @@ quxiaobtn = Picture(GetImgDir() + "quxiaobtn.png")
 keyishiyong = Picture(GetImgDir() + "keyishiyong.png")
 queren3 = Picture(GetImgDir() + "queren3.png")
 shitqueding = Picture(GetImgDir() + "shitqueding.png")  # TODO
+
 lingqubtn1 = Picture(GetImgDir() + "lingqubtn.png", dx=158, dy=108, dw=36, dh=22)
 lingqubtn2 = Picture(GetImgDir() + "lingqubtn.png", dx=211, dy=109, dw=36, dh=22)
 lingqubtn3 = Picture(GetImgDir() + "lingqubtn.png", dx=263, dy=108, dw=36, dh=22)
@@ -92,6 +93,15 @@ lingqubtn5 = Picture(GetImgDir() + "lingqubtn2.png", dx=161, dy=211, dw=36, dh=2
 lingqubtn6 = Picture(GetImgDir() + "lingqubtn2.png", dx=211, dy=213, dw=36, dh=22)
 lingqubtn7 = Picture(GetImgDir() + "lingqubtn2.png", dx=264, dy=212, dw=36, dh=22)
 lingqubtn8 = Picture(GetImgDir() + "lingqubtn2.png", dx=314, dy=212, dw=36, dh=22)
+lingqubtn9 = Picture(GetImgDir() + "lingqubtn.png", dx=163, dy=148, dw=36, dh=22)
+lingqubtn10 = Picture(GetImgDir() + "lingqubtn.png", dx=215, dy=148, dw=36, dh=22)
+lingqubtn11 = Picture(GetImgDir() + "lingqubtn.png", dx=267, dy=148, dw=36, dh=22)
+lingqubtn12 = Picture(GetImgDir() + "lingqubtn.png", dx=343, dy=107, dw=36, dh=22)
+lingqubtn13 = Picture(GetImgDir() + "lingqubtn.png", dx=163, dy=252, dw=36, dh=22)
+lingqubtn14 = Picture(GetImgDir() + "lingqubtn.png", dx=215, dy=252, dw=36, dh=22)
+lingqubtn15 = Picture(GetImgDir() + "lingqubtn.png", dx=267, dy=252, dw=36, dh=22)
+lingqubtn16 = Picture(GetImgDir() + "lingqubtn.png", dx=343, dy=252, dw=36, dh=22)
+
 yingbi = Picture(GetImgDir() + "yingbi.png", dx=156, dy=16, dw=22, dh=17)
 xinfeng = Picture(GetImgDir() + "xinfeng.png", dx=179, dy=244, dw=14, dh=10)
 pindaoxuanze = Picture(GetImgDir() + "pindaoxuanze.png", dx=362, dy=40, dw=54, dh=14)
@@ -106,6 +116,9 @@ btnpress = Picture(GetImgDir() + "btnpress.png")
 mingchengchongfu = Picture(GetImgDir() + "mingchengchongfu.png")
 xuruo = Picture(GetImgDir() + "xuruo.png", dx=226, dy=448, dw=324, dh=117)
 anquanjiehcutbtn = Picture(GetImgDir() + "anquanjiehcutbtn.png")
+zudui = Picture(GetImgDir() + "duizhang.png", dx=8, dy=13, dw=8, dh=5)
+chuangjianduiwu = Picture(GetImgDir() + "chuangjianduiwu.png")
+zuduiquedingbtn = Picture(GetImgDir() + "zuduiqueding.png")
 
 # 多少毫秒执行一次状态机
 StateMachineSleep = 0.01
@@ -314,8 +327,6 @@ class Player:
 
                     if self.curskill.name == "普通攻击" and IsNvMofa():
                         self.curskill = self.skills.GetMofaXingdan()
-
-
 
     # 使用掉随机选择的技能
     def UseSkill(self):
@@ -669,7 +680,9 @@ class GlobalState(State):
             # 领取 (阶段奖励)
             if xinfeng.Match():
                 lingqus = [lingqubtn1, lingqubtn2, lingqubtn3, lingqubtn4,
-                           lingqubtn5, lingqubtn6, lingqubtn7, lingqubtn8]
+                           lingqubtn5, lingqubtn6, lingqubtn7, lingqubtn8,
+                           lingqubtn9, lingqubtn10, lingqubtn11, lingqubtn12,
+                           lingqubtn13, lingqubtn14, lingqubtn15, lingqubtn16]
 
                 for lingqu in lingqus:
                     if lingqu.Match():
@@ -765,8 +778,6 @@ class GlobalState(State):
                 logger.info("解除锁血")
                 UnLockHp()
                 player.latestlockhp = None
-
-
 
         # 特定状态下才进行判断卡死
         if IsManInMap() and not isinstance(player.stateMachine.currentState, FubenOver):
@@ -1006,6 +1017,21 @@ class InChengzhen(State):
         # 设置屏蔽效果
         if IsManInChengzhen() and not IsSettingYinyingSkip():
             settintPingbi()
+
+        # 组队
+        if not zudui.Match():
+            logger.warning("没有组队! 创建队伍!")
+            aj().PressKey(VK_CODE[']'])
+
+            pos = chuangjianduiwu.Pos()
+            aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+            aj().MouseLeftClick(), RanSleep(0.5)
+
+            pos = zuduiquedingbtn.Pos()
+            aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+            aj().MouseLeftClick(), RanSleep(0.5)
+
+            aj().PressKey(VK_CODE['esc'])
 
         # 领取邮件
         # if youjian.Match() or youjian2.Match():

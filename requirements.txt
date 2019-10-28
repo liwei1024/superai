@@ -1,24 +1,37 @@
 opencv-python == 3.4.2.16
 opencv-contrib-python == 3.4.2.16
-#numpy==1.16
 numpy
-matplotlib
-pywin32
-scikit-image
-scipy
-pypiwin32
+
+# 日志
 coloredlogs
-flask
-flask_jsonrpc
-flask_sqlalchemy
-flask_cors
-flask_socketio
+
+# 过某些东西
 wmi
+pywin32
+
+# 监控
 psutil
+
+# 起名字
 names
-requests
+
+# ui
 PyQt5
+
+# 验证码请求
+requests
+
+# 排列vnc
 screeninfo
+
+# 组队
 grpcio
 grpcio-tools
 googleapis-common-protos
+
+#flask
+#flask_jsonrpc
+#flask_sqlalchemy
+#flask_cors
+#flask_socketio
+
