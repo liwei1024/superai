@@ -93,14 +93,15 @@ lingqubtn5 = Picture(GetImgDir() + "lingqubtn2.png", dx=161, dy=211, dw=36, dh=2
 lingqubtn6 = Picture(GetImgDir() + "lingqubtn2.png", dx=211, dy=213, dw=36, dh=22)
 lingqubtn7 = Picture(GetImgDir() + "lingqubtn2.png", dx=264, dy=212, dw=36, dh=22)
 lingqubtn8 = Picture(GetImgDir() + "lingqubtn2.png", dx=314, dy=212, dw=36, dh=22)
+
 lingqubtn9 = Picture(GetImgDir() + "lingqubtn.png", dx=163, dy=148, dw=36, dh=22)
 lingqubtn10 = Picture(GetImgDir() + "lingqubtn.png", dx=215, dy=148, dw=36, dh=22)
 lingqubtn11 = Picture(GetImgDir() + "lingqubtn.png", dx=267, dy=148, dw=36, dh=22)
-lingqubtn12 = Picture(GetImgDir() + "lingqubtn.png", dx=343, dy=107, dw=36, dh=22)
+lingqubtn12 = Picture(GetImgDir() + "lingqubtn.png", dx=316, dy=148, dw=36, dh=22)
 lingqubtn13 = Picture(GetImgDir() + "lingqubtn.png", dx=163, dy=252, dw=36, dh=22)
 lingqubtn14 = Picture(GetImgDir() + "lingqubtn.png", dx=215, dy=252, dw=36, dh=22)
 lingqubtn15 = Picture(GetImgDir() + "lingqubtn.png", dx=267, dy=252, dw=36, dh=22)
-lingqubtn16 = Picture(GetImgDir() + "lingqubtn.png", dx=343, dy=252, dw=36, dh=22)
+lingqubtn16 = Picture(GetImgDir() + "lingqubtn.png", dx=316, dy=252, dw=36, dh=22)
 
 yingbi = Picture(GetImgDir() + "yingbi.png", dx=156, dy=16, dw=22, dh=17)
 xinfeng = Picture(GetImgDir() + "xinfeng.png", dx=179, dy=244, dw=14, dh=10)
@@ -610,60 +611,6 @@ class GlobalState(State):
         if isinstance(player.stateMachine.currentState, Setup):
             return
 
-            # 视频处理
-        if player.IsEmptyFor(FOR_SHIPIN):
-            logger.info("视频状态")
-            aj().PressKey(VK_CODE["esc"]), RanSleep(0.5)
-            aj().PressKey(VK_CODE["spacebar"]), KongjianSleep()
-
-            if not IsShiPinTopWrap():
-                player.RestoreContext()
-            return
-            # 对话处理
-        elif player.IsEmptyFor(FOR_DUIHUA):
-
-            # 对话框有,但是被视频挡住了,临时切过去
-            if IsShipinTop():
-                player.ChangeState(EmptyState(FOR_SHIPIN))
-                return
-
-            logger.info("对话状态")
-            aj().PressKey(VK_CODE["spacebar"]), RanSleep(0.05)
-
-            if not IsWindowTop():
-                player.RestoreContext()
-            return
-            # 确认处理
-        elif player.IsEmptyFor(FOR_CONFIRM):
-            logger.info("确认状态")
-            if IsConfirmTop():
-                confirmPos = GetConfirmPos()
-                if confirmPos != (0, 0):
-                    aj().MouseMoveTo(confirmPos[0], confirmPos[1]), KongjianSleep()
-                    aj().MouseLeftClick(), KongjianSleep()
-                else:
-                    logger.info("没有找到确认按钮位置")
-            else:
-                logger.info("确认按钮没有置顶")
-
-            RanSleep(0.1)
-            if not IsConfirmTop():
-                player.RestoreContext()
-            return
-
-            # 视频判断
-        if not player.IsEmptyFor(FOR_SHIPIN) and IsShiPinTopWrap():
-            player.SaveAndChangeToEmpty(FOR_SHIPIN)
-            return
-            # 对话判断
-        elif not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
-            player.SaveAndChangeToEmpty(FOR_DUIHUA)
-            return
-            # 确认按钮
-        elif not player.IsEmptyFor(FOR_CONFIRM) and IsConfirmTop():
-            player.SaveAndChangeToEmpty(FOR_CONFIRM)
-            return
-
         # 动画跳过
         if IsNeedtiaoguo():
             aj().PressKey(VK_CODE['esc']), KongjianSleep()
@@ -671,6 +618,7 @@ class GlobalState(State):
 
         # 领取
         if IsManInChengzhen() and not isinstance(player.stateMachine.currentState, Setup):
+
             # 选择地图,艾尔文防线
             if aerwenfangxian.Match():
                 pos = aerwenfangxian.Pos()
@@ -680,9 +628,11 @@ class GlobalState(State):
             # 领取 (阶段奖励)
             if xinfeng.Match():
                 lingqus = [lingqubtn1, lingqubtn2, lingqubtn3, lingqubtn4,
-                           lingqubtn5, lingqubtn6, lingqubtn7, lingqubtn8,
-                           lingqubtn9, lingqubtn10, lingqubtn11, lingqubtn12,
-                           lingqubtn13, lingqubtn14, lingqubtn15, lingqubtn16]
+                           lingqubtn5, lingqubtn6, lingqubtn7, lingqubtn8]
+
+                if zudui.Match():
+                    lingqus = [lingqubtn9, lingqubtn10, lingqubtn11, lingqubtn12,
+                               lingqubtn13, lingqubtn14, lingqubtn15, lingqubtn16]
 
                 for lingqu in lingqus:
                     if lingqu.Match():
@@ -710,6 +660,60 @@ class GlobalState(State):
                               kicklong=24 * 60 * 60)  # 默认24小时吧
                 killall(), RanSleep(5)
                 return
+
+        # 视频处理
+        if player.IsEmptyFor(FOR_SHIPIN):
+            logger.info("视频状态")
+            aj().PressKey(VK_CODE["esc"]), RanSleep(0.5)
+            aj().PressKey(VK_CODE["spacebar"]), KongjianSleep()
+
+            if not IsShiPinTopWrap():
+                player.RestoreContext()
+            return
+        # 对话处理
+        elif player.IsEmptyFor(FOR_DUIHUA):
+
+            # 对话框有,但是被视频挡住了,临时切过去
+            if IsShipinTop():
+                player.ChangeState(EmptyState(FOR_SHIPIN))
+                return
+
+            logger.info("对话状态")
+            aj().PressKey(VK_CODE["spacebar"]), RanSleep(0.05)
+
+            if not IsWindowTop():
+                player.RestoreContext()
+            return
+        # 确认处理
+        elif player.IsEmptyFor(FOR_CONFIRM):
+            logger.info("确认状态")
+            if IsConfirmTop():
+                confirmPos = GetConfirmPos()
+                if confirmPos != (0, 0):
+                    aj().MouseMoveTo(confirmPos[0], confirmPos[1]), KongjianSleep()
+                    aj().MouseLeftClick(), KongjianSleep()
+                else:
+                    logger.info("没有找到确认按钮位置")
+            else:
+                logger.info("确认按钮没有置顶")
+
+            RanSleep(0.1)
+            if not IsConfirmTop():
+                player.RestoreContext()
+            return
+
+        # 视频判断
+        if not player.IsEmptyFor(FOR_SHIPIN) and IsShiPinTopWrap():
+            player.SaveAndChangeToEmpty(FOR_SHIPIN)
+            return
+        # 对话判断
+        elif not player.IsEmptyFor(FOR_DUIHUA) and IsWindowTop():
+            player.SaveAndChangeToEmpty(FOR_DUIHUA)
+            return
+        # 确认按钮
+        elif not player.IsEmptyFor(FOR_CONFIRM) and IsConfirmTop():
+            player.SaveAndChangeToEmpty(FOR_CONFIRM)
+            return
 
         states = [SelectJuese, CreateRole, OpenGame, Train]
 
