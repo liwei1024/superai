@@ -2,29 +2,14 @@ opencv-python == 3.4.2.16
 opencv-contrib-python == 3.4.2.16
 numpy
 
-# 日志
 coloredlogs
-
-# 过某些东西
 wmi
 pywin32
-
-# 监控
 psutil
-
-# 起名字
 names
-
-# ui
 PyQt5
-
-# 验证码请求
 requests
-
-# 排列vnc
 screeninfo
-
-# 组队
 grpcio
 grpcio-tools
 googleapis-common-protos
