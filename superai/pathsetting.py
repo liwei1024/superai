@@ -78,8 +78,8 @@ def GetYiLib():
 
 # 幽灵exe
 def GetYoulingExe():
-    if os.path.exists(os.path.join(runPath, "superai/help/")):
-        path = os.path.join(runPath, "superai/help/start.cmd")
+    if os.path.exists(os.path.join(runPath, "help/")):
+        path = os.path.join(runPath, "help/start.cmd")
     else:
         path = os.path.join(superaiPath, "help/start.cmd")
     return path
