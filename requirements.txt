@@ -14,9 +14,10 @@ grpcio
 grpcio-tools
 googleapis-common-protos
 
-#flask
-#flask_jsonrpc
-#flask_sqlalchemy
-#flask_cors
-#flask_socketio
-
+flask
+flask_jsonrpc
+flask_sqlalchemy
+flask_cors
+flask_socketio
+gevent
+gevent-websocket

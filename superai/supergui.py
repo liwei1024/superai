@@ -31,7 +31,7 @@ def main():
     w = QWidget()
 
     w.resize(1200, 300)
-    w.setWindowTitle("superai")
+    w.setWindowTitle(" ")
 
     # 列表
     table = QTableWidget()
@@ -75,35 +75,43 @@ def main():
 
     # 设置账号按钮
     settingAccountbtn = QPushButton("设置账号")
+    settingAccountDefaultbtn = QPushButton("参考账号配置")
+
 
     def settingaccont():
         os.system("start notepad %s" % (os.path.join(GetCfgPath(), "accounts")))
 
+    def settingaccountdefault():
+        os.system("start notepad %s" % (os.path.join(GetCfgPath(), "accounts.template")))
+
     settingAccountbtn.clicked.connect(settingaccont)
+    settingAccountDefaultbtn.clicked.connect(settingaccountdefault)
 
-    # 刷角色数量策略
-    jueseSettingLayout = QHBoxLayout()
-    juesenumedit = QLineEdit()
+    settingAccountLayout = QHBoxLayout()
+    settingAccountLayout.addWidget(settingAccountbtn)
+    settingAccountLayout.addWidget(settingAccountDefaultbtn)
 
-    jueseSettingLayout.addWidget(QLabel("刷角色数量: "))
-    jueseSettingLayout.addWidget(juesenumedit)
+    # 设置配置
+    settingLayout = QHBoxLayout()
 
-    config = GetConfig()
-    num = config.get("superai", "单账号刷角色数量")
-    juesenumedit.setText(num)
+    settingCfgbtn = QPushButton("设置配置")
+    settingCfgDefaultbtn = QPushButton("参考默认配置")
+
+
+    def settingcfg():
+        os.system("start notepad %s" % (os.path.join(GetCfgPath(), "superai.cfg")))
+
+    def settingCfgDefault():
+        os.system("start notepad %s" % (os.path.join(GetCfgPath(), "superai.cfg.template")))
+
+    settingCfgbtn.clicked.connect(settingcfg)
+    settingCfgDefaultbtn.clicked.connect(settingCfgDefault)
+
+    settingLayout.addWidget(settingCfgbtn)
+    settingLayout.addWidget(settingCfgDefaultbtn)
 
     # 启动按钮
     buttonlayout = QHBoxLayout()
-    confirmbtn = QPushButton("保存配置")
-
-    def confirm():
-        config = GetConfig()
-        config.set("superai", "单账号刷角色数量", juesenumedit.text())
-        SaveConfig(config)
-
-        msgBox = QMessageBox()
-        msgBox.setText("成功修改配置")
-        msgBox.exec_()
 
     startbtn = QLabel("开启(HOME)")
 
@@ -148,9 +156,7 @@ def main():
     hotkey.stopsign.connect(stop)
     hotkey.start()
 
-    confirmbtn.clicked.connect(confirm)
-
-    buttonlayout.addWidget(confirmbtn)
+    buttonlayout.setAlignment(QtCore.Qt.AlignCenter)
     buttonlayout.addWidget(startbtn)
 
     listlayout = QVBoxLayout()
@@ -161,6 +167,7 @@ def main():
 
         msgBox = QMessageBox()
         msgBox.setText("成功重置数据库")
+        msgBox.setWindowTitle("superai")
         msgBox.exec_()
 
     # 清除制裁状态按钮
@@ -169,8 +176,9 @@ def main():
     resetbtn.clicked.connect(reset)
 
     settinglayout = QVBoxLayout()
-    settinglayout.addWidget(settingAccountbtn)
-    settinglayout.addLayout(jueseSettingLayout)
+    # settinglayout.addWidget(settingAccountbtn)
+    settinglayout.addLayout(settingAccountLayout)
+    settinglayout.addLayout(settingLayout)
     settinglayout.addWidget(resetbtn)
     settinglayout.addSpacing(195)
     settinglayout.addLayout(buttonlayout)

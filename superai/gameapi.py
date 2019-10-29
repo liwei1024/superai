@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 logger = logging.getLogger(__name__)
 
 from superai.config import GetConfig
-from superai.pathsetting import GetHelpdllLib, GetDriverStartFile
+from superai.pathsetting import GetHelpdllLib, GetDriverStartFile, GetDriverStopFile
 from superai.common import InitLog, KongjianSleep
 from superai.anjian import aj
 from superai.vkcode import VK_CODE
@@ -711,9 +711,8 @@ def GameApiInit():
         return True
     else:
         logger.info("Init helpdll-xxiii.dll err, 驱动没有加载成功. 尝试加载")
-
+        os.system("start /wait cmd /c %s" % (GetDriverStopFile()))
         os.system("start /wait cmd /c %s" % (GetDriverStartFile()))
-
         if lib.Init():
             logger.info("Init helpdll-xxiii.dll ok")
             return True

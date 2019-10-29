@@ -19,6 +19,26 @@ else:
     xxxiiiPath = "d:/win/reference/project/xxiii"
     superaiPath = "d:/win/reference/project/superai"
 
+# 本地调试用
+localenvPath = "d:/win/studio/env/dists"
+
+
+# 版本号文件 (客户端读的时候才会用)
+def GetVersionFile():
+    if os.path.exists(os.path.join(runPath)):
+        file = os.path.join(runPath, "version")
+    else:
+        file = os.path.join(superaiPath, "version")
+    return file
+
+
+# 获取更新服务器的root目录
+def GetServerRootDirectory():
+    if os.path.exists(os.path.join(localenvPath)):
+        return localenvPath
+    else:
+        return "~/env/dists"
+
 
 # 底层依赖
 def GetHelpdllLib():
@@ -35,6 +55,15 @@ def GetDriverStartFile():
         p = os.path.join(runPath, "x64/Release/load.cmd")
     else:
         p = os.path.join(xxxiiiPath, "x64/Release/load.cmd")
+    return p
+
+
+# 启动关闭脚本
+def GetDriverStopFile():
+    if os.path.exists(os.path.join(runPath, "x64/Release/")):
+        p = os.path.join(runPath, "x64/Release/unload.cmd")
+    else:
+        p = os.path.join(xxxiiiPath, "x64/Release/unload.cmd")
     return p
 
 

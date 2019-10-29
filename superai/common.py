@@ -125,12 +125,12 @@ def RanSleep(t):
 
 # 操作控件后的sleep
 def KongjianSleep():
-    RanSleep(0.2)
+    RanSleep(0.15)
 
 
 # 打开某个栏的sleep
 def LanSleep():
-    RanSleep(0.3)
+    RanSleep(0.2)
 
 
 def main():

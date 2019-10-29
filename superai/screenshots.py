@@ -34,10 +34,10 @@ def WindowCaptureToFile(windowClassName, windowName, captureDir, dx=0, dy=0, dw=
         top = top + dy
 
     if dw != 0:
-        right = left + dw
+        w = dw
 
     if dh != 0:
-        bot = top + dh
+        h = dh
 
     hdesktop, desktopDC, imgDC, memDC, bitmap = None, None, None, None, None
     try:
@@ -98,10 +98,10 @@ def WindowCaptureToMem(windowClassName, windowName, dx=0, dy=0, dw=0, dh=0, defe
         top = top + dy
 
     if dw != 0:
-        right = left + dw
+        w = dw
 
     if dh != 0:
-        bot = top + dh
+        h = dh
 
     hdesktop, desktopDC, imgDC, memDC, bitmap = None, None, None, None, None
     try:

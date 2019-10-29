@@ -86,25 +86,26 @@ queren3 = Picture(GetImgDir() + "queren3.png")
 shitqueding = Picture(GetImgDir() + "shitqueding.png")  # TODO
 
 lingqubtn1 = Picture(GetImgDir() + "lingqubtn.png", dx=158, dy=108, dw=36, dh=22)
-lingqubtn2 = Picture(GetImgDir() + "lingqubtn.png", dx=211, dy=109, dw=36, dh=22)
+lingqubtn2 = Picture(GetImgDir() + "lingqubtn.png", dx=211, dy=108, dw=36, dh=22)
 lingqubtn3 = Picture(GetImgDir() + "lingqubtn.png", dx=263, dy=108, dw=36, dh=22)
-lingqubtn4 = Picture(GetImgDir() + "lingqubtn.png", dx=315, dy=107, dw=36, dh=22)
-lingqubtn5 = Picture(GetImgDir() + "lingqubtn2.png", dx=161, dy=211, dw=36, dh=22)
-lingqubtn6 = Picture(GetImgDir() + "lingqubtn2.png", dx=211, dy=213, dw=36, dh=22)
+lingqubtn4 = Picture(GetImgDir() + "lingqubtn.png", dx=315, dy=108, dw=36, dh=22)
+lingqubtn5 = Picture(GetImgDir() + "lingqubtn2.png", dx=161, dy=212, dw=36, dh=22)
+lingqubtn6 = Picture(GetImgDir() + "lingqubtn2.png", dx=211, dy=212, dw=36, dh=22)
 lingqubtn7 = Picture(GetImgDir() + "lingqubtn2.png", dx=264, dy=212, dw=36, dh=22)
 lingqubtn8 = Picture(GetImgDir() + "lingqubtn2.png", dx=314, dy=212, dw=36, dh=22)
 
-lingqubtn9 = Picture(GetImgDir() + "lingqubtn.png", dx=163, dy=148, dw=36, dh=22)
-lingqubtn10 = Picture(GetImgDir() + "lingqubtn.png", dx=215, dy=148, dw=36, dh=22)
-lingqubtn11 = Picture(GetImgDir() + "lingqubtn.png", dx=267, dy=148, dw=36, dh=22)
-lingqubtn12 = Picture(GetImgDir() + "lingqubtn.png", dx=316, dy=148, dw=36, dh=22)
-lingqubtn13 = Picture(GetImgDir() + "lingqubtn.png", dx=163, dy=252, dw=36, dh=22)
-lingqubtn14 = Picture(GetImgDir() + "lingqubtn.png", dx=215, dy=252, dw=36, dh=22)
-lingqubtn15 = Picture(GetImgDir() + "lingqubtn.png", dx=267, dy=252, dw=36, dh=22)
-lingqubtn16 = Picture(GetImgDir() + "lingqubtn.png", dx=316, dy=252, dw=36, dh=22)
+lingqubtn9 = Picture(GetImgDir() + "lingqubtn.png", dx=158, dy=148, dw=36, dh=22)
+lingqubtn10 = Picture(GetImgDir() + "lingqubtn.png", dx=211, dy=148, dw=36, dh=22)
+lingqubtn11 = Picture(GetImgDir() + "lingqubtn.png", dx=263, dy=148, dw=36, dh=22)
+lingqubtn12 = Picture(GetImgDir() + "lingqubtn.png", dx=315, dy=148, dw=36, dh=22)
+lingqubtn13 = Picture(GetImgDir() + "lingqubtn.png", dx=161, dy=252, dw=36, dh=22)
+lingqubtn14 = Picture(GetImgDir() + "lingqubtn.png", dx=211, dy=252, dw=36, dh=22)
+lingqubtn15 = Picture(GetImgDir() + "lingqubtn.png", dx=264, dy=252, dw=36, dh=22)
+lingqubtn16 = Picture(GetImgDir() + "lingqubtn.png", dx=314, dy=252, dw=36, dh=22)
 
 yingbi = Picture(GetImgDir() + "yingbi.png", dx=156, dy=16, dw=22, dh=17)
 xinfeng = Picture(GetImgDir() + "xinfeng.png", dx=179, dy=244, dw=14, dh=10)
+xinfeng2 = Picture(GetImgDir() + "xinfeng.png", dx=178, dy=283, dw=14, dh=10)
 pindaoxuanze = Picture(GetImgDir() + "pindaoxuanze.png", dx=362, dy=40, dw=54, dh=14)
 putongjuese = Picture(GetImgDir() + "putongjuese.png")
 aerwenfangxian = Picture(GetImgDir() + "aierwenfangxian.png")
@@ -626,19 +627,21 @@ class GlobalState(State):
                 aj().MouseLeftClick(), RanSleep(0.3)
 
             # 领取 (阶段奖励)
-            if xinfeng.Match():
+            if xinfeng.Match() or xinfeng2.Match():
                 lingqus = [lingqubtn1, lingqubtn2, lingqubtn3, lingqubtn4,
-                           lingqubtn5, lingqubtn6, lingqubtn7, lingqubtn8]
-
-                if zudui.Match():
-                    lingqus = [lingqubtn9, lingqubtn10, lingqubtn11, lingqubtn12,
-                               lingqubtn13, lingqubtn14, lingqubtn15, lingqubtn16]
+                           lingqubtn5, lingqubtn6, lingqubtn7, lingqubtn8,
+                           lingqubtn9, lingqubtn10, lingqubtn11, lingqubtn12,
+                           lingqubtn13, lingqubtn14, lingqubtn15, lingqubtn16
+                           ]
 
                 for lingqu in lingqus:
                     if lingqu.Match():
                         pos = lingqu.Pos()
                         aj().MouseMoveTo(pos[0] + lingqu.dx, pos[1] + lingqu.dy), KongjianSleep()
                         aj().MouseLeftClick(), KongjianSleep()
+
+                        logger.info("%s 领取: %d %d" % (lingqu.picturefile, pos[0] + lingqu.dx, pos[1] + lingqu.dy))
+
                 aj().MouseMoveR(100, 100)
 
             # 领取 (黄色按钮那个)
@@ -759,7 +762,7 @@ class GlobalState(State):
                     meninfo = GetMenInfo()
                     nowcheckpilao = (meninfo.name, GetRemaindPilao())
                     if player.latestcheckpilao == nowcheckpilao:
-                        logger.warning("10分钟内疲劳没有产生变化: %d 退出" % nowcheckpilao)
+                        logger.warning("10分钟内疲劳没有产生变化退出,", nowcheckpilao)
                         killall(), RanSleep(5)
                         player.ChangeState(OpenGame())
                         player.latestcheckpilaopoint = None

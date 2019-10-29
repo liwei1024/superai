@@ -3,6 +3,7 @@ import sys
 import threading
 import time
 
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
 import logging
@@ -292,6 +293,9 @@ class FlushImgThread(threading.Thread):
 def main():
     InitLog()
 
+    from superai.superai import xinfeng2
+
+    print(xinfeng2.Match())
 
 if __name__ == "__main__":
     main()
