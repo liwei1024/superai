@@ -2279,8 +2279,7 @@ def main():
     #     time.sleep(1.0)s
     #     PrintMenInfo()
 
-    while True:
-        TestRead()
+
 
     PrintMenInfo()
     PrintMapInfo()

@@ -24,7 +24,7 @@ socketio = SocketIO(app, cors_allowed_origins='*', async_mode='gevent')
 
 # 版本增量迭代升级
 versionmap = {
-    "1_0_0", "1_0_1",
+    "1_0_0": "1_0_1",
 }
 
 
@@ -44,26 +44,23 @@ def getVersion():
 
 
 # 下载文件
-@jsonrpc.method('download')
+@jsonrpc.method('download(curversion=str)')
 def downloadFiles(curversion):
     curversion = curversion.replace(".", "_")
     filemap = {}
     if curversion in versionmap:
-        j = {"results": None}
+
         updatedir = curversion + '-' + versionmap[curversion]
 
         for root, dirs, files in os.walk(os.path.join(GetServerRootDirectory(), updatedir)):
             for file in files:
                 logger.info(file)
 
-                with open(file) as f:
+                with open(os.path.join(root, file), 'rb') as f:
                     bs64str = base64.b64encode(f.read())
+                    filemap[str(file)] = str(bs64str)
 
-                    filemap[file] = bs64str
-
-        j["results"] = filemap
-
-        jsonstr = json.dumps(j, ensure_ascii=False)
+        jsonstr = json.dumps(filemap, ensure_ascii=False)
         return jsonstr
 
     else:

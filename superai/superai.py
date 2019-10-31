@@ -1025,20 +1025,20 @@ class InChengzhen(State):
         if IsManInChengzhen() and not IsSettingYinyingSkip():
             settintPingbi()
 
-        # 组队
-        if not zudui.Match():
-            logger.warning("没有组队! 创建队伍!")
-            aj().PressKey(VK_CODE[']'])
-
-            pos = chuangjianduiwu.Pos()
-            aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-            aj().MouseLeftClick(), RanSleep(0.5)
-
-            pos = zuduiquedingbtn.Pos()
-            aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
-            aj().MouseLeftClick(), RanSleep(0.5)
-
-            aj().PressKey(VK_CODE['esc'])
+        # # 组队
+        # if not zudui.Match():
+        #     logger.warning("没有组队! 创建队伍!")
+        #     aj().PressKey(VK_CODE[']'])
+        #
+        #     pos = chuangjianduiwu.Pos()
+        #     aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        #     aj().MouseLeftClick(), RanSleep(0.5)
+        #
+        #     pos = zuduiquedingbtn.Pos()
+        #     aj().MouseMoveTo(pos[0], pos[1]), KongjianSleep()
+        #     aj().MouseLeftClick(), RanSleep(0.5)
+        #
+        #     aj().PressKey(VK_CODE['esc'])
 
         # 领取邮件
         # if youjian.Match() or youjian2.Match():

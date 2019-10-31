@@ -131,6 +131,8 @@ class Occupationkills:
         if meninfo.level >= 20:
             self.learnstrategy.append(OccupationSkill("nvmofa", "契约召唤 : 弗利特", "zhaohuan_long.png"))
         if meninfo.level >= 25:
+            self.DelSkill("杰克爆弹")
+            self.DelSkill("光电鳗")
             self.learnstrategy.append(OccupationSkill("nvmofa", "契约召唤 : 桑德尔", "zhaohuan_sangdeer.png"))
         if meninfo.level >= 30:
             self.learnstrategy.append(OccupationSkill("nvmofa", "精灵召唤 : 冰影阿奎利斯", "zhaohuan_bing.png"))
