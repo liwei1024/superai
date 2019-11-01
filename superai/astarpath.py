@@ -2,6 +2,8 @@ import os
 import queue
 import sys
 import logging
+import time
+
 import cv2
 import numpy as np
 import copy
@@ -343,7 +345,7 @@ class Obstacle:
 
     # ** (直接使用)人物指定方向是否有障碍物或地形
     def ManQuadHasTrouble(self, quad, menx, meny):
-
+        rtn = False
         halfmenw, halfmenh = self.menw // 2, self.menh // 2
         composes = QuardantMap[quad]
         menl, menr, ment, mend = menx - halfmenw, menx + halfmenw, meny - halfmenh, meny + halfmenh
@@ -361,8 +363,8 @@ class Obstacle:
                 l, r, t, d = menl, menr, ment, mend
 
             if self.RangesHaveTrouble(l, r, t, d) > 0:
-                return True
-        return False
+                rtn = True
+        return rtn
 
 
 # a star search

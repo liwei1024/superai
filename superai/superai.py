@@ -419,6 +419,7 @@ class Player:
 
     # 靠近(带寻路)
     def SeekWithPathfinding(self, destx, desty, obj=None, dummy=None):
+
         if IsShitmoGu():
             self.Seek(destx, desty, obj, dummy=dummy)
             return
@@ -793,9 +794,9 @@ class GlobalState(State):
                 self.beginx, self.beginy = GetMenXY()
 
             # 多久时间判断一次
-            checktime = 1.0
+            checktime = 2.0
             if len(player.pathfindinglst) > 0:
-                checktime = 1.5
+                checktime = 3.0
 
             if time.time() - self.latesttime > checktime:
                 latestx, latesty = self.beginx, self.beginy

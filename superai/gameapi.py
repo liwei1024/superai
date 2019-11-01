@@ -2252,35 +2252,6 @@ def SpeedTest():
 
 
 def TestRead():
-        PrintMenInfo()
-        PrintMapInfo()
-        PrintMapObj()
-        PrintBagObj()
-        PrintBagEquipObj()
-        PrintEquipObj()
-        PrintSkillObj()
-        PrintTaskObj()
-        PrintAccpetedTaskObj()
-        PrintNextMen()
-        PrintWH()
-        PrintXingyunxing()
-        PrintSelectIdx()
-
-        time.sleep(1)
-
-
-def main():
-    InitLog()
-    if not GameApiInit():
-        sys.exit()
-    FlushPid()
-
-    # while True:
-    #     time.sleep(1.0)s
-    #     PrintMenInfo()
-
-
-
     PrintMenInfo()
     PrintMapInfo()
     PrintMapObj()
@@ -2295,6 +2266,38 @@ def main():
     PrintXingyunxing()
     PrintSelectIdx()
 
+    time.sleep(1)
+
+
+def main():
+    InitLog()
+    if not GameApiInit():
+        sys.exit()
+    FlushPid()
+
+    # while True:
+    #     time.sleep(1.0)s
+    #     PrintMenInfo()
+
+    # PrintMenInfo()
+    # PrintMapInfo()
+    # PrintMapObj()
+    # PrintBagObj()
+    # PrintBagEquipObj()
+    # PrintEquipObj()
+    # PrintSkillObj()
+    # PrintTaskObj()
+    # PrintAccpetedTaskObj()
+    # PrintNextMen()
+    # PrintWH()
+    # PrintXingyunxing()
+    # PrintSelectIdx()
+
+    t1 = time.time()
+    GetMonstersWrap()
+    t2 = time.time()
+
+    print("%.2f" % (t2 - t1))
     # print("无色: " + str(BagWuseNum()))
     # PrintAllSkillObj()
     # PrintSelectObj()
@@ -2308,8 +2311,6 @@ def main():
     # Autoshuntu()
 
     # print(IsCurrentInTrain())
-
-    print(IshaveZhaohuanshou("冰奈斯"))
 
 
 if __name__ == "__main__":
