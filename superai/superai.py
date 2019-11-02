@@ -2401,7 +2401,7 @@ class OpenGame(State):
                     aj().MouseMoveR(-30, -30)
 
             # 拖动到一边,以免影响截图
-            aj().MouseMoveToTgp(934, 582), KongjianSleep()
+            aj().MouseMoveToTgp(0, 0), KongjianSleep()
 
             # 启动
             if tgpstart.Match():
