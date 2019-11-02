@@ -1,4 +1,5 @@
 import configparser
+import ctypes
 import json
 import logging
 import os
@@ -65,6 +66,7 @@ zhanghaomimadenglubtn = Picture(GetImgDir() + "tgp_zhanghaomimadenglu.png", clas
 tgpyanzheng = Picture(GetImgDir() + "tgp_yanzheng.png", classname="TWINCONTROL", windowname="WeGame")
 huadonganniu = Picture(GetImgDir() + "tgp_huadonganniu.png", classname="TWINCONTROL", windowname="WeGame")
 tgphome = Picture(GetImgDir() + "tgp_home.png", classname="TWINCONTROL", windowname="WeGame")
+tgphome2 = Picture(GetImgDir() + "tgp_home2.png", classname="TWINCONTROL", windowname="WeGame")
 tgpdnf = Picture(GetImgDir() + "tgp_dnf.png", classname="TWINCONTROL", windowname="WeGame")
 tgpselectdaqu = Picture(GetImgDir() + "tgp_selectdaqu.png", classname="TWINCONTROL", windowname="WeGame")
 tgpxuanzedaqu = Picture(GetImgDir() + "tgp_xuanzedaqu.png", classname="TWINCONTROL", windowname="WeGame")
@@ -2256,7 +2258,7 @@ class OpenGame(State):
         hwnd = win32gui.FindWindow("TWINCONTROL", "WeGame")
         if hwnd == 0:
             tgpdir = TgpDir()
-            os.system("start \"\" \"%s\"" % tgpdir)
+            os.system("start \"\" \"%s\" /StartFor=1" % tgpdir)
 
         for i in range(60):
             TgpWindowToTop()
@@ -2298,14 +2300,14 @@ class OpenGame(State):
 
                 self.DealTgpVercode()
 
-            if tgphome.Match():
+            if tgphome.Match() or tgphome2.Match():
                 logger.info("已经登录了tgp")
                 break
 
             logger.info("等待进入tgp %d" % i), time.sleep(1)
 
         # tgp登录后的界面
-        if not tgphome.Match():
+        if not tgphome.Match() and not tgphome2.Match():
             logger.warning("tgp 没有登录")
             return
 
@@ -2643,6 +2645,14 @@ class SuperAiThread(threading.Thread):
         self.__stop = False
         self.__stophotkey = stophotkey
 
+    def raise_exception(self):
+        thread_id = self.get_id()
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id,
+                                                         ctypes.py_object(SystemExit))
+        if res > 1:
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(thread_id, 0)
+            print('Exception raise failure')
+
     def run(self) -> None:
         pythoncom.CoInitialize()
         InitSetting()
@@ -2653,40 +2663,43 @@ class SuperAiThread(threading.Thread):
             logger.warning("没有初始化成功,superai退出")
             sys.exit()
 
-        FlushPid()
-
-        self.hotkeyThread, self.gametopThread, self.flushImgThread = HotKeyThread(), GameTopThread(), FlushImgThread(),
-        threads = [self.hotkeyThread, self.gametopThread, self.flushImgThread]
-
-        for t in threads:
-            # gui不使用这个线程
-            if not (self.__stophotkey and isinstance(t, HotKeyThread)):
-                t.start()
-
-        GameWindowToTop(), time.sleep(1)
-
-        # 主线程
-        player = Player()
-        player.ChangeState(Setup())
-        player.SetGlobalState(GlobalState())
-        player.skills.Update()
-
         try:
-            while not self.hotkeyThread.isExit() and not self.__stop:
-                time.sleep(StateMachineSleep)
-                player.Update()
-        except KeyboardInterrupt:
-            pass
+            FlushPid()
 
-        for t in threads:
-            t.stop()
+            self.hotkeyThread, self.gametopThread, self.flushImgThread = HotKeyThread(), GameTopThread(), FlushImgThread(),
+            threads = [self.hotkeyThread, self.gametopThread, self.flushImgThread]
 
-        for t in threads:
-            if not (self.__stophotkey and isinstance(t, HotKeyThread)):
-                t.join()
+            for t in threads:
+                # gui不使用这个线程
+                if not (self.__stophotkey and isinstance(t, HotKeyThread)):
+                    t.start()
 
-        aj().ReleaseAllKey()
-        logger.info("main thread exit")
+            GameWindowToTop(), time.sleep(1)
+
+            # 主线程
+            player = Player()
+            player.ChangeState(Setup())
+            player.SetGlobalState(GlobalState())
+            player.skills.Update()
+
+            try:
+                while not self.hotkeyThread.isExit() and not self.__stop:
+                    time.sleep(StateMachineSleep)
+                    player.Update()
+            except KeyboardInterrupt:
+                pass
+
+            for t in threads:
+                t.stop()
+
+            for t in threads:
+                if not (self.__stophotkey and isinstance(t, HotKeyThread)):
+                    t.join()
+
+            aj().ReleaseAllKey()
+            logger.info("main thread exit")
+        except:
+            logger.warning("exception 发生了退出")
 
     def stop(self):
         self.__stop = True

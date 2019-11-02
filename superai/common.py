@@ -32,6 +32,7 @@ def killall():
 
     # tgp
     os.system("taskkill /F /im tgp_daemon.exe")
+    os.system("taskkill /F /im wegame.exe")
 
 
 def InitLog():

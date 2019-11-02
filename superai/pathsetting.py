@@ -9,14 +9,21 @@ from superai.config import GetConfig
 
 logger = logging.getLogger(__name__)
 
-if os.path.basename(sys.executable) == "python.exe":
-    # 1. python 启动. 获取源码的绝对路径
-    pyPath = os.path.split(os.path.realpath(__file__))[0]
-    globalPath = os.path.dirname(pyPath)
-else:
-    # 2. 打包的exe 启动. 获取exe的绝对路径
-    runPath = os.path.split(sys.executable)[0]
-    globalPath = os.path.split(runPath)[0]
+
+def GetGlobalPath():
+    if os.path.basename(sys.executable) == "python.exe":
+        # 1. python 启动. 获取源码的绝对路径
+        pyPath = os.path.split(os.path.realpath(__file__))[0]
+        globalPath = os.path.dirname(pyPath)
+    else:
+        # 2. 打包的exe 启动. 获取exe的绝对路径
+        runPath = os.path.split(sys.executable)[0]
+        globalPath = os.path.split(runPath)[0]
+
+    return globalPath
+
+
+globalPath = GetGlobalPath()
 
 # xxiii 目录
 xxxiiiPath = os.path.join(os.path.dirname(globalPath), "xxiii")

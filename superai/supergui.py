@@ -5,9 +5,11 @@ import time
 
 import win32api
 
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 logger = logging.getLogger(__name__)
 
+from superai.anjian import aj
 from PyQt5.QtCore import QTimer, QThread, pyqtSignal
 from superai.vkcode import VK_CODE
 from superai.subnodedb import InitDb, DbStateSelect, DbStateDel
