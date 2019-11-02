@@ -50,6 +50,11 @@ def WindowCaptureToFile(windowClassName, windowName, captureDir, dx=0, dy=0, dw=
         oldmap = memDC.SelectObject(bitmap)
         memDC.BitBlt((0, 0), (w, h), imgDC, (left, top), win32con.SRCCOPY)
         filename = '{}/screenshot{}.png'.format(captureDir, datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
+
+        directory = os.path.dirname(filename)
+        if not os.path.exists(directory):
+            os.mkdir(directory)
+
         bitmap.SaveBitmapFile(memDC, filename)
         memDC.SelectObject(oldmap)
         return filename

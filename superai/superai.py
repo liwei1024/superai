@@ -794,9 +794,9 @@ class GlobalState(State):
                 self.beginx, self.beginy = GetMenXY()
 
             # 多久时间判断一次
-            checktime = 2.0
+            checktime = 1.0
             if len(player.pathfindinglst) > 0:
-                checktime = 3.0
+                checktime = 1.5
 
             if time.time() - self.latesttime > checktime:
                 latestx, latesty = self.beginx, self.beginy
@@ -1911,7 +1911,7 @@ class CreateRole(State):
                 return
 
             aj().MouseMoveTo(436, 286), KongjianSleep()
-            aj().DeleteAll()
+            aj().DeleteAll(), RanSleep(0.5)
 
             # 输入名字
             toinput = names.get_full_name().replace(' ', random.choice(
@@ -2030,7 +2030,7 @@ class OpenGame(State):
             if checkIfProcessRunning("DNF.exe"):
                 logger.warning("关闭DNF.exe")
                 killall(), RanSleep(5)
-            elif checkIfProcessRunning("tgp_daemon.exe"):
+            elif win32gui.FindWindow("TWINCONTROL", "WeGame") != 0:
                 logger.warning("关闭tgp_daemon.exe")
                 killall(), RanSleep(5)
             elif win32gui.FindWindow("TWINCONTROL", "地下城与勇士登录程序") != 0:
@@ -2174,7 +2174,7 @@ class OpenGame(State):
         # 输入账号
         aj().MouseMoveToLogin(1125, 324), KongjianSleep()
         aj().MouseLeftClick(), RanSleep(1.0)
-        aj().DeleteAll()
+        aj().DeleteAll(), RanSleep(0.5)
         logger.info("输入账号 %s" % selectAccount.account)
         aj().KeyInputGBK(selectAccount.account), RanSleep(0.3)
 
@@ -2276,14 +2276,14 @@ class OpenGame(State):
         # 输入账号
         aj().MouseMoveToTgp(801, 216)
         aj().MouseLeftClick(), KongjianSleep()
-        aj().DeleteAll()
+        aj().DeleteAll(), RanSleep(0.5)
         logger.info("输入账号 %s" % selectAccount.account)
         aj().KeyInputGBK(selectAccount.account), RanSleep(0.3)
 
         # 输入密码
         aj().MouseMoveToTgp(821, 244)
         aj().MouseLeftClick(), KongjianSleep()
-        aj().DeleteAll()
+        aj().DeleteAll(), RanSleep(0.5)
         logger.info("输入密码 %s" % selectAccount.password)
         aj().KeyInputGBK(selectAccount.password), RanSleep(0.3)
 

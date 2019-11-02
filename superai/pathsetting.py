@@ -9,15 +9,17 @@ from superai.config import GetConfig
 
 logger = logging.getLogger(__name__)
 
-runPath = os.path.split(sys.executable)[0]
-runPath = os.path.split(runPath)[0]
-
-if os.path.exists("c:/win/reference"):
-    xxxiiiPath = "c:/win/reference/project/xxiii"
-    superaiPath = "c:/win/reference/project/superai"
+if os.path.basename(sys.executable) == "python.exe":
+    # 1. python 启动. 获取源码的绝对路径
+    pyPath = os.path.split(os.path.realpath(__file__))[0]
+    globalPath = os.path.dirname(pyPath)
 else:
-    xxxiiiPath = "d:/win/reference/project/xxiii"
-    superaiPath = "d:/win/reference/project/superai"
+    # 2. 打包的exe 启动. 获取exe的绝对路径
+    runPath = os.path.split(sys.executable)[0]
+    globalPath = os.path.split(runPath)[0]
+
+# xxiii 目录
+xxxiiiPath = os.path.join(os.path.dirname(globalPath), "xxiii")
 
 # 本地调试用
 localenvPath = "d:/win/studio/env/dists"
@@ -25,11 +27,7 @@ localenvPath = "d:/win/studio/env/dists"
 
 # 版本号文件 (客户端读的时候才会用)
 def GetVersionFile():
-    if os.path.exists(os.path.join(runPath)):
-        file = os.path.join(runPath, "version")
-    else:
-        file = os.path.join(superaiPath, "version")
-    return file
+    return os.path.join(globalPath, "version")
 
 
 # 获取更新服务器的root目录
@@ -42,65 +40,38 @@ def GetServerRootDirectory():
 
 # 底层依赖
 def GetHelpdllLib():
-    if os.path.exists(os.path.join(runPath, "x64/Release/")):
-        lib = CDLL(os.path.join(runPath, "x64/Release/helpdll-xxiii.dll"), RTLD_GLOBAL)
-    else:
-        lib = CDLL(os.path.join(xxxiiiPath, "x64/Release/helpdll-xxiii.dll"), RTLD_GLOBAL)
+    lib = CDLL(os.path.join(xxxiiiPath, "x64/Release/helpdll-xxiii.dll"), RTLD_GLOBAL)
     return lib
 
 
 # 启动启动脚本
 def GetDriverStartFile():
-    if os.path.exists(os.path.join(runPath, "x64/Release/")):
-        p = os.path.join(runPath, "x64/Release/load.cmd")
-    else:
-        p = os.path.join(xxxiiiPath, "x64/Release/load.cmd")
-    return p
+    return os.path.join(xxxiiiPath, "x64/Release/load.cmd")
 
 
 # 启动关闭脚本
 def GetDriverStopFile():
-    if os.path.exists(os.path.join(runPath, "x64/Release/")):
-        p = os.path.join(runPath, "x64/Release/unload.cmd")
-    else:
-        p = os.path.join(xxxiiiPath, "x64/Release/unload.cmd")
-    return p
+    return os.path.join(xxxiiiPath, "x64/Release/unload.cmd")
 
 
 # 易键鼠dll
 def GetYiLib():
-    if os.path.exists(os.path.join(runPath, "superai/dll/")):
-        lib = CDLL(os.path.join(runPath, "superai/dll/msdk.dll"), RTLD_GLOBAL)
-    else:
-        lib = CDLL(os.path.join(superaiPath, "dll/msdk.dll"), RTLD_GLOBAL)
-    return lib
+    return CDLL(os.path.join(globalPath, "dll/msdk.dll"), RTLD_GLOBAL)
 
 
 # 幽灵exe
 def GetYoulingExe():
-    if os.path.exists(os.path.join(runPath, "help/")):
-        path = os.path.join(runPath, "help/start.cmd")
-    else:
-        path = os.path.join(superaiPath, "help/start.cmd")
-    return path
+    return os.path.join(globalPath, "help/start.cmd")
 
 
 # 图片资源
 def GetImgDir():
-    if os.path.exists(os.path.join(runPath, "superimg/")):
-        basedir = os.path.join(runPath, "superimg/")
-    else:
-        basedir = os.path.join(superaiPath, "superimg/")
-    return basedir
+    return os.path.join(globalPath, "superimg/")
 
 
 # 配置路径
 def GetCfgPath():
-    if os.path.exists(os.path.join(runPath, "supercfg/")):
-        settingdir = os.path.join(runPath, "supercfg/")
-    else:
-        settingdir = os.path.join(superaiPath, "supercfg/")
-    return settingdir
+    return os.path.join(globalPath, "supercfg/")
 
 
 # 获取账户配置文件
@@ -110,11 +81,7 @@ def GetCfgFile():
 
 # 数据库路径
 def GetDbDir():
-    if os.path.exists(os.path.join(runPath, "superdb/")):
-        dbdir = os.path.join(runPath, "superdb/")
-    else:
-        dbdir = os.path.join(superaiPath, "superdb/")
-    return dbdir
+    return os.path.join(globalPath, "superdb/")
 
 
 # 数据库文件
@@ -124,11 +91,7 @@ def getDbFile():
 
 # 验证码缓存路径
 def GetvercodeDir():
-    if os.path.exists(os.path.join(runPath, "supervercode/")):
-        d = os.path.join(runPath, "supervercode/")
-    else:
-        d = os.path.join(superaiPath, "supervercode/")
-    return d
+    return os.path.join(globalPath, "supervercode/")
 
 
 # 游戏路径
@@ -156,6 +119,10 @@ def GameFileDir():
 def TgpDir():
     if os.path.exists("d:/Program Files (x86)/WeGame"):
         tgpdir = "d:/Program Files (x86)/WeGame/tgp_daemon.exe"
+        if os.path.exists(tgpdir):
+            return tgpdir
+    else:
+        tgpdir = "c:/Program Files (x86)/WeGame/tgp_daemon.exe"
         if os.path.exists(tgpdir):
             return tgpdir
 

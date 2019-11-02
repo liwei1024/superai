@@ -1,13 +1,13 @@
 [superai]
-游戏路径 = d:/win/game/dnf/地下城与勇士/start/DNFchina.exe
-wegame路径 = d:/Program Files (x86)/WeGame/tgp_daemon.exe
-// 游戏/wegame 
-登录方式 = wegame
-单账号刷角色数量 = 3
-创建角色数量 = 10
-// 剩余15点疲劳见红
-剩余疲劳数量 = 0
-// 默认创建(按照顺序): 男魔法师(风法),守护者(帕拉丁),男鬼剑士(剑影),女格斗家(气功)
-创建角色 = 男魔法师,守护者,男鬼剑士,女格斗家
-// 易键鼠/幽灵按键
-按键 = 易键鼠
+��Ϸ·�� = d:/win/game/dnf/���³�����ʿ/start/DNFchina.exe
+wegame·�� = d:/Program Files (x86)/WeGame/tgp_daemon.exe
+// ��Ϸ/wegame 
+��¼��ʽ = wegame
+���˺�ˢ��ɫ���� = 3
+������ɫ���� = 10
+// ʣ��15��ƣ�ͼ���
+ʣ��ƣ������ = 0
+// Ĭ�ϴ���(����˳��): ��ħ��ʦ(�編),�ػ���(������),�й���ʿ(��Ӱ),Ů�񶷼�(����)
+������ɫ = ��ħ��ʦ,�ػ���,�й���ʿ,Ů�񶷼�
+// �׼���/���鰴��
+���� = �׼���

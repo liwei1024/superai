@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import threading
+import time
 from ctypes import *
 import win32gui
 
@@ -68,8 +69,8 @@ lib.M_MouseWheel.argtypes = [c_void_p, c_int]
 lib.M_MouseWheel.restype = c_int
 
 # 输入GBK
-lib.M_KeyInputString.argtypes = [c_void_p, c_char_p, c_int]
-lib.M_KeyInputString.restype = c_int
+lib.M_KeyInputStringGBK.argtypes = [c_void_p, c_char_p, c_int]
+lib.M_KeyInputStringGBK.restype = c_int
 
 # 全局变量
 h = None
@@ -112,16 +113,16 @@ class Yijianshu:
             logger.info("Init 易键鼠 err, 易键鼠没有加载成功")
             r = False
 
-            # h = lib.M_Open_VidPid(0xC216, 0x0301)
-            # x = c_void_p(h)
-            #
-            # if self.IsInit():
-            #     logger.info("Init 易键鼠 ok")
-            #     r = True
-            #     self.ReleaseAllKey()
-            # else:
-            #     logger.info("Init 易键鼠 err, 易键鼠没有加载成功")
-            #     r = False
+            h = lib.M_Open_VidPid(0xC216, 0x0301)
+            x = c_void_p(h)
+
+            if self.IsInit():
+                logger.info("Init 易键鼠 ok")
+                r = True
+                self.ReleaseAllKey()
+            else:
+                logger.info("Init 易键鼠 err, 易键鼠没有加载成功")
+                r = False
 
         return r
 
@@ -400,7 +401,7 @@ class Yijianshu:
     # 输入gbk
     def KeyInputGBK(self, s):
         ins = bytes(s, "gb2312")
-        lib.M_KeyInputString(h, ins, len(ins))
+        lib.M_KeyInputStringGBK(h, ins, len(ins))
 
     # 删除所有文字
     def DeleteAll(self):
@@ -417,9 +418,10 @@ def main():
         logger.warning("易键鼠初始化失败")
         sys.exit()
 
-    GameWindowToTop()
+    # GameWindowToTop()
 
-    anjian.MouseMoveTo(205, 434)
+    time.sleep(1)
+    anjian.KeyInputGBK("3391191838")
 
 
 if __name__ == '__main__':

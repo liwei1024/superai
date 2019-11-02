@@ -154,9 +154,10 @@ class Obstacle:
 
     # 是否地形idx可移动. idx  10 宽高的相应cell一维位置
     def IsDixingVecHave(self, cellidx):
-        if cellidx >= len(self.dixing):
+        if cellidx < len(self.dixing):
+            return self.dixing[cellidx]
+        else:
             return True
-        return self.dixing[cellidx]
 
     # ** 范围内相交的所有的可被攻击障碍物. l,r,t,d 范围格子坐标极值. 返回 [obstacles]
     def RangesAllObstacleAttack(self, l, r, t, d):
